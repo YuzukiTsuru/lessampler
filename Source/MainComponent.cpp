@@ -37,7 +37,7 @@ void MainComponent::paint(Graphics &g) {
     g.drawText(CharPointer_UTF8("\xe4\xbd\xa0\xe5\xa5\xbd\xef\xbc\x81"
                                 "\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1\xe3\x81\xaf\xef\xbc\x81"
                                 "Hello!"),
-               getLocalBounds(), Justification::centred);
+               getLocalBounds(), Justification::centred, true);
 }
 
 void MainComponent::resized(){
