@@ -5,7 +5,7 @@
 基于JUCE的歌声合成软件，提供高质量，高效率的歌声合成体验。
 
 ## API:
-- [ ] [UTAU] (http://utau2008.xrea.jp/) 接口
+- [ ] [UTAU](http://utau2008.xrea.jp/) 接口
 - [ ] [LeafOpenUTAUQt](https://github.com/shine5402/LeafOpenUTAUQt) 接口
 - [ ] Library 接口
 
