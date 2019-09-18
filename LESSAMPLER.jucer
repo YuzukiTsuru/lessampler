@@ -6,7 +6,64 @@
       <FILE id="Tsrggm" name="icon.png" compile="0" resource="1" file="Resources/icon.png"/>
       <FILE id="Lrj4S7" name="SiHei.otf" compile="0" resource="1" file="Resources/SiHei.otf"/>
     </GROUP>
+    <GROUP id="{26F059A8-BCF8-7342-8447-37989873B15F}" name="Library">
+      <GROUP id="{FBECF9DF-5EEC-2962-B649-467D50A603BF}" name="World">
+        <GROUP id="{ADECCE04-AEB5-A8F6-4A39-8B7AA1DBA918}" name="world">
+          <FILE id="rOqPuc" name="cheaptrick.h" compile="0" resource="0" file="Library/World/src/world/cheaptrick.h"/>
+          <FILE id="Ohmef9" name="codec.h" compile="0" resource="0" file="Library/World/src/world/codec.h"/>
+          <FILE id="PXbYuq" name="common.h" compile="0" resource="0" file="Library/World/src/world/common.h"/>
+          <FILE id="W60iKZ" name="constantnumbers.h" compile="0" resource="0"
+                file="Library/World/src/world/constantnumbers.h"/>
+          <FILE id="HcJqQ6" name="d4c.h" compile="0" resource="0" file="Library/World/src/world/d4c.h"/>
+          <FILE id="WYGwRb" name="dio.h" compile="0" resource="0" file="Library/World/src/world/dio.h"/>
+          <FILE id="gc2rUE" name="fft.h" compile="0" resource="0" file="Library/World/src/world/fft.h"/>
+          <FILE id="hAhGda" name="harvest.h" compile="0" resource="0" file="Library/World/src/world/harvest.h"/>
+          <FILE id="JDDVNU" name="macrodefinitions.h" compile="0" resource="0"
+                file="Library/World/src/world/macrodefinitions.h"/>
+          <FILE id="alMH0X" name="matlabfunctions.h" compile="0" resource="0"
+                file="Library/World/src/world/matlabfunctions.h"/>
+          <FILE id="Zkipti" name="stonemask.h" compile="0" resource="0" file="Library/World/src/world/stonemask.h"/>
+          <FILE id="gMt0mN" name="synthesis.h" compile="0" resource="0" file="Library/World/src/world/synthesis.h"/>
+          <FILE id="AQiJu5" name="synthesisrealtime.h" compile="0" resource="0"
+                file="Library/World/src/world/synthesisrealtime.h"/>
+        </GROUP>
+        <FILE id="BDjEmE" name="cheaptrick.cpp" compile="1" resource="0" file="Library/World/src/cheaptrick.cpp"/>
+        <FILE id="Tkrhvj" name="codec.cpp" compile="1" resource="0" file="Library/World/src/codec.cpp"/>
+        <FILE id="YlZUd1" name="common.cpp" compile="1" resource="0" file="Library/World/src/common.cpp"/>
+        <FILE id="NTbcus" name="d4c.cpp" compile="1" resource="0" file="Library/World/src/d4c.cpp"/>
+        <FILE id="Xw5bkp" name="dio.cpp" compile="1" resource="0" file="Library/World/src/dio.cpp"/>
+        <FILE id="LoPBUA" name="fft.cpp" compile="1" resource="0" file="Library/World/src/fft.cpp"/>
+        <FILE id="GgUzHd" name="harvest.cpp" compile="1" resource="0" file="Library/World/src/harvest.cpp"/>
+        <FILE id="dvnjib" name="matlabfunctions.cpp" compile="1" resource="0"
+              file="Library/World/src/matlabfunctions.cpp"/>
+        <FILE id="KNmrbz" name="stonemask.cpp" compile="1" resource="0" file="Library/World/src/stonemask.cpp"/>
+        <FILE id="ea396p" name="synthesis.cpp" compile="1" resource="0" file="Library/World/src/synthesis.cpp"/>
+        <FILE id="alyUtW" name="synthesisrealtime.cpp" compile="1" resource="0"
+              file="Library/World/src/synthesisrealtime.cpp"/>
+      </GROUP>
+    </GROUP>
     <GROUP id="{EB62C5E6-FCD9-20B0-F54A-5212AEBE9E78}" name="Source">
+      <GROUP id="{6DB82DB4-4722-DCF5-1B12-5E45D9B5EEA2}" name="UI">
+        <FILE id="cUJKz5" name="InfoDialog.cpp" compile="1" resource="0" file="Source/InfoDialog.cpp"/>
+        <FILE id="oI58o0" name="InfoDialog.h" compile="0" resource="0" file="Source/InfoDialog.h"/>
+        <FILE id="agLMqx" name="OptionSetter.cpp" compile="1" resource="0"
+              file="Source/OptionSetter.cpp"/>
+        <FILE id="qSG1Bh" name="OptionSetter.h" compile="0" resource="0" file="Source/OptionSetter.h"/>
+        <FILE id="Q7vkzD" name="WarningDialog.cpp" compile="1" resource="0"
+              file="Source/WarningDialog.cpp"/>
+        <FILE id="jw68Il" name="WarningDialog.h" compile="0" resource="0" file="Source/WarningDialog.h"/>
+      </GROUP>
+      <GROUP id="{8CED268A-AF38-AB70-DC2A-9081796AE2F3}" name="WaveIO">
+        <FILE id="Pxq5aj" name="WaveIO.cpp" compile="1" resource="0" file="Source/WaveIO.cpp"/>
+        <FILE id="OdgpgQ" name="WaveIO.h" compile="0" resource="0" file="Source/WaveIO.h"/>
+      </GROUP>
+      <GROUP id="{C2C06122-E81B-3FB6-B174-CF29D49B1F61}" name="Resampler">
+        <GROUP id="{C209EB0B-623B-D9C9-71E7-46AC17BCA763}" name="F0Calculation">
+          <FILE id="eBGrvF" name="F0Calculation.cpp" compile="1" resource="0"
+                file="Source/F0Calculation.cpp"/>
+          <FILE id="ZSQOvD" name="F0Calculation.h" compile="0" resource="0" file="Source/F0Calculation.h"/>
+        </GROUP>
+      </GROUP>
       <FILE id="AQ2XE7" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="sPUXZc" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
@@ -16,8 +73,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="Tsrggm" bigIcon="Tsrggm">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug"/>
-        <CONFIGURATION isDebug="0" name="Release"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../SDK/JUCE/modules"/>
@@ -35,6 +92,48 @@
         <MODULEPATH id="juce_opengl" path="../../../SDK/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
+    <VS2019 targetFolder="Builds/VisualStudio2019">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_cryptography"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_audio_utils"/>
+        <MODULEPATH id="juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics"/>
+      </MODULEPATHS>
+    </VS2019>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_cryptography"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_audio_utils"/>
+        <MODULEPATH id="juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
