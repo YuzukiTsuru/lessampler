@@ -11,11 +11,8 @@ namespace BinaryData
     extern const char*   icon_png;
     const int            icon_pngSize = 16249;
 
-    extern const char*   SiHei_otf;
-    const int            SiHei_otfSize = 7704352;
-
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 2;
+    const int namedResourceListSize = 1;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];
