@@ -1,6 +1,5 @@
 #include "MainComponent.h"
 
-//==============================================================================
 MainComponent::MainComponent() {
     setSize(1024, 576);
 
@@ -19,7 +18,6 @@ MainComponent::~MainComponent() {
 
 //==============================================================================
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate) {
-    
 }
 
 void MainComponent::getNextAudioBlock(const AudioSourceChannelInfo &bufferToFill) {
@@ -27,7 +25,6 @@ void MainComponent::getNextAudioBlock(const AudioSourceChannelInfo &bufferToFill
 }
 
 void MainComponent::releaseResources() {
-    
 }
 
 //==============================================================================
@@ -40,8 +37,5 @@ void MainComponent::paint(Graphics &g) {
                getLocalBounds(), Justification::centred, true);
 }
 
-void MainComponent::resized(){
-    // This is called when the MainContentComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
+void MainComponent::resized() {
 }

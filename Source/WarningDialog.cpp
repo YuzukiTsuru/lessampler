@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    WarningDialog.cpp
-    Created: 18 Sep 2019 1:09:37pm
-    Author:  Ghost Gloomy
-
-  ==============================================================================
-*/
-
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "WarningDialog.h"
 
