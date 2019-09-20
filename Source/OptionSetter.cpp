@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    OptionSetter.cpp
-    Created: 18 Sep 2019 1:10:43pm
-    Author:  Ghost Gloomy
-
-  ==============================================================================
-*/
-
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "OptionSetter.h"
 

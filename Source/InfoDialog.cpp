@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    InfoDialog.cpp
-    Created: 18 Sep 2019 1:09:54pm
-    Author:  Ghost Gloomy
-
-  ==============================================================================
-*/
-
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "InfoDialog.h"
 
