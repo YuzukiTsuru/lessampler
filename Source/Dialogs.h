@@ -6,6 +6,10 @@
 #define DEFAULT_PATH "/tmp"
 #endif
 
+#define ERROR   "ERROR - LESSAMPLER"
+#define INFO    "INFO - LESSAMPLER"
+#define WARNING "WARNING - LESSAMPLER"
+
 /*
  * Error Dialog Display
  *

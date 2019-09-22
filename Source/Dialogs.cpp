@@ -3,33 +3,22 @@
 
 #include "portable-file-dialogs.h"
 
-const char *getTitle(const char *msg) {
-    String msgStr  = msg;
-    String appName = ProjectInfo::projectName;
-    String m       = msgStr + " - " + appName;
-    return m.getCharPointer();
-}
-
 int errorDialog(const char *error) {
     // Set verbosity to true
     pfd::settings::verbose(true);
 
     // Message box
-    auto m = pfd::message(getTitle("ERROR"), error, pfd::choice::yes_no, pfd::icon::error);
+    auto m = pfd::message(ERROR, error, pfd::choice::yes_no, pfd::icon::error);
 
     // Do something according to the selected button
     switch (m.result()) {
         case pfd::button::yes:
-            std::cout << "User agreed.\n";
+            Logger::writeToLog("User agreed.");
             return 1;
             break;
         case pfd::button::no:
-            std::cout << "User disagreed.\n";
+            Logger::writeToLog("User disagreed.");
             return 2;
-            break;
-        case pfd::button::cancel:
-            std::cout << "User freaked out.\n";
-            return 3;
             break;
         default:
             return -1;
