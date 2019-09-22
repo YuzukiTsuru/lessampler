@@ -8,7 +8,7 @@ int errorDialog(const char *error) {
     pfd::settings::verbose(true);
 
     // Message box
-    auto m = pfd::message(ERROR, error, pfd::choice::yes_no, pfd::icon::error);
+    auto m = pfd::message(ERROR_MSG, error, pfd::choice::yes_no, pfd::icon::error);
 
     // Do something according to the selected button
     switch (m.result()) {
