@@ -51,6 +51,10 @@
             xcodeResource="1"/>
     </GROUP>
     <GROUP id="{1A82D43D-5666-C2DE-B8DA-818AF0562553}" name="Source">
+      <GROUP id="{AD79EA31-3C8A-329A-CBB4-5492895739C4}" name="UI">
+        <FILE id="AnqZZe" name="Dialogs.cpp" compile="1" resource="0" file="Source/Dialogs.cpp"/>
+        <FILE id="YNOLFi" name="Dialogs.h" compile="0" resource="0" file="Source/Dialogs.h"/>
+      </GROUP>
       <GROUP id="{234FDDC2-5EB8-9983-540D-4E5D9860E9DF}" name="F0Calc">
         <FILE id="kQ8i4K" name="Chooser.cpp" compile="1" resource="0" file="Source/Chooser.cpp"/>
         <FILE id="adtXdb" name="Chooser.h" compile="0" resource="0" file="Source/Chooser.h"/>
