@@ -3,13 +3,9 @@
 <JUCERPROJECT id="SF7Nps" name="LESSAMPLER" projectType="consoleapp" jucerVersion="5.4.4">
   <MAINGROUP id="vMapAe" name="LESSAMPLER">
     <GROUP id="{ACCB7999-C9CE-AA43-4C8D-8C6F02024714}" name="Library">
-      <GROUP id="{267A52D0-E2B5-5D9C-150C-0C3B02DF0635}" name="GLFW">
-        <GROUP id="{989124F3-2A1F-DDDA-9E0C-AB6538758DF1}" name="include">
-          <GROUP id="{030C4A85-DDF8-F36B-F611-28F3590D7E88}" name="GLFW">
-            <FILE id="PHPFoI" name="glfw3.h" compile="0" resource="0" file="Library/glfw/include/GLFW/glfw3.h"/>
-            <FILE id="EXtv7V" name="glfw3native.h" compile="0" resource="0" file="Library/glfw/include/GLFW/glfw3native.h"/>
-          </GROUP>
-        </GROUP>
+      <GROUP id="{267A52D0-E2B5-5D9C-150C-0C3B02DF0635}" name="Dialogs">
+        <FILE id="yA2Gcz" name="portable-file-dialogs.h" compile="0" resource="0"
+              file="Library/Dialogs/portable-file-dialogs.h"/>
       </GROUP>
       <GROUP id="{402F7146-AFB6-23DC-05D6-D964A868B0F2}" name="World">
         <GROUP id="{A7E2F396-3535-92F1-F524-1491F95AD3C1}" name="world">
@@ -64,13 +60,10 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="vRamD0" bigIcon="vRamD0"
-               externalLibraries="glfw.3">
+    <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="vRamD0" bigIcon="vRamD0">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/glfw/include/"
-                       libraryPath="../../Library/glfw/lib-macos/"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/glfw/include/"
-                       libraryPath="../../Library/glfw/lib-macos/"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/ "/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../SDK/JUCE/modules"/>

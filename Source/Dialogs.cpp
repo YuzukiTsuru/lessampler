@@ -1,36 +1,41 @@
 #include "Dialogs.h"
+#include "../JuceLibraryCode/JuceHeader.h"
 
-#include <OpenGL/gl3.h>
-#include <GLFW/glfw3.h>
+#include "portable-file-dialogs.h"
 
 int errorDialog() {
-    GLFWwindow *window;
-    /* Initialize the library */
-    if (!glfwInit())
-        return -1;
-    
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        return -1;
+    // Set verbosity to true
+    pfd::settings::verbose(true);
+
+    // Message box
+    auto m = pfd::message("Personal Message",
+                          "You are an amazing person, don’t let anyone make you think otherwise.",
+                          pfd::choice::yes_no_cancel,
+                          pfd::icon::warning);
+
+    // Do something according to the selected button
+    switch (m.result()) {
+        case pfd::button::yes:
+            std::cout << "User agreed.\n";
+            break;
+        case pfd::button::no:
+            std::cout << "User disagreed.\n";
+            break;
+        case pfd::button::cancel:
+            std::cout << "User freaked out.\n";
+            break;
+        default:
+            break; // Should not happen
     }
-    
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
-    
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window)) {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
-        
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
-        
-        /* Poll for and process events */
-        glfwPollEvents();
-    }
-    
-    glfwTerminate();
     return 0;
+}
+
+void copyRight() {
+    std::cout << "GSiSY 2019\n"
+              << "Auther:\tGloomyGhost\n\n"
+              << "Project:\t"
+              << ProjectInfo::projectName
+              << "\nVersion:\t"
+              << ProjectInfo::versionString
+              << std::endl;
 }
