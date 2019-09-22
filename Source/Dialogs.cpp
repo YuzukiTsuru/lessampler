@@ -3,12 +3,19 @@
 
 #include "portable-file-dialogs.h"
 
+const char* getTitle(const char *msg) {
+    String msgStr  = msg;
+    String appName = ProjectInfo::projectName;
+    String m       = msgStr + " - " + appName;
+    return m.getCharPointer();
+}
+
 int errorDialog(const char *error) {
     // Set verbosity to true
     pfd::settings::verbose(true);
 
     // Message box
-    auto m = pfd::message("Error!", error, pfd::choice::yes_no, pfd::icon::error);
+    auto m = pfd::message(getTitle("ERROR"), error, pfd::choice::yes_no, pfd::icon::error);
 
     // Do something according to the selected button
     switch (m.result()) {
