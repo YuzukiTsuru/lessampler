@@ -3,31 +3,37 @@
 
 #include "portable-file-dialogs.h"
 
-int errorDialog() {
+int errorDialog(const char *error) {
     // Set verbosity to true
     pfd::settings::verbose(true);
 
     // Message box
-    auto m = pfd::message("Personal Message",
-                          "You are an amazing person, don’t let anyone make you think otherwise.",
-                          pfd::choice::yes_no_cancel,
-                          pfd::icon::warning);
+    auto m = pfd::message("Error!", error, pfd::choice::yes_no, pfd::icon::error);
 
     // Do something according to the selected button
     switch (m.result()) {
         case pfd::button::yes:
             std::cout << "User agreed.\n";
+            return 1;
             break;
         case pfd::button::no:
             std::cout << "User disagreed.\n";
+            return 2;
             break;
         case pfd::button::cancel:
             std::cout << "User freaked out.\n";
+            return 3;
             break;
         default:
+            return -1;
             break; // Should not happen
     }
     return 0;
+}
+
+void infoDialog(const char *title, const char *msg) {
+    pfd::settings::verbose(true);
+    pfd::message(title, msg, pfd::choice::ok, pfd::icon::info);
 }
 
 void copyRight() {
