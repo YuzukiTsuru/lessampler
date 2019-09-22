@@ -3,7 +3,7 @@
 
 #include "portable-file-dialogs.h"
 
-const char* getTitle(const char *msg) {
+const char *getTitle(const char *msg) {
     String msgStr  = msg;
     String appName = ProjectInfo::projectName;
     String m       = msgStr + " - " + appName;
@@ -50,5 +50,6 @@ void copyRight() {
               << ProjectInfo::projectName
               << "\nVersion:\t"
               << ProjectInfo::versionString
+              << "\n\n"
               << std::endl;
 }
