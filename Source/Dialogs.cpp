@@ -3,7 +3,7 @@
 
 #include "portable-file-dialogs.h"
 
-int errorDialog(const char *error) {
+int Dialogs::errorDialog(const char *error) {
     // Set verbosity to true
     pfd::settings::verbose(true);
 
@@ -27,12 +27,12 @@ int errorDialog(const char *error) {
     return 0;
 }
 
-void infoDialog(const char *title, const char *msg) {
+void Dialogs::infoDialog(const char *title, const char *msg) {
     pfd::settings::verbose(true);
     pfd::message(title, msg, pfd::choice::ok, pfd::icon::info);
 }
 
-void copyRight() {
+void Dialogs::copyRight() {
     std::cout << "GSiSY 2019\n"
               << "Auther:\tGloomyGhost\n\n"
               << "Project:\t"

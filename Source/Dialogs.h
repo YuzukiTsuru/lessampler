@@ -6,27 +6,31 @@
 #define DEFAULT_PATH "/tmp"
 #endif
 
-#define ERROR_MSG   "ERROR - LESSAMPLER"
-#define INFO_MSG    "INFO - LESSAMPLER"
+#define ERROR_MSG "ERROR - LESSAMPLER"
+#define INFO_MSG "INFO - LESSAMPLER"
 #define WARNING_MSG "WARNING - LESSAMPLER"
 
-/*
- * Error Dialog Display
- *
- * IN: Error Messages
- *
- * OUT: int
- */
-int errorDialog(const char *error);
+class Dialogs {
+  public:
+    /*
+     * Error Dialog Display
+     *
+     * IN: Error Messages
+     *
+     * OUT: int :: 1-> Agree | 2 -> Disagree | -1 -> Error
+     */
+    int errorDialog(const char *error);
 
-/*
- * Info Dialog Display
- *
- * IN: Title Info
- *
- * OUT: void
- */
-void infoDialog(const char *title, const char *msg);
+    /*
+     * Info Dialog Display
+     *
+     * IN: Title Info
+     *
+     * OUT: void
+     */
+    void infoDialog(const char *title, const char *msg);
 
-// CopyRight
-void copyRight();
+    // CopyRight
+    void copyRight();
+};
+
