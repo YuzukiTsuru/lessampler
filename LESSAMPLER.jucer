@@ -5,8 +5,8 @@
   <MAINGROUP id="vMapAe" name="LESSAMPLER">
     <GROUP id="{ACCB7999-C9CE-AA43-4C8D-8C6F02024714}" name="Library">
       <GROUP id="{3DC1247A-5882-171D-EAB7-D1FAAF2E57C8}" name="tinyxml2">
-        <FILE id="XrC7qD" name="tinyxml2.cpp" compile="1" resource="0" file="Source/tinyxml2.cpp"/>
-        <FILE id="e5D7Wm" name="tinyxml2.h" compile="0" resource="0" file="Source/tinyxml2.h"/>
+        <FILE id="SMkxBe" name="tinyxml2.cpp" compile="1" resource="0" file="Library/tinyxml2/tinyxml2.cpp"/>
+        <FILE id="OdS87u" name="tinyxml2.h" compile="0" resource="0" file="Library/tinyxml2/tinyxml2.h"/>
       </GROUP>
       <GROUP id="{267A52D0-E2B5-5D9C-150C-0C3B02DF0635}" name="Dialogs">
         <FILE id="yA2Gcz" name="portable-file-dialogs.h" compile="0" resource="0"
