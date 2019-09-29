@@ -1,5 +1,6 @@
-# lessampler
- lessampler is a Singing Voice Synthesizer
+<p align="center"><img width="250" src="Resources/icon_128.gif" alt="lessampler logo"></p>
+<h1 align="center">lessampler</h1>
+<p align="center">lessampler is a Singing Voice Synthesizer</p>
 
 ## API:
 - [ ] [UTAU](http://utau2008.xrea.jp/) Interface
