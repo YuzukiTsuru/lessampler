@@ -2,11 +2,7 @@
 <h1 align="center">lessampler</h1>
 <p align="center">lessampler is a Singing Voice Synthesizer</p>
 
-<p align="center">
-[![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=102)](https://github.com/GloomyGhost-MosquitoSeal/lessample)
-<p/>
-<p align="center">
-
+<div style="text-align:center">
 ![forthebadge](https://forthebadge.com/images/badges/built-by-crips.svg)
 ![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)
 ![forthebadge](https://forthebadge.com/images/badges/built-by-hipsters.svg)
@@ -43,7 +39,7 @@
 
 [![Badge](https://img.shields.io/badge/link-996.icu-%23FF4D5B.svg?style=flat-square)](https://996.icu/#/en_US)
 
-<p/>
+</div>
 
 ## API:
 - [ ] [UTAU](http://utau2008.xrea.jp/) Interface
