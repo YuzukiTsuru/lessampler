@@ -2,6 +2,30 @@
 <h1 align="center">lessampler</h1>
 <p align="center">lessampler is a Singing Voice Synthesizer</p>
 
+[![star this repo](http://githubbadges.com/star.svg?user=GloomyGhost-MosquitoSeal&repo=lessampler&style=flat)](https://github.com/GloomyGhost-MosquitoSeal/lessample)
+[![star this repo](http://githubbadges.com/fork.svg?user=GloomyGhost-MosquitoSeal&repo=lessampler&style=flat)](https://github.com/GloomyGhost-MosquitoSeal/lessample/fork)
+[![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=102)](https://github.com/GloomyGhost-MosquitoSeal/lessample)
+
+<p><p/>
+[![forthebadge](https://forthebadge.com/images/badges/built-by-crips.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/built-by-hipsters.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/built-with-swag.svg)](http://forthebadge.com)
+
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-case-western-reserve.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-comcast.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-electricity.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-jeffs-keyboard.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-netflix.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-oxygen.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)](http://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-watergate.svg)](http://forthebadge.com)
+
+[![Semver](http://img.shields.io/SemVer/2.0.0.png)](http://semver.org/spec/v2.0.0.html)
+
+<hr/>
+
 ## API:
 - [ ] [UTAU](http://utau2008.xrea.jp/) Interface
 - [ ] [LeafOpenUTAUQt](https://github.com/shine5402/LeafOpenUTAUQt) Interface
