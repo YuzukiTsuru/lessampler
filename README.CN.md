@@ -2,8 +2,8 @@
 lessampler是一个没什么用处的歌声合成器
 
 ## API：
-- [ ] UTAU界面
-- [ ] LeafOpenUTAUQt接口
+- [ ] [UTAU](http://utau2008.xrea.jp/) 接口
+- [ ] [LeafOpenUTAUQt](https://github.com/shine5402/LeafOpenUTAUQt) 接口
 - [ ] 库接口
 
 ## WIP：
