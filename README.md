@@ -7,20 +7,20 @@
 [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=102)](https://github.com/GloomyGhost-MosquitoSeal/lessample)
 
 <p><p/>
-[![forthebadge](https://forthebadge.com/images/badges/built-by-crips.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/built-by-hipsters.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/built-with-swag.svg)](http://forthebadge.com)
 
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-case-western-reserve.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-comcast.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-electricity.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-jeffs-keyboard.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-netflix.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-oxygen.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)](http://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-watergate.svg)](http://forthebadge.com)
+![forthebadge](https://forthebadge.com/images/badges/built-by-crips.svg)
+![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)
+![forthebadge](https://forthebadge.com/images/badges/built-by-hipsters.svg)
+![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)
+![forthebadge](https://forthebadge.com/images/badges/built-with-swag.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-case-western-reserve.svg)]
+![forthebadge](https://forthebadge.com/images/badges/powered-by-comcast.svg)]
+![forthebadge](https://forthebadge.com/images/badges/powered-by-electricity.svg)]
+![forthebadge](https://forthebadge.com/images/badges/powered-by-jeffs-keyboard.svg)]
+![forthebadge](https://forthebadge.com/images/badges/powered-by-netflix.svg)]
+![forthebadge](https://forthebadge.com/images/badges/powered-by-oxygen.svg)]
+![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)]
+![forthebadge](https://forthebadge.com/images/badges/powered-by-watergate.svg)]
 
 [![Semver](http://img.shields.io/SemVer/2.0.0.png)](http://semver.org/spec/v2.0.0.html)
 
