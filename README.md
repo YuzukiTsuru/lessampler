@@ -1,5 +1,5 @@
-<h1 style="display:inline;" align="left">lessampler</h1>
-<p style="display:inline" align="right"><img width="64" src="Resources/icon_128.gif" alt="lessampler logo"></p>
+<div style="display:inline;font-size:40px;" align="left">lessampler</div>
+<div style="display:inline;" align="right"><img width="64" src="Resources/icon_128.gif" alt="lessampler logo"></div>
 <p align="center">lessampler is a Singing Voice Synthesizer</p>
 
 <div align="center">
