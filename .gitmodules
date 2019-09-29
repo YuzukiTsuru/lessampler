@@ -1,6 +1,3 @@
 [submodule "Library/World"]
 	path = Library/World
 	url = https://github.com/mmorise/World.git
-[submodule "Library/Dialogs"]
-	path = Library/Dialogs
-	url = https://github.com/samhocevar/portable-file-dialogs.git
