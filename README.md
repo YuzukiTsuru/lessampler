@@ -31,5 +31,5 @@
 - [ ] Deep learning aid adjustment
 
 ## Contribution
-**Please contact me by email, temporarily do not support pull requests**  
-**Use ISSUE**
+- **Please contact me by email, temporarily do not support pull requests**  
+- **Use ISSUE**
