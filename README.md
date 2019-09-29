@@ -2,7 +2,7 @@
 <h1 align="center">lessampler</h1>
 <p align="center">lessampler is a Singing Voice Synthesizer</p>
 
-<div style="margin: 0 auto">
+<div align="center">
  
   ![forthebadge](https://forthebadge.com/images/badges/built-by-crips.svg)
   ![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)
