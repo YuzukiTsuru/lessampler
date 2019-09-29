@@ -1,4 +1,4 @@
-<p align="center"><img width="250" src="Resources/icon_128.gif" alt="lessampler logo"></p>
+<p align="center"><img width="128" src="Resources/icon_128.gif" alt="lessampler logo"></p>
 <h1 align="center">lessampler</h1>
 <p align="center">lessampler is a Singing Voice Synthesizer</p>
 
