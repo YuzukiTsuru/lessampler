@@ -4,6 +4,10 @@
 
 <div align="center">
  
+ [![中文](https://img.shields.io/badge/LANG-中文-red?style=for-the-badge)](https://github.com/GloomyGhost-MosquitoSeal/lessampler/blob/master/README.CN.md)
+ 
+ <hr/>
+ 
   ![forthebadge](https://forthebadge.com/images/badges/built-by-crips.svg)
   
   ![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)
