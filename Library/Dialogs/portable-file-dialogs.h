@@ -405,7 +405,7 @@ protected:
     private:
         HANDLE create()
         {
-            // This “hack” seems to be necessary for this code to work on windows XP.
+            // This "hack" seems to be necessary for this code to work on windows XP.
             // Without it, dialogs do not show and close immediately. GetError()
             // returns 0 so I don’t know what causes this. I was not able to reproduce
             // this behavior on Windows 7 and 10 but just in case, let it be here for
@@ -422,7 +422,7 @@ protected:
             ACTCTXA act_ctx =
             {
                 // Do not set flag ACTCTX_FLAG_SET_PROCESS_DEFAULT, since it causes a
-                // crash with error “default context is already set”.
+                // crash with error "default context is already set".
                 sizeof(act_ctx),
                 ACTCTX_FLAG_RESOURCE_NAME_VALID | ACTCTX_FLAG_ASSEMBLY_DIRECTORY_VALID,
                 "shell32.dll", 0, 0, sys_dir.c_str(), (LPCSTR)124,
@@ -539,7 +539,7 @@ protected:
         return "'" + std::regex_replace(str, std::regex("'"), "'\\''") + "'";
     }
 
-    // Check whether a program is present using “which”
+    // Check whether a program is present using "which"
     bool check_program(std::string const &program)
     {
 #if _WIN32
@@ -887,8 +887,8 @@ protected:
         // Set default folder if found. This only sets the default folder. If
         // Windows has any info about the most recently selected folder, it
         // will display it instead. Generally, calling SetFolder() to set the
-        // current directory “is not a good or expected user experience and
-        // should therefore be avoided”:
+        // current directory "is not a good or expected user experience and
+        // should therefore be avoided":
         // https://docs.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-ifiledialog-setfolder
         if (SUCCEEDED(hr))
         {
@@ -1147,8 +1147,8 @@ public:
                 case choice::ok_cancel:
                     command += " --question --ok-label=OK --cancel-label=Cancel"; break;
                 case choice::yes_no:
-                    // Do not use standard --question because it causes “No” to return -1,
-                    // which is inconsistent with the “Yes/No/Cancel” mode below.
+                    // Do not use standard --question because it causes "No" to return -1,
+                    // which is inconsistent with the "Yes/No/Cancel" mode below.
                     command += " --question --switch --extra-button No --extra-button Yes"; break;
                 case choice::yes_no_cancel:
                     command += " --question --switch --extra-button No --extra-button Yes --extra-button Cancel"; break;
