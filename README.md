@@ -2,29 +2,48 @@
 <h1 align="center">lessampler</h1>
 <p align="center">lessampler is a Singing Voice Synthesizer</p>
 
-[![star this repo](http://githubbadges.com/star.svg?user=GloomyGhost-MosquitoSeal&repo=lessampler&style=flat)](https://github.com/GloomyGhost-MosquitoSeal/lessample)
-[![star this repo](http://githubbadges.com/fork.svg?user=GloomyGhost-MosquitoSeal&repo=lessampler&style=flat)](https://github.com/GloomyGhost-MosquitoSeal/lessample/fork)
+<p align="center">
 [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=102)](https://github.com/GloomyGhost-MosquitoSeal/lessample)
-
-<p><p/>
+<p/>
+<p align="center">
 
 ![forthebadge](https://forthebadge.com/images/badges/built-by-crips.svg)
 ![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)
 ![forthebadge](https://forthebadge.com/images/badges/built-by-hipsters.svg)
 ![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)
 ![forthebadge](https://forthebadge.com/images/badges/built-with-swag.svg)
-![forthebadge](https://forthebadge.com/images/badges/powered-by-case-western-reserve.svg)]
-![forthebadge](https://forthebadge.com/images/badges/powered-by-comcast.svg)]
-![forthebadge](https://forthebadge.com/images/badges/powered-by-electricity.svg)]
-![forthebadge](https://forthebadge.com/images/badges/powered-by-jeffs-keyboard.svg)]
-![forthebadge](https://forthebadge.com/images/badges/powered-by-netflix.svg)]
-![forthebadge](https://forthebadge.com/images/badges/powered-by-oxygen.svg)]
-![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)]
-![forthebadge](https://forthebadge.com/images/badges/powered-by-watergate.svg)]
+![forthebadge](https://forthebadge.com/images/badges/built-with-resentment.svg)
+![forthebadge](https://forthebadge.com/images/badges/built-with-science.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-case-western-reserve.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-comcast.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-electricity.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-jeffs-keyboard.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-netflix.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-oxygen.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)
+![forthebadge](https://forthebadge.com/images/badges/powered-by-watergate.svg)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-electricity.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/gluten-free.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/oooo-kill-em.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/contains-cat-gifs.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/ages-12.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/check-it-out.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/for-you.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/makes-people-smile.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/uses-git.svg)](https://forthebadge.com)
+
+
+[![forthebadge](https://forthebadge.com/images/badges/made-with-c-plus-plus.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/made-with-c.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://forthebadge.com)
 
 [![Semver](http://img.shields.io/SemVer/2.0.0.png)](http://semver.org/spec/v2.0.0.html)
 
-<hr/>
+[![forthebadge](https://forthebadge.com/images/badges/you-didnt-ask-for-this.svg)](https://forthebadge.com)
+
+[![Badge](https://img.shields.io/badge/link-996.icu-%23FF4D5B.svg?style=flat-square)](https://996.icu/#/en_US)
+
+<p/>
 
 ## API:
 - [ ] [UTAU](http://utau2008.xrea.jp/) Interface
