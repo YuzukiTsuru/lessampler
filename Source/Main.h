@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Dialogs.h"
+#include "LangPack.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
@@ -9,3 +10,7 @@
  */
 Dialogs dialog;
 
+/*
+ * Init Language Pack
+ */
+LangPack langpack;

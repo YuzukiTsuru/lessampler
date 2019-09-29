@@ -4,6 +4,10 @@
               maxBinaryFileSize="131072">
   <MAINGROUP id="vMapAe" name="LESSAMPLER">
     <GROUP id="{ACCB7999-C9CE-AA43-4C8D-8C6F02024714}" name="Library">
+      <GROUP id="{3DC1247A-5882-171D-EAB7-D1FAAF2E57C8}" name="tinyxml2">
+        <FILE id="XrC7qD" name="tinyxml2.cpp" compile="1" resource="0" file="Source/tinyxml2.cpp"/>
+        <FILE id="e5D7Wm" name="tinyxml2.h" compile="0" resource="0" file="Source/tinyxml2.h"/>
+      </GROUP>
       <GROUP id="{267A52D0-E2B5-5D9C-150C-0C3B02DF0635}" name="Dialogs">
         <FILE id="yA2Gcz" name="portable-file-dialogs.h" compile="0" resource="0"
               file="Library/Dialogs/portable-file-dialogs.h"/>
@@ -44,10 +48,15 @@
       </GROUP>
     </GROUP>
     <GROUP id="{239558B9-15E4-C1F5-954D-B4CB982A20B9}" name="Resources">
+      <GROUP id="{8C0F1C61-D81A-A060-09F5-5CEDE7DE94FC}" name="Langpack"/>
       <FILE id="vRamD0" name="icon.png" compile="0" resource="1" file="Resources/icon.png"
             xcodeResource="1"/>
     </GROUP>
     <GROUP id="{1A82D43D-5666-C2DE-B8DA-818AF0562553}" name="Source">
+      <GROUP id="{91E0D506-EE5B-DB2D-CD92-A7A52371461A}" name="LangPack">
+        <FILE id="ucTgGa" name="LangPack.cpp" compile="1" resource="0" file="Source/LangPack.cpp"/>
+        <FILE id="rNlI5w" name="LangPack.h" compile="0" resource="0" file="Source/LangPack.h"/>
+      </GROUP>
       <GROUP id="{AD79EA31-3C8A-329A-CBB4-5492895739C4}" name="UI">
         <FILE id="AnqZZe" name="Dialogs.cpp" compile="1" resource="0" file="Source/Dialogs.cpp"/>
         <FILE id="YNOLFi" name="Dialogs.h" compile="0" resource="0" file="Source/Dialogs.h"/>
@@ -63,8 +72,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="vRamD0" bigIcon="vRamD0">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/ "/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/ &#10;../../Library/tinyxml2/"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../SDK/JUCE/modules"/>
@@ -83,9 +92,9 @@
     </XCODE_MAC>
     <VS2019 targetFolder="Builds/VisualStudio2019" smallIcon="vRamD0" bigIcon="vRamD0">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/"
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"
                        useRuntimeLibDLL="0"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/"
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"
                        useRuntimeLibDLL="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -105,8 +114,8 @@
     </VS2019>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="vRamD0" bigIcon="vRamD0">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl"/>
