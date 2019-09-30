@@ -1,22 +1,40 @@
 #pragma once
 #include <iostream>
+#include "LangPack.h"
+#include "json/json.h"
 
 // Define LANGPACK
-std::string initLangStr = {
-    "<LESSAMPLERLANG>\n"
-    "\t<en_US>\n"
-    "\t\t<1>The input parameter is wrong.please check if it is called correctly or the parameter is correct.</1>\n"
-    "\t\t<2>Use Suggestions</2>\n"
-    "\t\t<3>Please call in the UTAU program or call with relevant parameters</3>\n"
-    "\t\t<4>Whats Wrong???</4>\n"
-    "\t\t<5>Whats Wrong??? Should not be like this......</5>\n"
-    "\t</en_US>\n"
-    "</LESSAMPLERLANG>"
-};
+Json::Value LANGPACKDATA() {
+    // Combined language and translation
+    Json::Value basicTrans;
+    basicTrans["The input parameter is wrong. please check if it is called correctly or the parameter is correct."] = Json::Value("The input parameter is wrong. please check if it is called correctly or the parameter is correct.");
+    basicTrans["Use Suggestions"] = Json::Value("Use Suggestions");
+    basicTrans["Please call in the UTAU program or call with relevant parameters"] = Json::Value("Please call in the UTAU program or call with relevant parameters");
+    basicTrans["Whats Wrong???"] = Json::Value("Whats Wrong???");
+    basicTrans["Whats Wrong??? Should not be like this......"] = Json::Value("Whats Wrong？？？Should not be like this......");
+    
+    
+    Json::Value langpack;
+    langpack["LESSAMPLERLANG"] = basicTrans;
+    langpack["LC"] = Json::Value("en_US");
+    return langpack;
+}
 
 // Define Config
-std::string initConfigFileStr = {
-    "<LESSAMPLERSETTING>\n"
-    "\t<LANGUAGE>en_US</LANGUAGE>\n"
-    "</LESSAMPLERSETTING>"
-};
+Json::Value CONFIGDATA(){
+    Json::Value config;
+    return config;
+}
+
+/*
+* Structure of LANGPACK:
+* {
+*  "LC" : "en_US",
+*  "LESSAMPLERLANG" :
+*   {
+*       "Key" : "Value",
+*             :
+*             :
+*    }
+* }
+*/

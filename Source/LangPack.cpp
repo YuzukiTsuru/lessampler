@@ -1,19 +1,12 @@
-#include <locale.h>
-#include <sys/stat.h>
 #include <fstream>
+#include <sys/stat.h>
 #include "BasicFile.h"
 #include "LangPack.h"
 
 LangPack::LangPack() {}
 
-void LangPack::fetch(char *filename, char *instr) {
-    doc.LoadFile(filename);
-}
-
-const char *LangPack::systemLanguage() {
-    doc.LoadFile("config.xml");
-    const char *langName = doc.FirstChildElement("LESSAMPLERSETTING")->FirstChildElement("LANGUAGE")->GetText();
-    return langName;
+const char *LangPack::fetch(std::string instr) {
+    return " ";
 }
 
 bool LangPack::exists(const char *name) {
@@ -22,21 +15,29 @@ bool LangPack::exists(const char *name) {
 }
 
 void LangPack::initFile() {
-    // Open Stream
+    Json::Value langpack;
+    
     std::ofstream File;
-    // Open file
-    File.open("config.xml");
+    // Open file write config
+    File.open("config.json");
     if (File.is_open()) {
-        File << initConfigFileStr;
+        File << CONFIGDATA();
     }else{
         dialog.errorDialog("No write permission");
     }
     File.close();
-    File.open("lang.xml");
+    // Write lang.json
+    File.open("lang.json");
     if (File.is_open()) {
-        File << initLangStr;
+        File << LANGPACKDATA();
     }else{
         dialog.errorDialog("No write permission");
     }
     File.close();
+}
+
+Json::Value LangPack::readJsonFile(const char* filename){
+    std::ifstream filedata(filename, std::ifstream::binary);
+    filedata >> root;
+    return root;
 }
