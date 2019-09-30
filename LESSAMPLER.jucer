@@ -76,6 +76,10 @@
             xcodeResource="1"/>
     </GROUP>
     <GROUP id="{1A82D43D-5666-C2DE-B8DA-818AF0562553}" name="Source">
+      <GROUP id="{E7425F26-00B2-FDFE-5374-F81DF35CC7C9}" name="WaveIO">
+        <FILE id="quugOT" name="WaveIO.cpp" compile="1" resource="0" file="Source/WaveIO.cpp"/>
+        <FILE id="oA4J1L" name="WaveIO.h" compile="0" resource="0" file="Source/WaveIO.h"/>
+      </GROUP>
       <GROUP id="{91E0D506-EE5B-DB2D-CD92-A7A52371461A}" name="LangPack">
         <FILE id="YFFkdu" name="BasicFile.h" compile="0" resource="0" file="Source/BasicFile.h"/>
         <FILE id="ucTgGa" name="LangPack.cpp" compile="1" resource="0" file="Source/LangPack.cpp"/>
