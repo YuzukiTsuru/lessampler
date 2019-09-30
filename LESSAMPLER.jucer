@@ -5,6 +5,28 @@
               companyCopyright="GSiSY  2019">
   <MAINGROUP id="vMapAe" name="LESSAMPLER">
     <GROUP id="{ACCB7999-C9CE-AA43-4C8D-8C6F02024714}" name="Library">
+      <GROUP id="{0409ADDA-C83D-292A-C58A-8E89D035BCCF}" name="Json">
+        <GROUP id="{FE1150FA-E831-BA0C-3DFB-95DDB2770E8B}" name="json">
+          <FILE id="b2C8YY" name="allocator.h" compile="0" resource="0" file="Library/lib_json/json/allocator.h"/>
+          <FILE id="ilwCtl" name="assertions.h" compile="0" resource="0" file="Library/lib_json/json/assertions.h"/>
+          <FILE id="n3lndp" name="autolink.h" compile="0" resource="0" file="Library/lib_json/json/autolink.h"/>
+          <FILE id="OAZLMo" name="config.h" compile="0" resource="0" file="Library/lib_json/json/config.h"/>
+          <FILE id="uFj5Bg" name="features.h" compile="0" resource="0" file="Library/lib_json/json/features.h"/>
+          <FILE id="SqlasU" name="forwards.h" compile="0" resource="0" file="Library/lib_json/json/forwards.h"/>
+          <FILE id="TdkhaD" name="json.h" compile="0" resource="0" file="Library/lib_json/json/json.h"/>
+          <FILE id="Db96Ke" name="reader.h" compile="0" resource="0" file="Library/lib_json/json/reader.h"/>
+          <FILE id="c7sm1A" name="value.h" compile="0" resource="0" file="Library/lib_json/json/value.h"/>
+          <FILE id="ZrkEJf" name="version.h" compile="0" resource="0" file="Library/lib_json/json/version.h"/>
+          <FILE id="shXTy1" name="writer.h" compile="0" resource="0" file="Library/lib_json/json/writer.h"/>
+        </GROUP>
+        <FILE id="vVA5Ku" name="json_reader.cpp" compile="1" resource="0" file="Library/lib_json/json_reader.cpp"/>
+        <FILE id="QTef9N" name="json_tool.h" compile="0" resource="0" file="Library/lib_json/json_tool.h"/>
+        <FILE id="PySemj" name="json_value.cpp" compile="1" resource="0" file="Library/lib_json/json_value.cpp"/>
+        <FILE id="b1VDbx" name="json_valueiterator.inl" compile="0" resource="0"
+              file="Library/lib_json/json_valueiterator.inl"/>
+        <FILE id="s7An8c" name="json_writer.cpp" compile="1" resource="0" file="Library/lib_json/json_writer.cpp"/>
+        <FILE id="oWqX5Y" name="README.md" compile="0" resource="1" file="Library/lib_json/README.md"/>
+      </GROUP>
       <GROUP id="{3DC1247A-5882-171D-EAB7-D1FAAF2E57C8}" name="tinyxml2">
         <FILE id="SMkxBe" name="tinyxml2.cpp" compile="1" resource="0" file="Library/tinyxml2/tinyxml2.cpp"/>
         <FILE id="OdS87u" name="tinyxml2.h" compile="0" resource="0" file="Library/tinyxml2/tinyxml2.h"/>
@@ -74,8 +96,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="vRamD0" bigIcon="vRamD0">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/ &#10;../../Library/tinyxml2/"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/&#10;../../Library/lib_json/"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/&#10;../../Library/lib_json/"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../SDK/JUCE/modules"/>
@@ -94,9 +116,9 @@
     </XCODE_MAC>
     <VS2019 targetFolder="Builds/VisualStudio2019" smallIcon="vRamD0" bigIcon="vRamD0">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/&#10;../../Library/lib_json/"
                        useRuntimeLibDLL="0"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/&#10;../../Library/lib_json/"
                        useRuntimeLibDLL="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -116,8 +138,8 @@
     </VS2019>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="vRamD0" bigIcon="vRamD0">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/&#10;../../Library/lib_json/"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/&#10;../../Library/lib_json/"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_opengl"/>

@@ -1,5 +1,6 @@
 #pragma once
-#include "tinyxml2.h"
+#include <iostream>
+#include "json/json.h"
 #include "Dialogs.h"
 
 class LangPack {
@@ -12,14 +13,8 @@ class LangPack {
     /*
      * Fetch Origin Language and change for translate.
      */
-    void fetch(char *filename, char *instr);
-
-    /*
-     * Get The System Language
-     * OUT :: CHAR (Language
-     */
-    const char *systemLanguage();
-
+    const char *fetch(std::string instr);
+    
     /*
      * Find The XML File
      * IN :: FileName
@@ -33,20 +28,14 @@ class LangPack {
     void initFile();
 
   private:
-    tinyxml2::XMLDocument doc;
+    /*
+     * Read From Json
+     * IN: Filename
+     * OUT: JsonData :: Json::Value
+     */
+    Json::Value readJsonFile(const char *filename);
+
     Dialogs dialog;
+    Json::Value root;
 };
 
-/*
-* Structure of the config XML file:
-* - Element "LESSAMPLERSETTING"      the root Element, which is the FirstChildElement of the Document
-* - - Element "LANGUAGE"             the name for language
-* - - - Applaction Display Language
-*/
-
-/*
- * Structure of the lang XML file:
- * - Element "LESSAMPLERLANG"      the root Element, which is the FirstChildElement of the Document
- * - - Element "(Language name)"   the name for language
- * - - - translate <id> :: <name>
- */

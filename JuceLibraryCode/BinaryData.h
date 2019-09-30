@@ -8,11 +8,14 @@
 
 namespace BinaryData
 {
+    extern const char*   README_md;
+    const int            README_mdSize = 5900;
+
     extern const char*   icon_png;
     const int            icon_pngSize = 16249;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 1;
+    const int namedResourceListSize = 2;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];
