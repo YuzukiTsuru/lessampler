@@ -5,6 +5,7 @@
 <div align="center">
  
   ![i18n](https://img.shields.io/badge/I18N-READY!🌍-green?style=for-the-badge)  
+  ![License](https://img.shields.io/badge/License-GNU Affero General Public License v3.0-orange?style=for-the-badge)  
   ![LANGUAGES](https://img.shields.io/badge/CHOOSE-LANGUAGE-important?style=for-the-badge)  
   [![中文](https://img.shields.io/badge/LANG-中文-red?style=for-the-badge)](https://github.com/GloomyGhost-MosquitoSeal/lessampler/blob/master/README.CN.md)
  
