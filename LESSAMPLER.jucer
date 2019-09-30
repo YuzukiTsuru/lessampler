@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="SF7Nps" name="LESSAMPLER" projectType="consoleapp" jucerVersion="5.4.4"
-              maxBinaryFileSize="131072">
+              maxBinaryFileSize="65536" version="0.0.4A">
   <MAINGROUP id="vMapAe" name="LESSAMPLER">
     <GROUP id="{ACCB7999-C9CE-AA43-4C8D-8C6F02024714}" name="Library">
       <GROUP id="{3DC1247A-5882-171D-EAB7-D1FAAF2E57C8}" name="tinyxml2">
