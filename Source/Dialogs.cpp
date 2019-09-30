@@ -33,7 +33,7 @@ void Dialogs::infoDialog(const char *title, const char *msg) {
 }
 
 void Dialogs::copyRight() {
-    std::cout << "GSiSY 2019\n"
+    std::cout << ProjectInfo::companyName
               << "Auther:\tGloomyGhost\n\n"
               << "Project:\t"
               << ProjectInfo::projectName
