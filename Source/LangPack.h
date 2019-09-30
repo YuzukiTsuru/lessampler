@@ -1,5 +1,6 @@
 #pragma once
 #include "tinyxml2.h"
+#include "Dialogs.h"
 
 class LangPack {
   public:
@@ -11,25 +12,30 @@ class LangPack {
     /*
      * Fetch Origin Language and change for translate.
      */
-    void fetch(char *instr);
+    void fetch(char *filename, char *instr);
 
     /*
      * Get The System Language
      * OUT :: CHAR (Language
      */
-    const char* systemLanguage();
-    
+    const char *systemLanguage();
+
     /*
      * Find The XML File
      * IN :: FileName
      * OUT :: bool
      */
-    bool exists (const char *name);
+    bool exists(const char *name);
+
+    /*
+     * init the file for basic
+     */
+    void initFile();
 
   private:
     tinyxml2::XMLDocument doc;
+    Dialogs dialog;
 };
-
 
 /*
 * Structure of the config XML file:
@@ -38,10 +44,9 @@ class LangPack {
 * - - - Applaction Display Language
 */
 
-
 /*
  * Structure of the lang XML file:
  * - Element "LESSAMPLERLANG"      the root Element, which is the FirstChildElement of the Document
  * - - Element "(Language name)"   the name for language
- * - - - translate
+ * - - - translate <id> :: <name>
  */
