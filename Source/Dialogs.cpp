@@ -24,7 +24,31 @@ int Dialogs::errorDialog(const char *error) {
             return -1;
             break; // Should not happen
     }
-    return 0;
+    return -1;
+}
+
+int Dialogs::warnDialog(const char *warn){
+    // Set verbosity to true
+    pfd::settings::verbose(true);
+
+    // Message box
+    auto m = pfd::message(WARNING_MSG, warn, pfd::choice::yes_no, pfd::icon::warning);
+
+    // Do something according to the selected button
+    switch (m.result()) {
+        case pfd::button::yes:
+            Logger::writeToLog("User agreed.");
+            return 1;
+            break;
+        case pfd::button::no:
+            Logger::writeToLog("User disagreed.");
+            return 2;
+            break;
+        default:
+            return -1;
+            break; // Should not happen
+    }
+    return -1;
 }
 
 void Dialogs::infoDialog(const char *title, const char *msg) {
