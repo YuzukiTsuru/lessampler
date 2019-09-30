@@ -27,7 +27,7 @@ int Dialogs::errorDialog(const char *error) {
     return -1;
 }
 
-int Dialogs::warnDialog(const char *warn){
+int Dialogs::warnDialog(const char *warn) {
     // Set verbosity to true
     pfd::settings::verbose(true);
 
@@ -49,6 +49,12 @@ int Dialogs::warnDialog(const char *warn){
             break; // Should not happen
     }
     return -1;
+}
+
+void Dialogs::dialog(const char *message) {
+    // Set verbosity to true
+    pfd::settings::verbose(true);
+    pfd::message(ProjectInfo::projectName, message, pfd::choice::ok, pfd::icon::info);
 }
 
 void Dialogs::infoDialog(const char *title, const char *msg) {
