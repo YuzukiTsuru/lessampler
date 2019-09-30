@@ -7,8 +7,152 @@
 namespace BinaryData
 {
 
-//================== icon.png ==================
+//================== README.md ==================
 static const unsigned char temp_binary_data_0[] =
+"# JsonCpp\n"
+"\n"
+"[![badge](https://img.shields.io/badge/conan.io-jsoncpp%2F1.8.0-green.svg?logo=data:image/png;base64%2CiVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAMAAAAolt3jAAAA1VBMVEUAAABhlctjlstkl8tlmMtlmMxlmcxmmcxnmsxpnMxpnM1qnc1sn85voM91oM11oc1xotB2oc56pNF6pNJ2ptJ8ptJ8ptN"
+"9ptN8p9N5qNJ9p9N9p9R8qtOBqdSAqtOAqtR%2BrNSCrNJ/rdWDrNWCsNWCsNaJs9eLs9iRvNuVvdyVv9yXwd2Zwt6axN6dxt%2Bfx%2BChyeGiyuGjyuCjyuGly%2BGlzOKmzOGozuKoz%2BKqz%2BOq0OOv1OWw1OWw1eWx1eWy1uay1%2Baz1%2Baz1%2Bez2Oe02Oe12ee22ujUGwH3AAAAAXRSTlMAQObYZgAAAAFiS0dEAIgFHUg"
+"AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfgBQkREyOxFIh/AAAAiklEQVQI12NgAAMbOwY4sLZ2NtQ1coVKWNvoc/Eq8XDr2wB5Ig62ekza9vaOqpK2TpoMzOxaFtwqZua2Bm4makIM7OzMAjoaCqYuxooSUqJALjs7o4yVpbowvzSUy87KqSwmxQfnsrPISyFzWeWAXCkpMaBVIC4bmCsOdgiUKwh3JojLgAQ4ZCE0AMm2D29tZ"
+"we6AAAAAElFTkSuQmCC)](http://www.conan.io/source/jsoncpp/1.8.0/theirix/ci)\n"
+"\n"
+"[JSON][json-org] is a lightweight data-interchange format. It can represent\n"
+"numbers, strings, ordered sequences of values, and collections of name/value\n"
+"pairs.\n"
+"\n"
+"[json-org]: http://json.org/\n"
+"\n"
+"JsonCpp is a C++ library that allows manipulating JSON values, including\n"
+"serialization and deserialization to and from strings. It can also preserve\n"
+"existing comment in unserialization/serialization steps, making it a convenient\n"
+"format to store user input files.\n"
+"\n"
+"\n"
+"## Documentation\n"
+"\n"
+"[JsonCpp documentation][JsonCpp-documentation] is generated using [Doxygen][].\n"
+"\n"
+"[JsonCpp-documentation]: http://open-source-parsers.github.io/jsoncpp-docs/doxygen/index.html\n"
+"[Doxygen]: http://www.doxygen.org\n"
+"\n"
+"\n"
+"## A note on backward-compatibility\n"
+"\n"
+"* `1.y.z` is built with C++11.\n"
+"* `0.y.z` can be used with older compilers.\n"
+"* Major versions maintain binary-compatibility.\n"
+"\n"
+"## Contributing to JsonCpp\n"
+"\n"
+"### Building and testing with Meson/Ninja\n"
+"Thanks to David Seifert (@SoapGentoo), we (the maintainers) now use [meson](http://mesonbuild.com/) and [ninja](https://ninja-build.org/) to build for debugging, as well as for continuous integration (see [`travis.sh`](travis.sh) ). Other systems may"
+" work, but minor things like version strings might break.\n"
+"\n"
+"First, install both meson (which requires Python3) and ninja.\n"
+"If you wish to install to a directory other than /usr/local, set an environment variable called DESTDIR with the desired path:\n"
+"    DESTDIR=/path/to/install/dir\n"
+"\n"
+"Then,\n"
+"\n"
+"    cd jsoncpp/\n"
+"    BUILD_TYPE=debug\n"
+"    #BUILD_TYPE=release\n"
+"    LIB_TYPE=shared\n"
+"    #LIB_TYPE=static\n"
+"    meson --buildtype ${BUILD_TYPE} --default-library ${LIB_TYPE} . build-${LIB_TYPE}\n"
+"    ninja -v -C build-${LIB_TYPE} test\n"
+"    cd build-${LIB_TYPE}\n"
+"    sudo ninja install\n"
+"\n"
+"### Building and testing with other build systems\n"
+"See https://github.com/open-source-parsers/jsoncpp/wiki/Building\n"
+"\n"
+"### Running the tests manually\n"
+"\n"
+"You need to run tests manually only if you are troubleshooting an issue.\n"
+"\n"
+"In the instructions below, replace `path/to/jsontest` with the path of the\n"
+"`jsontest` executable that was compiled on your platform.\n"
+"\n"
+"    cd test\n"
+"    # This will run the Reader/Writer tests\n"
+"    python runjsontests.py path/to/jsontest\n"
+"\n"
+"    # This will run the Reader/Writer tests, using JSONChecker test suite\n"
+"    # (http://www.json.org/JSON_checker/).\n"
+"    # Notes: not all tests pass: JsonCpp is too lenient (for example,\n"
+"    # it allows an integer to start with '0'). The goal is to improve\n"
+"    # strict mode parsing to get all tests to pass.\n"
+"    python runjsontests.py --with-json-checker path/to/jsontest\n"
+"\n"
+"    # This will run the unit tests (mostly Value)\n"
+"    python rununittests.py path/to/test_lib_json\n"
+"\n"
+"    # You can run the tests using valgrind:\n"
+"    python rununittests.py --valgrind path/to/test_lib_json\n"
+"\n"
+"### Building the documentation\n"
+"\n"
+"Run the Python script `doxybuild.py` from the top directory:\n"
+"\n"
+"    python doxybuild.py --doxygen=$(which doxygen) --open --with-dot\n"
+"\n"
+"See `doxybuild.py --help` for options.\n"
+"\n"
+"### Adding a reader/writer test\n"
+"\n"
+"To add a test, you need to create two files in test/data:\n"
+"\n"
+"* a `TESTNAME.json` file, that contains the input document in JSON format.\n"
+"* a `TESTNAME.expected` file, that contains a flatened representation of the\n"
+"  input document.\n"
+"\n"
+"The `TESTNAME.expected` file format is as follows:\n"
+"\n"
+"* Each line represents a JSON element of the element tree represented by the\n"
+"  input document.\n"
+"* Each line has two parts: the path to access the element separated from the\n"
+"  element value by `=`. Array and object values are always empty (i.e.\n"
+"  represented by either `[]` or `{}`).\n"
+"* Element path `.` represents the root element, and is used to separate object\n"
+"  members. `[N]` is used to specify the value of an array element at index `N`.\n"
+"\n"
+"See the examples `test_complex_01.json` and `test_complex_01.expected` to better understand element paths.\n"
+"\n"
+"### Understanding reader/writer test output\n"
+"\n"
+"When a test is run, output files are generated beside the input test files. Below is a short description of the content of each file:\n"
+"\n"
+"* `test_complex_01.json`: input JSON document.\n"
+"* `test_complex_01.expected`: flattened JSON element tree used to check if\n"
+"  parsing was corrected.\n"
+"* `test_complex_01.actual`: flattened JSON element tree produced by `jsontest`\n"
+"  from reading `test_complex_01.json`.\n"
+"* `test_complex_01.rewrite`: JSON document written by `jsontest` using the\n"
+"  `Json::Value` parsed from `test_complex_01.json` and serialized using\n"
+"  `Json::StyledWritter`.\n"
+"* `test_complex_01.actual-rewrite`: flattened JSON element tree produced by\n"
+"  `jsontest` from reading `test_complex_01.rewrite`.\n"
+"* `test_complex_01.process-output`: `jsontest` output, typically useful for\n"
+"  understanding parsing errors.\n"
+"\n"
+"## Using JsonCpp in your project\n"
+"\n"
+"### Amalgamated source\n"
+"https://github.com/open-source-parsers/jsoncpp/wiki/Amalgamated\n"
+"\n"
+"### Other ways\n"
+"If you have trouble, see the Wiki, or post a question as an Issue.\n"
+"\n"
+"## License\n"
+"\n"
+"See the `LICENSE` file for details. In summary, JsonCpp is licensed under the\n"
+"MIT license, or public domain if desired and recognized in your jurisdiction.\n";
+
+const char* README_md = (const char*) temp_binary_data_0;
+
+//================== icon.png ==================
+static const unsigned char temp_binary_data_1[] =
 { 137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,2,0,0,0,2,0,8,6,0,0,0,244,120,212,250,0,0,0,6,98,75,71,68,0,255,0,255,0,255,160,189,167,147,0,0,63,46,73,68,65,84,120,218,237,221,9,120,157,69,189,248,113,64,17,209,171,64,5,178,156,116,177,180,20,100,
 245,34,72,217,87,69,20,208,171,44,94,17,84,176,130,114,145,197,11,254,175,11,209,11,130,92,245,42,98,107,250,190,39,33,221,104,211,22,144,66,104,114,206,201,73,211,52,73,155,116,75,155,165,233,150,52,77,211,54,77,154,189,217,231,63,115,154,42,112,109,
 233,146,153,119,57,223,207,243,204,3,46,148,73,230,157,249,253,222,121,103,57,238,56,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -237,7 +381,7 @@ static const unsigned char temp_binary_data_0[] =
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,220,
 255,7,21,113,221,74,255,207,183,215,0,0,0,0,73,69,78,68,174,66,96,130,0,0 };
 
-const char* icon_png = (const char*) temp_binary_data_0;
+const char* icon_png = (const char*) temp_binary_data_1;
 
 
 const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
@@ -250,6 +394,7 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
     switch (hash)
     {
+        case 0x64791dc8:  numBytes = 5900; return README_md;
         case 0xd4093963:  numBytes = 16249; return icon_png;
         default: break;
     }
@@ -260,11 +405,13 @@ const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 
 const char* namedResourceList[] =
 {
+    "README_md",
     "icon_png"
 };
 
 const char* originalFilenames[] =
 {
+    "README.md",
     "icon.png"
 };
 
