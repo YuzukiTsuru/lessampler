@@ -8,12 +8,24 @@
   ![License](https://img.shields.io/badge/License-GNU%20Affero%20General%20Public%20License%20v3.0-orange?style=for-the-badge)  
   
   
+  
+  
+  
+  
   ![LANGUAGES](https://img.shields.io/badge/CHOOSE-LANGUAGE-important?style=for-the-badge)  
   [![中文](https://img.shields.io/badge/LANG-中文-red?style=for-the-badge)](https://github.com/GloomyGhost-MosquitoSeal/lessampler/blob/master/README.CN.md)
  
  
  
+ 
+ 
+ 
+ 
   [![CHAT](https://img.shields.io/badge/CHAT%20ON-GITTER%20-brightgreen?style=for-the-badge)](https://gitter.im/LESSAMPLER)
+ 
+ 
+ 
+ 
  
  
  
