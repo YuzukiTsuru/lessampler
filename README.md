@@ -5,7 +5,7 @@
 <div align="center">
  
   ![i18n](https://img.shields.io/badge/I18N-READY!🌍-green?style=for-the-badge)  
-  ![License](https://img.shields.io/badge/License-GNU%20Affero%20General%20Public%20License%20v3.0-orange?style=for-the-badge)  
+  [![License](https://img.shields.io/badge/License-GNU%20Affero%20General%20Public%20License%20v3.0-orange?style=for-the-badge)](https://github.com/GloomyGhost-MosquitoSeal/lessampler/blob/master/LICENSE)
   
   
   
