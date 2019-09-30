@@ -17,7 +17,7 @@ class Dialogs {
      *
      * IN: Error Messages
      *
-     * OUT: int :: 1-> Agree | 2 -> Disagree | -1 -> Error
+     * OUT: int :: 1 -> Agree | 2 -> Disagree | -1 -> Error
      */
     int errorDialog(const char *error);
 
@@ -29,6 +29,15 @@ class Dialogs {
      * OUT: void
      */
     void infoDialog(const char *title, const char *msg);
+    
+    /*
+     * Warning Dialog Display
+     *
+     * IN: ERROR MEssage
+     *
+     * OUT: int :: 1 -> Agree | 2 -> Disagree | -1 -> Error
+     */
+    int warnDialog(const char *warn);
 
     // CopyRight
     void copyRight();
