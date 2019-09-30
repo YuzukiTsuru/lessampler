@@ -1,12 +1,25 @@
 #include <fstream>
 #include <sys/stat.h>
+#include "json/json.h"
 #include "BasicFile.h"
 #include "LangPack.h"
 
-LangPack::LangPack() {}
+LangPack::LangPack() {
+    Json::Value config;
+    std::ifstream configData("config.json", std::ifstream::binary);
+    configData >> config;
+    std::string langname    = config["LESSAMPLER"]["LANGUAGE"].asString();
+    std::string fileNameAll = langname + ".json";
+    std::ifstream data(fileNameAll, std::ifstream::binary);
+    data >> root;
+}
 
-const char *LangPack::fetch(std::string instr) {
-    return " ";
+LangPack::~LangPack(){
+    root.clear();
+}
+
+const char *LangPack::tr(std::string instr) {
+    return this->fetchs(instr);
 }
 
 bool LangPack::exists(const char *name) {
@@ -16,13 +29,13 @@ bool LangPack::exists(const char *name) {
 
 void LangPack::initFile() {
     Json::Value langpack;
-    
+
     std::ofstream File;
     // Open file write config
     File.open("config.json");
     if (File.is_open()) {
         File << CONFIGDATA();
-    }else{
+    } else {
         dialog.errorDialog("No write permission");
     }
     File.close();
@@ -30,13 +43,18 @@ void LangPack::initFile() {
     File.open("lang.json");
     if (File.is_open()) {
         File << LANGPACKDATA();
-    }else{
+    } else {
         dialog.errorDialog("No write permission");
     }
     File.close();
 }
 
-Json::Value LangPack::readJsonFile(const char* filename){
+const char *LangPack::fetchs(std::string instr) {
+    const char *trans = root["LESSAMPLERLANG"][instr].asCString();
+    return trans;
+}
+
+Json::Value LangPack::readJsonFile(const char *filename) {
     std::ifstream filedata(filename, std::ifstream::binary);
     filedata >> root;
     return root;

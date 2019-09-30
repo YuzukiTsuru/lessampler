@@ -9,12 +9,13 @@ class LangPack {
      * Init The Class
      */
     LangPack();
+    ~LangPack();
 
     /*
-     * Fetch Origin Language and change for translate.
+     * Translate
      */
-    const char *fetch(std::string instr);
-    
+    const char *tr(std::string instr);
+
     /*
      * Find The XML File
      * IN :: FileName
@@ -35,7 +36,11 @@ class LangPack {
      */
     Json::Value readJsonFile(const char *filename);
 
+    /*
+     * Fetch Origin Language and change for translate.
+     */
+    const char *fetchs(std::string instr);
+
     Dialogs dialog;
     Json::Value root;
 };
-
