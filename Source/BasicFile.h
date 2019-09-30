@@ -22,7 +22,10 @@ Json::Value LANGPACKDATA() {
 
 // Define Config
 Json::Value CONFIGDATA(){
+    Json::Value basicData;
+    basicData["LANGUAGE"] = Json::Value("en_US");
     Json::Value config;
+    config["LESSAMPLER"] = basicData;
     return config;
 }
 
@@ -38,3 +41,13 @@ Json::Value CONFIGDATA(){
 *    }
 * }
 */
+
+/*
+ * Structure of CONFIG
+ {
+    "LESSAMPLER" :
+    {
+        "LANGUAGE" : "en_US"
+    }
+ }
+ */
