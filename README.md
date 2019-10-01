@@ -97,3 +97,4 @@
 ## Contribution
 - **Please contact me by email, temporarily do not support pull requests**  
 - **Use ISSUE**
+- **Help With Translation **
