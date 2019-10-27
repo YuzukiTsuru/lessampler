@@ -46,19 +46,8 @@
   ![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)
   ![forthebadge](https://forthebadge.com/images/badges/powered-by-watergate.svg)
   [![forthebadge](https://forthebadge.com/images/badges/powered-by-electricity.svg)](https://forthebadge.com)
-  
-  [![forthebadge](https://forthebadge.com/images/badges/gluten-free.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/oooo-kill-em.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/contains-cat-gifs.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/ages-12.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/check-it-out.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/for-you.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/makes-people-smile.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/uses-git.svg)](https://forthebadge.com)
+  /images/badges/made-with-python.svg)](https://forthebadge.com)
 
-  [![forthebadge](https://forthebadge.com/images/badges/made-with-c-plus-plus.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/made-with-c.svg)](https://forthebadge.com)
-  [![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://forthebadge.com)
   [![forthebadge](https://forthebadge.com/images/badges/you-didnt-ask-for-this.svg)](https://forthebadge.com)
 
   [![Badge](https://img.shields.io/badge/link-996.icu-%23FF4D5B.svg?style=for-the-badge)](https://996.icu/#/en_US)
@@ -98,3 +87,10 @@
 - **Please contact me by email, temporarily do not support pull requests**  
 - **Use ISSUE**
 - **Help With Translation**
+
+## Blacklist User
+**Users in the blacklist will not be allowed to use, publish, modify source or binary files.**  
+[@shine5402](https://github.com/shine5402)
+
+## Special Thanks
+[@hyperzlib](https://github.com/hyperzlib)
