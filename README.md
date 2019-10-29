@@ -90,7 +90,6 @@
 
 ## Blacklist User
 **Users in the blacklist will not be allowed to use, publish, modify source or binary files.**  
-[@shine5402](https://github.com/shine5402)
 
 ## Special Thanks
 [@hyperzlib](https://github.com/hyperzlib)
