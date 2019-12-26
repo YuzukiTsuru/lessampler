@@ -1,4 +1,3 @@
-//
 //  Portable File Dialogs
 //
 //  Copyright © 2018—2019 Sam Hocevar <sam@hocevar.net>

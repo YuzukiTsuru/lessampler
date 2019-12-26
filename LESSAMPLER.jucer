@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="SF7Nps" name="LESSAMPLER" projectType="consoleapp" jucerVersion="5.4.4"
+<JUCERPROJECT id="SF7Nps" name="LESSAMPLER" projectType="consoleapp" jucerVersion="5.4.5"
               maxBinaryFileSize="65536" version="0.3.0A" companyName="GSiSY"
               companyCopyright="GSiSY  2019">
   <MAINGROUP id="vMapAe" name="LESSAMPLER">
@@ -76,6 +76,10 @@
             xcodeResource="1"/>
     </GROUP>
     <GROUP id="{1A82D43D-5666-C2DE-B8DA-818AF0562553}" name="Source">
+      <GROUP id="{86EBA022-0CDC-27B8-C3AC-80FBF5BE39B3}" name="Utils">
+        <FILE id="ysdlkg" name="FileExists.cpp" compile="1" resource="0" file="Source/FileExists.cpp"/>
+        <FILE id="yJcpMc" name="FileExists.h" compile="0" resource="0" file="Source/FileExists.h"/>
+      </GROUP>
       <GROUP id="{E7425F26-00B2-FDFE-5374-F81DF35CC7C9}" name="WaveIO">
         <FILE id="quugOT" name="WaveIO.cpp" compile="1" resource="0" file="Source/WaveIO.cpp"/>
         <FILE id="oA4J1L" name="WaveIO.h" compile="0" resource="0" file="Source/WaveIO.h"/>
@@ -177,6 +181,7 @@
   </MODULES>
   <LIVE_SETTINGS>
     <OSX/>
+    <WINDOWS/>
   </LIVE_SETTINGS>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
 </JUCERPROJECT>
