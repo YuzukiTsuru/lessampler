@@ -1,0 +1,3 @@
+[submodule "Library/World"]
+	path = Library/World
+	url = https://github.com/mmorise/World.git
