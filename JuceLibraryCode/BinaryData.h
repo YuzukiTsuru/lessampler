@@ -9,7 +9,7 @@
 namespace BinaryData
 {
     extern const char*   README_md;
-    const int            README_mdSize = 5900;
+    const int            README_mdSize = 6035;
 
     extern const char*   icon_png;
     const int            icon_pngSize = 16249;
