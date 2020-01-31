@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="SF7Nps" name="LESSAMPLER" projectType="consoleapp" jucerVersion="5.4.5"
-              maxBinaryFileSize="65536" version="0.3.0A" companyName="GSiSY"
+              maxBinaryFileSize="1048576" version="0.3.0A" companyName="GSiSY"
               companyCopyright="GSiSY  2019">
   <MAINGROUP id="vMapAe" name="LESSAMPLER">
     <GROUP id="{ACCB7999-C9CE-AA43-4C8D-8C6F02024714}" name="Library">
@@ -125,7 +125,7 @@
     <VS2019 targetFolder="Builds/VisualStudio2019" smallIcon="vRamD0" bigIcon="vRamD0">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/&#10;../../Library/lib_json/"
-                       useRuntimeLibDLL="0"/>
+                       winWarningLevel="2" useRuntimeLibDLL="0"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="../../Library/World/src/&#10;../../Library/Dialogs/&#10;../../Library/tinyxml2/&#10;../../Library/lib_json/"
                        useRuntimeLibDLL="0"/>
       </CONFIGURATIONS>

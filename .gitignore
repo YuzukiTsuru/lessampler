@@ -239,3 +239,7 @@ DerivedData/
 # End of https://www.gitignore.io/api/c,c++,xcode,cmake,macos,jetbrains
 
 Builds/
+.idea/modules.xml
+.idea/misc.xml
+.idea/lessampler.iml
+.idea/vcs.xml
