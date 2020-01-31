@@ -8,6 +8,9 @@
 //  to Public License, Version 2, as published by the WTFPL Task Force.
 //  See http://www.wtfpl.net/ for more details.
 //
+#if _WIN32
+#pragma warning(disable : 4819)
+#endif
 
 #pragma once
 
