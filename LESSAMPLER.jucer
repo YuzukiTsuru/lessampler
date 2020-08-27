@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="SF7Nps" name="LESSAMPLER" projectType="consoleapp" jucerVersion="5.4.5"
-              maxBinaryFileSize="1048576" version="0.3.0A" companyName="GSiSY"
-              companyCopyright="GSiSY  2019">
+<JUCERPROJECT id="SF7Nps" name="LESSAMPLER" projectType="consoleapp" maxBinaryFileSize="1048576"
+              version="0.3.0A" companyName="GSiSY" companyCopyright="GSiSY  2019"
+              jucerFormatVersion="1">
   <MAINGROUP id="vMapAe" name="LESSAMPLER">
     <GROUP id="{ACCB7999-C9CE-AA43-4C8D-8C6F02024714}" name="Library">
       <GROUP id="{0409ADDA-C83D-292A-C58A-8E89D035BCCF}" name="Json">
