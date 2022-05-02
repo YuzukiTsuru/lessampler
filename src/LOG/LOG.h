@@ -25,6 +25,8 @@ public:
 
     [[maybe_unused]] static void DEBUG(const std::string &msg);
 
+    [[maybe_unused]] static void DEBUG(double msg);
+
     [[maybe_unused]] static void WARNING(const std::string &msg);
 
     [[maybe_unused]] static void FATAL(const std::string &msg);
