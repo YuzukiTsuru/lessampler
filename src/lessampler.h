@@ -21,6 +21,8 @@
 #ifndef LESSAMPLER_LESSAMPLER_H
 #define LESSAMPLER_LESSAMPLER_H
 
+#include <iostream>
+#include <Dialogs.h>
 
 class lessampler {
 public:

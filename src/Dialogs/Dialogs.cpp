@@ -19,3 +19,18 @@
 //
 
 #include "Dialogs.h"
+#include "LOG.h"
+
+Dialogs::Dialogs() {
+    // Check that a backend is available
+    if (!pfd::settings::available()) {
+        LOG::WARNING("Portable File Dialogs are not available on this platform.\n");
+    }
+    // Set verbosity to true
+    pfd::settings::verbose(true);
+}
+
+void Dialogs::notify(const std::string &message, const std::string &title) {
+    // Notification
+    pfd::notify(title, message, pfd::icon::info);
+}

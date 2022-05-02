@@ -17,9 +17,15 @@
 #ifndef LESSAMPLER_DIALOGS_H
 #define LESSAMPLER_DIALOGS_H
 
+#include <portable-file-dialogs.h>
+
 class Dialogs {
+public:
     Dialogs();
 
+    static void notify(const std::string &message, const std::string &title);
+
+private:
 };
 
 

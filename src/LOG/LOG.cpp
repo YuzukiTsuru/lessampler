@@ -31,15 +31,7 @@
     std::cout << cc::yellow << "[" << PROJECT_NAME << " WARNING] " << msg << cc::reset << std::endl;
 }
 
-// expected unqualified-id before numeric constant fix.
-#ifdef __WINDOWS__
-#ifdef ERROR
-#undef ERROR
-
-[[maybe_unused]] void LOG::ERROR(const std::string &msg) {
+[[maybe_unused]] void LOG::FATAL(const std::string &msg) {
     std::cout << cc::red << "[" << PROJECT_NAME << " ERROR] " << msg << cc::reset << std::endl;
     throw std::runtime_error(msg);
 }
-
-#endif
-#endif
