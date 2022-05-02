@@ -31,6 +31,7 @@ include_directories(
         src/LOG
         src/Utils
         src/libUTAU
+        src/Dialogs
         lib/World/src
         lib/ColorCout/includes
         lib/dialog
@@ -61,13 +62,15 @@ file(GLOB utau_source src/libUTAU/*.cpp src/libUTAU/*.h)
 add_library(UTAU ${utau_source})
 
 # Library Dialog
-file(GLOB Dialog_source src/Dialogs/*.cpp src/Dialogs/*.h)
-add_library(Dialog ${Dialog_source})
+file(GLOB Dialogs_source src/Dialogs/*.cpp src/Dialogs/*.h)
+add_library(Dialogs ${Dialogs_source})
+target_link_libraries(Dialogs LOG)
 
 # Library Audio Model
 file(GLOB audio_model_source src/AudioModel/*.cpp src/AudioModel/*.h src/AudioModel/WorldModule/*.cpp src/AudioModel/WorldModule/*.h)
 add_library(AudioModel ${audio_model_source})
-target_link_libraries(AudioModel log world::core)
+target_link_libraries(AudioModel LOG world::core)
 
 file(GLOB lessampler_source src/*.cpp)
 add_executable(lessampler ${lessampler_source})
+target_link_libraries(lessampler AudioModel LOG Dialogs UTAU)

@@ -14,10 +14,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/2.
-//
-
 #include "lessampler.h"
 
 lessampler::lessampler(int argc, char **argv) {
@@ -26,6 +22,9 @@ lessampler::lessampler(int argc, char **argv) {
 }
 
 void lessampler::run() {
-
+    if(argc < 2) {
+        Dialogs::notify("lessampler", "lessampler: no input file");
+        return;
+    }
 }
 
