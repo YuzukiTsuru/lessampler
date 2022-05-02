@@ -30,6 +30,7 @@ include_directories(
         src
         src/LOG
         src/Utils
+        src/libUTAU
         lib/World/src
         lib/ColorCout/includes
         ${PROJECT_BINARY_DIR}
@@ -46,9 +47,16 @@ set(WORLD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(WORLD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/World EXCLUDE_FROM_ALL)
 
+
+add_subdirectory(test)
+
 # Library LOG
 file(GLOB log_source src/LOG/*.cpp src/LOG/*.h)
 add_library(LOG ${log_source})
+
+# Library UTAU
+file(GLOB utau_source src/libUTAU/*.cpp src/libUTAU/*.h)
+add_library(UTAU ${utau_source})
 
 # Library Audio Model
 file(GLOB audio_model_source src/AudioModel/*.cpp src/AudioModel/*.h src/AudioModel/WorldModule/*.cpp src/AudioModel/WorldModule/*.h)

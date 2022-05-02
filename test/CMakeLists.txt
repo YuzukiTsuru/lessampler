@@ -1,0 +1,2 @@
+add_executable(libUTAUTest libUTAUTest.cpp)
+target_link_libraries(libUTAUTest UTAU)
