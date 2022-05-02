@@ -25,6 +25,11 @@ endif ()
 project(lessampler LANGUAGES C CXX VERSION ${_git_version})
 set(CMAKE_CXX_STANDARD 17)
 
+# Add support for -DDEBUG_MODE=ON
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+    ADD_DEFINITIONS(-DDEBUG_MODE)
+endif ()
+
 # include header files
 include_directories(
         src

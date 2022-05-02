@@ -1,9 +1,25 @@
-//
-// Created by Ghost Gloomy on 2020/8/27.
-//
+/*
+ * Copyright (c)  2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>.
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <iostream>
+#include <fstream>
 
 #include "BinUnit.h"
-#include <fstream>
+#include "LOG.h"
+#include "exception.h"
 
 void BinUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
     std::ofstream out_f0(Path, std::ios::out | std::ios::binary);
@@ -50,4 +66,25 @@ void BinUnit::APBIN(const std::string &Path, AudioModel audioModel) {
     }
 
     out_aperiodicity.close();
+}
+
+AudioModel BinUnit::BINF0(const std::string &Path) {
+    AudioModel audioModel{};
+    std::ifstream is_f0(Path, std::ios::binary | std::ios::in);
+    if (!is_f0.is_open()) {
+        throw file_open_error(Path);
+    }
+
+    is_f0.read(reinterpret_cast<char *>(audioModel.f0), std::streamsize(audioModel.f0_length * sizeof(double)));
+#ifdef DEBUG_MODE
+    for (int i = 0; i < audioModel.f0_length; i++)
+        LOG::DEBUG(audioModel.f0[i]);
+#endif
+    is_f0.close();
+    return audioModel;
+}
+
+std::ifstream::pos_type BinUnit::filesize(const std::string &filename) {
+    std::ifstream in(filename, std::ifstream::binary | std::ifstream::ate);
+    return in.tellg();
 }
