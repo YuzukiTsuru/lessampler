@@ -33,6 +33,7 @@ include_directories(
         src/libUTAU
         lib/World/src
         lib/ColorCout/includes
+        lib/dialog
         ${PROJECT_BINARY_DIR}
 )
 
@@ -47,6 +48,7 @@ set(WORLD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(WORLD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/World EXCLUDE_FROM_ALL)
 
+add_subdirectory(lib/dialog)
 
 add_subdirectory(test)
 
