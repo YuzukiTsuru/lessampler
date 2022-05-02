@@ -35,6 +35,10 @@ include_directories(
         lib/World/src
         lib/ColorCout/includes
         lib/dialog
+        lib/ftxui/include
+        lib/inicpp/include
+        lib/rapidjson/include
+        lib/sndfile/include
         ${PROJECT_BINARY_DIR}
 )
 
@@ -47,10 +51,33 @@ configure_file(
 # Library World
 set(WORLD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(WORLD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(FTXUI_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(FTXUI_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(FTXUI_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(INICPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(INICPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_DOC OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_THIRDPARTY_GTEST OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_CXX11 OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_CXX17 ON CACHE BOOL "" FORCE)
+set(RAPIDJSON_ENABLE_INSTRUMENTATION_OPT OFF CACHE BOOL "" FORCE)
+set(BUILD_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ENABLE_CPACK OFF CACHE BOOL "" FORCE)
+set(ENABLE_MPEG OFF CACHE BOOL "" FORCE)
+set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "" FORCE)
+
+# subdirectory
 add_subdirectory(lib/World EXCLUDE_FROM_ALL)
+add_subdirectory(lib/dialog EXCLUDE_FROM_ALL)
+add_subdirectory(lib/inicpp EXCLUDE_FROM_ALL)
+add_subdirectory(lib/ftxui EXCLUDE_FROM_ALL)
+add_subdirectory(lib/rapidjson EXCLUDE_FROM_ALL)
+add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
 
-add_subdirectory(lib/dialog)
-
+# test
 add_subdirectory(test)
 
 # Library LOG
@@ -65,6 +92,11 @@ add_library(UTAU ${utau_source})
 file(GLOB Dialogs_source src/Dialogs/*.cpp src/Dialogs/*.h)
 add_library(Dialogs ${Dialogs_source})
 target_link_libraries(Dialogs LOG)
+
+# Library FileIO
+file(GLOB FileIO_source src/FileIO/*.cpp src/FileIO/*.h)
+add_library(FileIO ${FileIO_source})
+target_link_libraries(FileIO LOG rapidjson)
 
 # Library Audio Model
 file(GLOB audio_model_source src/AudioModel/*.cpp src/AudioModel/*.h src/AudioModel/WorldModule/*.cpp src/AudioModel/WorldModule/*.h)

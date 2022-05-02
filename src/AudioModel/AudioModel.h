@@ -18,8 +18,13 @@
 // Created by gloom on 2022/5/2.
 //
 
-#include "libWorldWrapper.h"
+#ifndef LESSAMPLER_AUDIOMODEL_H
+#define LESSAMPLER_AUDIOMODEL_H
 
-libWorldWrapper::libWorldWrapper() {
-    //
-}
+
+class AudioModel {
+
+};
+
+
+#endif //LESSAMPLER_AUDIOMODEL_H
