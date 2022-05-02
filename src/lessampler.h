@@ -30,7 +30,7 @@ public:
 
     void run();
 
-    void show_logo();
+    static void show_logo();
 
 private:
     int argc;
