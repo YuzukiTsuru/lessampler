@@ -46,7 +46,7 @@ public:
 
     void printUTAUPara() const;
 
-    UTAUPara getUTAUPara() const;
+    [[maybe_unused]] [[nodiscard]] UTAUPara getUTAUPara() const;
 
 private:
     UTAUPara utauPara;
