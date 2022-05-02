@@ -22,9 +22,21 @@ lessampler::lessampler(int argc, char **argv) {
 }
 
 void lessampler::run() {
-    if(argc < 2) {
+    if (argc < 2) {
         Dialogs::notify("lessampler", "lessampler: no input file");
         return;
     }
+}
+
+void lessampler::show_logo() {
+    std::cout << "\n"
+                 " _                                     _           \n"
+                 "| | ___  ___ ___  __ _ _ __ ___  _ __ | | ___ _ __ \n"
+                 "| |/ _ \\/ __/ __|/ _` | '_ ` _ \\| '_ \\| |/ _ \\ '__|\n"
+                 "| |  __/\\__ \\__ \\ (_| | | | | | | |_) | |  __/ |   \n"
+                 "|_|\\___||___/___/\\__,_|_| |_| |_| .__/|_|\\___|_|   \n"
+                 "                                |_|                "
+              << std::endl;
+
 }
 
