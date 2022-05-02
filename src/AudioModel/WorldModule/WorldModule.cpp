@@ -38,7 +38,7 @@ WorldModule::WorldModule(double *x, int x_length, int fs, double frame_period, F
     else if (f0_mode == F0_MDOE_HARVEST)
         F0EstimationHarvest();
     else
-        LOG::ERROR("F0 Estimation Mode Error");
+        LOG::FATAL("F0 Estimation Mode Error");
     SpectralEnvelopeEstimation();
     AperiodicityEstimation();
 }

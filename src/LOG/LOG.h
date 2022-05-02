@@ -19,10 +19,6 @@
 
 #include <iostream>
 
-#if (defined(_WIN16) || defined(_WIN32) || defined(_WIN64)) && !defined(__WINDOWS__)
-# define __WINDOWS__
-#endif
-
 class LOG {
 public:
     [[maybe_unused]] static void INFO(const std::string &msg);
@@ -31,7 +27,7 @@ public:
 
     [[maybe_unused]] static void WARNING(const std::string &msg);
 
-    [[maybe_unused]] static void ERROR(const std::string &msg);
+    [[maybe_unused]] static void FATAL(const std::string &msg);
 };
 
 #endif //LESSAMPLER_LOG_H
