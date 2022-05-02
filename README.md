@@ -5,29 +5,12 @@
 <div align="center">
 
   ![i18n](https://img.shields.io/badge/I18N-READY!🌍-green?style=for-the-badge)  
-  [![License](https://img.shields.io/badge/License-GNU%20Affero%20General%20Public%20License%20v3.0-orange?style=for-the-badge)](https://github.com/GloomyGhost-MosquitoSeal/lessampler/blob/master/LICENSE)
-
-  
-
-  
-
+  [![License](https://img.shields.io/badge/License-GNU%20General%20Public%20License%20v3.0-orange?style=for-the-badge)](https://github.com/GloomyGhost-MosquitoSeal/lessampler/blob/master/LICENSE)
 
   ![LANGUAGES](https://img.shields.io/badge/CHOOSE-LANGUAGE-important?style=for-the-badge)  
   [![中文](https://img.shields.io/badge/LANG-中文-red?style=for-the-badge)](https://github.com/GloomyGhost-MosquitoSeal/lessampler/blob/master/README.CN.md)
 
- 
-
- 
-
- 
-
   [![CHAT](https://img.shields.io/badge/CHAT%20ON-GITTER%20-brightgreen?style=for-the-badge)](https://gitter.im/LESSAMPLER)
-
- 
-
- 
-
- 
 
   ![forthebadge](https://forthebadge.com/images/badges/built-by-crips.svg)
   ![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)
@@ -54,35 +37,6 @@
   [![Badge](https://img.shields.io/badge/link-996.icu-%23FF4D5B.svg?style=for-the-badge)](https://996.icu/#/en_US)
 
 </div>
-
-## API:
-- [ ] [UTAU](http://utau2008.xrea.jp/) Interface
-- [ ] [LeafOpenUTAUQt](https://github.com/shine5402/LeafOpenUTAUQt) Interface
-- [ ] Library Interface
-
-## WIP：
-#### Basic GUI construction：
-- [X] Error prompt dialog
-- [X] Information prompt dialog
-- [X] Warning prompt dialog
-- [ ] GUI engine parameter modifier
-- [ ] Copyright window
-
-#### Audio construction：
-- [ ] F0 extraction
-- [ ] Model analysis
-- [ ] Model synthesis export
-- [ ] Model recovery
-- [ ] Synthetic audio
-- [ ] Singing synthesis parameter modification
-- [ ] Singing synthesis audio export
-- [ ] Audio resampling
-
-#### Other
-- [ ] GUI editor
-- [ ] Egg
-- [ ] Sparkling is so cute(((
-- [ ] Deep learning aid adjustment
 
 ## Contribution
 - **Please contact me by email, temporarily do not support pull requests**  
