@@ -2,28 +2,14 @@
 // Created by Ghost Gloomy on 2020/8/27.
 //
 
-#include "FileWriteUnit.h"
-
-#include "rapidjson/document.h"
-
-#if DEBUG
-
-#include <rapidjson/prettywriter.h>
-#include "icecream.hpp"
-
-#else
-
-#include "rapidjson/writer.h"
-#include "ftxui/component/menu.hpp"
-#include "ftxui/component/screen_interactive.hpp"
-
-#endif
-
-#include "rapidjson/stringbuffer.h"
-
 #include <fstream>
 #include <iostream>
 
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+
+#include "FileWriteUnit.h"
 
 #if (defined (__WIN32__) || defined (_WIN32)) && !defined (__MINGW32__)
 #pragma warning(disable : 4996)
@@ -46,11 +32,7 @@ void less::FileWriteUnit::WavWrite(const double *x, int x_length, int fs, const 
 
 void less::FileWriteUnit::F0ToFile(const std::string &Path, double *F0, int F0Len) {
     rapidjson::StringBuffer s;
-#if DEBUG
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
-#else
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-#endif
     writer.StartObject();
     writer.Key("NODE");
     writer.String("LESS_F0_DOUBLE");
@@ -70,11 +52,7 @@ void less::FileWriteUnit::F0ToFile(const std::string &Path, double *F0, int F0Le
 
 void less::FileWriteUnit::SpToFile(const std::string &Path, double **Spec, int fft_size, int f0_length) {
     rapidjson::StringBuffer s;
-#if DEBUG
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
-#else
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-#endif
     writer.StartObject();
     writer.Key("FFTSIZE");
     writer.Int(fft_size);
@@ -98,11 +76,7 @@ void less::FileWriteUnit::SpToFile(const std::string &Path, double **Spec, int f
 
 void less::FileWriteUnit::ApToFile(const std::string &Path, double **ap, int fft_size, int f0_length) {
     rapidjson::StringBuffer s;
-#if DEBUG
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
-#else
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-#endif
     writer.StartObject();
     writer.Key("FFTSIZE");
     writer.Int(fft_size);
@@ -126,11 +100,7 @@ void less::FileWriteUnit::ApToFile(const std::string &Path, double **ap, int fft
 
 void less::FileWriteUnit::WavToFile(const std::string &Path, int x_length, double *x, int sr) {
     rapidjson::StringBuffer s;
-#if DEBUG
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
-#else
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-#endif
     writer.StartObject();
     writer.Key("NODE");
     writer.String("LESS_FREAM_DOUBLE");

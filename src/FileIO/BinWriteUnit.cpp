@@ -5,7 +5,7 @@
 #include "BinWriteUnit.h"
 #include <fstream>
 
-void less::BinWriteUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
+void BinWriteUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
     std::ofstream out_f0(Path, std::ios::out | std::ios::binary);
     if (!out_f0) {
         std::cerr << "Cannot open file: " << Path << "while saving." << std::endl;
@@ -17,7 +17,7 @@ void less::BinWriteUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
     out_f0.close();
 }
 
-void less::BinWriteUnit::SPBIN(const std::string &Path, AudioModel audioModel) {
+void BinWriteUnit::SPBIN(const std::string &Path, AudioModel audioModel) {
     std::ofstream out_spectrogram(Path, std::ios::out | std::ios::binary);
     if (!out_spectrogram) {
         std::cerr << "Cannot open file: " << Path << "while saving." << std::endl;
@@ -38,7 +38,7 @@ void less::BinWriteUnit::SPBIN(const std::string &Path, AudioModel audioModel) {
     out_spectrogram.close();
 }
 
-void less::BinWriteUnit::APBIN(const std::string &Path, AudioModel audioModel) {
+void BinWriteUnit::APBIN(const std::string &Path, AudioModel audioModel) {
     std::ofstream out_aperiodicity(Path, std::ios::out | std::ios::binary);
     if (!out_aperiodicity) {
         std::cerr << "Cannot open file: " << Path << "while saving." << std::endl;
