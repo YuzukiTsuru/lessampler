@@ -27,6 +27,10 @@
     std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << msg << cc::reset << std::endl;
 }
 
+[[maybe_unused]] void LOG::DEBUG(double msg) {
+    std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << msg << cc::reset << std::endl;
+}
+
 [[maybe_unused]] void LOG::WARNING(const std::string &msg) {
     std::cout << cc::yellow << "[" << PROJECT_NAME << " WARNING] " << msg << cc::reset << std::endl;
 }
@@ -35,3 +39,4 @@
     std::cout << cc::red << "[" << PROJECT_NAME << " ERROR] " << msg << cc::reset << std::endl;
     throw std::runtime_error(msg);
 }
+
