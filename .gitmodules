@@ -7,3 +7,6 @@
 [submodule "lib/dialog"]
 	path = lib/dialog
 	url = https://github.com/samhocevar/portable-file-dialogs
+[submodule "lib/inih"]
+	path = lib/inih
+	url = https://github.com/benhoyt/inih
