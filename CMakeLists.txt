@@ -50,5 +50,10 @@ add_subdirectory(lib/World EXCLUDE_FROM_ALL)
 file(GLOB log_source src/LOG/*.cpp src/LOG/*.h)
 add_library(LOG ${log_source})
 
+# Library Audio Model
+file(GLOB audio_model_source src/AudioModel/*.cpp src/AudioModel/*.h src/AudioModel/WorldModule/*.cpp src/AudioModel/WorldModule/*.h)
+add_library(AudioModel ${audio_model_source})
+target_link_libraries(AudioModel log world::core)
+
 file(GLOB lessampler_source src/*.cpp)
 add_executable(lessampler ${lessampler_source})
