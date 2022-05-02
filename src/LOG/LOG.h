@@ -23,9 +23,8 @@ class LOG {
 public:
     [[maybe_unused]] static void INFO(const std::string &msg);
 
-    [[maybe_unused]] static void DEBUG(const std::string &msg);
-
-    [[maybe_unused]] static void DEBUG(double msg);
+    template<typename T>
+    [[maybe_unused]] static void DEBUG(T msg);
 
     [[maybe_unused]] static void WARNING(const std::string &msg);
 
