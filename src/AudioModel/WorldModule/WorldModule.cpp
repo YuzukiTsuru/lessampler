@@ -1,0 +1,165 @@
+/*
+ * Copyright (c)  2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>.
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with libllsm. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+//
+// Created by gloom on 2022/5/2.
+//
+
+#include "WorldModule.h"
+
+#include "LOG.h"
+
+#include <world/dio.h>
+#include <world/stonemask.h>
+#include <world/cheaptrick.h>
+#include <world/harvest.h>
+#include <world/d4c.h>
+
+WorldModule::WorldModule(double *x, int x_length, int fs, double frame_period, F0_MDOE f0_mode) {
+    this->x = x;
+    this->x_length = x_length;
+    this->worldPara.fs = fs;
+    this->worldPara.frame_period = frame_period;
+    if (f0_mode == F0_MDOE::F0_MDOE_DIO)
+        F0EstimationDio();
+    else if (f0_mode == F0_MDOE_HARVEST)
+        F0EstimationHarvest();
+    else
+        LOG::ERROR("F0 Estimation Mode Error");
+    SpectralEnvelopeEstimation();
+    AperiodicityEstimation();
+}
+
+WorldModule::~WorldModule() {
+    delete[] this->worldPara.time_axis;
+    delete[] this->worldPara.f0;
+    for (int i = 0; i < this->worldPara.f0_length; ++i) {
+        delete[] this->worldPara.spectrogram[i];
+        delete[] this->worldPara.aperiodicity[i];
+    }
+    delete[] this->worldPara.spectrogram;
+    delete[] this->worldPara.aperiodicity;
+}
+
+WorldPara WorldModule::GetModule() {
+    return this->worldPara;
+}
+
+void WorldModule::F0EstimationDio() {
+    DioOption option = {0};
+    InitializeDioOption(&option);
+
+    // Modification of the option
+    option.frame_period = this->worldPara.frame_period;
+
+    // Valuable option.speed represents the ratio for downsampling.
+    // The signal is downsampled to fs / speed Hz.
+    // If you want to obtain the accurate result, speed should be set to 1.
+    option.speed = 1;
+
+    // You can set the f0_floor below world::kFloorF0.
+    option.f0_floor = 40.0;
+    option.allowed_range = 0.1;
+
+    // Parameters setting and memory allocation.
+    this->worldPara.f0_length = GetSamplesForDIO(this->worldPara.fs, x_length, this->worldPara.frame_period);
+    this->worldPara.f0 = new double[this->worldPara.f0_length];
+    this->worldPara.time_axis = new double[this->worldPara.f0_length];
+    auto *refined_f0 = new double[this->worldPara.f0_length];
+
+    Dio(x, x_length, this->worldPara.fs, &option, this->worldPara.time_axis, this->worldPara.f0);
+
+    // StoneMask is carried out to improve the estimation performance.
+    StoneMask(x, x_length, this->worldPara.fs, this->worldPara.time_axis, this->worldPara.f0, this->worldPara.f0_length, refined_f0);
+
+    for (int i = 0; i < this->worldPara.f0_length; ++i) {
+        this->worldPara.f0[i] = refined_f0[i];
+    }
+
+    delete[] refined_f0;
+}
+
+void WorldModule::F0EstimationHarvest() {
+    HarvestOption option = {0};
+    InitializeHarvestOption(&option);
+
+    // You can change the frame period.
+    // But the estimation is carried out with 1-ms frame shift.
+    option.frame_period = this->worldPara.frame_period;
+
+    // You can set the f0_floor below world::kFloorF0.
+    option.f0_floor = 40.0;
+
+    // Parameters setting and memory allocation.
+    this->worldPara.f0_length = GetSamplesForHarvest(this->worldPara.fs, x_length, this->worldPara.frame_period);
+    this->worldPara.f0 = new double[this->worldPara.f0_length];
+    this->worldPara.time_axis = new double[this->worldPara.f0_length];
+
+    Harvest(x, x_length, this->worldPara.fs, &option, this->worldPara.time_axis, this->worldPara.f0);
+}
+
+void WorldModule::SpectralEnvelopeEstimation() {
+    CheapTrickOption option = {0};
+    // Note (2017/01/02): fs is added as an argument.
+    InitializeCheapTrickOption(this->worldPara.fs, &option);
+
+    // Default value was modified to -0.15.
+    // option.q1 = -0.15;
+
+    // Important notice (2017/01/02)
+    // You can set the fft_size.
+    // Default is GetFFTSizeForCheapTrick(this->worldPara.fs, &option);
+    // When fft_size changes from default value,
+    // a replaced f0_floor will be used in CheapTrick().
+    // The lowest F0 that WORLD can work as expected is determined
+    // by the following : 3.0 * fs / fft_size.
+    option.f0_floor = 71.0;
+    option.fft_size = GetFFTSizeForCheapTrick(this->worldPara.fs, &option);
+    // We can directly set fft_size.
+//   option.fft_size = 1024;
+
+    // Parameters setting and memory allocation.
+    this->worldPara.fft_size = option.fft_size;
+    this->worldPara.spectrogram = new double *[this->worldPara.f0_length];
+    for (int i = 0; i < this->worldPara.f0_length; ++i) {
+        this->worldPara.spectrogram[i] = new double[this->worldPara.fft_size / 2 + 1];
+    }
+
+    CheapTrick(x, x_length, this->worldPara.fs, this->worldPara.time_axis, this->worldPara.f0, this->worldPara.f0_length, &option,
+               this->worldPara.spectrogram);
+}
+
+void WorldModule::AperiodicityEstimation() {
+    D4COption option = {0};
+    InitializeD4COption(&option);
+
+    // Comment was modified because it was confusing (2017/12/10).
+    // It is used to determine the aperiodicity in whole frequency band.
+    // D4C identifies whether the frame is voiced segment even if it had an F0.
+    // If the estimated value falls below the threshold,
+    // the aperiodicity in entire frequency band will set to 1.0.
+    // If you want to use the conventional D4C, please set the threshold to 0.0.
+    option.threshold = 0.85;
+
+    // Parameters setting and memory allocation.
+    this->worldPara.aperiodicity = new double *[this->worldPara.f0_length];
+    for (int i = 0; i < this->worldPara.f0_length; ++i) {
+        this->worldPara.aperiodicity[i] = new double[this->worldPara.fft_size / 2 + 1];
+    }
+
+    D4C(x, x_length, this->worldPara.fs, this->worldPara.time_axis, this->worldPara.f0, this->worldPara.f0_length, this->worldPara.fft_size, &option,
+        this->worldPara.aperiodicity);
+}

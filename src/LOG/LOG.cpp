@@ -38,6 +38,7 @@
 
 [[maybe_unused]] void LOG::ERROR(const std::string &msg) {
     std::cout << cc::red << "[" << PROJECT_NAME << " ERROR] " << msg << cc::reset << std::endl;
+    throw std::runtime_error(msg);
 }
 
 #endif
