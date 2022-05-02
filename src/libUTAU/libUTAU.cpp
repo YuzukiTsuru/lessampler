@@ -48,6 +48,6 @@ void libUTAU::printUTAUPara() const {
     std::cout << "Pitch String:           " << utauPara.pitch << std::endl;
 }
 
-UTAUPara libUTAU::getUTAUPara() const {
+[[maybe_unused]] UTAUPara libUTAU::getUTAUPara() const {
     return utauPara;
 }
