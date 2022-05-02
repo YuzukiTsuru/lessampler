@@ -14,12 +14,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ColorCout.hpp>
+
 #include "lessampler.h"
 #include "config.h"
+
 
 lessampler::lessampler(int argc, char **argv) {
     this->argc = argc;
     this->argv = argv;
+}
+
+void lessampler::show_logo() {
+    std::cout << cc::cyan <<
+              " _                           _         \n"
+              "| |___ ___ ___ ___ _____ ___| |___ ___ \n"
+              "| | -_|_ -|_ -| .'|     | . | | -_|  _|\n"
+              "|_|___|___|___|__,|_|_|_|  _|_|___|_|  \n"
+              " Version: "
+              << PROJECT_GIT_HASH
+              << "       |_|            "
+              << "\nCopyright (c)  2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>"
+              << cc::reset
+              << std::endl;
 }
 
 void lessampler::run() {
@@ -28,16 +45,5 @@ void lessampler::run() {
         Dialogs::notify("lessampler", "lessampler: no input file");
         return;
     }
-}
-
-void lessampler::show_logo() {
-    std::cout << " _                           _         \n"
-                 "| |___ ___ ___ ___ _____ ___| |___ ___ \n"
-                 "| | -_|_ -|_ -| .'|     | . | | -_|  _|\n"
-                 "|_|___|___|___|__,|_|_|_|  _|_|___|_|  \n"
-                 " Version: " << PROJECT_GIT_HASH
-                 << "       |_|            "
-              << std::endl;
-
 }
 
