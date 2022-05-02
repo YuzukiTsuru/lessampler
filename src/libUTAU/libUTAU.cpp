@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-#include "UTAUException.h"
+#include "exception.h"
 #include "UTAUParameterPaser.h"
 
 #include "libUTAU.h"

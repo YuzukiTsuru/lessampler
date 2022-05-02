@@ -29,7 +29,7 @@ public:
 private:
     double scaleNum = 0.0;
     /*
-     * Scale Name Convert to number as double
+     * Scale Name Convert to number than double
      * IN: std::string scaleName
      * RET: bool
      *   true -> success

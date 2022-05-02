@@ -29,4 +29,14 @@ public:
     explicit file_open_error(const std::string &what) : std::runtime_error("Fail to open file: " + what + ".") {};
 };
 
+class parameter_error : public std::runtime_error {
+public:
+    explicit parameter_error(const std::string &what) : std::runtime_error("Parameter error: " + what + ".") {};
+};
+
+class type_error : public std::runtime_error {
+public:
+    explicit type_error(const std::string &what) : std::runtime_error("Type error: " + what + ".") {};
+};
+
 #endif //LESSAMPLER_EXCEPTION_H
