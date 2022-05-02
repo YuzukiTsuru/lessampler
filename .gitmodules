@@ -1,0 +1,6 @@
+[submodule "lib/World"]
+	path = lib/World
+	url = https://github.com/mmorise/World
+[submodule "lib/ColorCout"]
+	path = lib/ColorCout
+	url = https://github.com/YuzukiTsuru/ColorCout
