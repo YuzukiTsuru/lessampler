@@ -22,6 +22,8 @@
 #define LESSAMPLER_LIBWORLDWRAPPER_H
 
 class libWorldWrapper {
+public:
+    libWorldWrapper();
 };
 
 #endif //LESSAMPLER_LIBWORLDWRAPPER_H
