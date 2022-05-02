@@ -7,6 +7,15 @@
 [submodule "lib/dialog"]
 	path = lib/dialog
 	url = https://github.com/samhocevar/portable-file-dialogs
-[submodule "lib/inih"]
-	path = lib/inih
-	url = https://github.com/benhoyt/inih
+[submodule "lib/rapidjson"]
+	path = lib/rapidjson
+	url = https://github.com/Tencent/rapidjson
+[submodule "lib/ftxui"]
+	path = lib/ftxui
+	url = https://github.com/ArthurSonzogni/FTXUI
+[submodule "lib/inicpp"]
+	path = lib/inicpp
+	url = https://github.com/SemaiCZE/inicpp
+[submodule "lib/sndfile"]
+	path = lib/sndfile
+	url = https://github.com/libsndfile/libsndfile

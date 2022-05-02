@@ -18,8 +18,4 @@
 // Created by gloom on 2022/5/2.
 //
 
-#include "libWorldWrapper.h"
-
-libWorldWrapper::libWorldWrapper() {
-    //
-}
+#include "AudioModel.h"
