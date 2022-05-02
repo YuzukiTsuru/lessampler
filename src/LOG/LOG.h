@@ -21,14 +21,17 @@
 
 class LOG {
 public:
-    [[maybe_unused]] static void INFO(const std::string &msg);
+    template<typename T>
+    [[maybe_unused]] static void INFO(T msg);
 
     template<typename T>
     [[maybe_unused]] static void DEBUG(T msg);
 
-    [[maybe_unused]] static void WARNING(const std::string &msg);
+    template<typename T>
+    [[maybe_unused]] static void WARNING(T msg);
 
-    [[maybe_unused]] static void FATAL(const std::string &msg);
+    template<typename T>
+    [[maybe_unused]] static void FATAL(T msg);
 };
 
 #endif //LESSAMPLER_LOG_H

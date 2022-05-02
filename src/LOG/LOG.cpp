@@ -19,20 +19,23 @@
 #include "exception.h"
 #include <ColorCout.hpp>
 
-[[maybe_unused]] void LOG::INFO(const std::string &msg) {
+template<typename T>
+[[maybe_unused]] void LOG::INFO(T msg) {
     std::cout << cc::cyan << "[" << PROJECT_NAME << " INFO] " << msg << cc::reset << std::endl;
 }
 
 template<typename T>
-void LOG::DEBUG(T msg) {
+[[maybe_unused]] void LOG::DEBUG(T msg) {
     std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << msg << cc::reset << std::endl;
 }
 
-[[maybe_unused]] void LOG::WARNING(const std::string &msg) {
+template<typename T>
+[[maybe_unused]] void LOG::WARNING(T msg) {
     std::cout << cc::yellow << "[" << PROJECT_NAME << " WARNING] " << msg << cc::reset << std::endl;
 }
 
-[[maybe_unused]] void LOG::FATAL(const std::string &msg) {
+template<typename T>
+[[maybe_unused]] void LOG::FATAL(T msg) {
     std::cout << cc::red << "[" << PROJECT_NAME << " ERROR] " << msg << cc::reset << std::endl;
     throw std::runtime_error(msg);
 }
