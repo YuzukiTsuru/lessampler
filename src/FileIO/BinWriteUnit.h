@@ -6,26 +6,25 @@
 #define LESSAMPLER_BINUNIT_H
 
 #include <iostream>
+#include "lessAudioModel.h"
 
-namespace less {
-    class BinWriteUnit {
-    public:
-        /*
-         * F0 to binary
-         */
-        static void F0BIN(const std::string &Path, AudioModel audioModel);
+class BinWriteUnit {
+public:
+    /*
+     * F0 to binary
+     */
+    static void F0BIN(const std::string &Path, AudioModel audioModel);
 
-        /*
-         * Sp to binary
-         */
-        static void SPBIN(const std::string &Path, AudioModel audioModel);
+    /*
+     * Sp to binary
+     */
+    static void SPBIN(const std::string &Path, AudioModel audioModel);
 
-        /*
-         * Ap to binary
-         */
-        static void APBIN(const std::string &Path, AudioModel audioModel);
-    };
-}
+    /*
+     * Ap to binary
+     */
+    static void APBIN(const std::string &Path, AudioModel audioModel);
+};
 
 
 #endif //LESSAMPLER_BINUNIT_H

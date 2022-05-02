@@ -28,6 +28,7 @@ set(CMAKE_CXX_STANDARD 17)
 # include header files
 include_directories(
         src
+        src/AudioModel
         src/LOG
         src/Utils
         src/libUTAU
@@ -40,6 +41,7 @@ include_directories(
         lib/rapidjson/include
         lib/sndfile/include
         ${PROJECT_BINARY_DIR}
+        ${PROJECT_BINARY_DIR}/lib/sndfile/include
 )
 
 # Generate Configure file
