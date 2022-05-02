@@ -30,9 +30,6 @@ public:
      * Binary to F0
      */
     static AudioModel BINF0(const std::string &Path);
-
-private:
-    static std::ifstream::pos_type filesize(const std::string& filename);
 };
 
 

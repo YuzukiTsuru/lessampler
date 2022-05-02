@@ -23,11 +23,8 @@
     std::cout << cc::cyan << "[" << PROJECT_NAME << " INFO] " << msg << cc::reset << std::endl;
 }
 
-[[maybe_unused]] void LOG::DEBUG(const std::string &msg) {
-    std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << msg << cc::reset << std::endl;
-}
-
-[[maybe_unused]] void LOG::DEBUG(double msg) {
+template<typename T>
+void LOG::DEBUG(T msg) {
     std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << msg << cc::reset << std::endl;
 }
 
@@ -39,4 +36,5 @@
     std::cout << cc::red << "[" << PROJECT_NAME << " ERROR] " << msg << cc::reset << std::endl;
     throw std::runtime_error(msg);
 }
+
 
