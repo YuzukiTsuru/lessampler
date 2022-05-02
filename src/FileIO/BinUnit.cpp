@@ -21,6 +21,19 @@
 #include "LOG.h"
 #include "exception.h"
 
+#if (defined (__WIN32__) || defined (_WIN32)) && !defined (__MINGW32__)
+#include <conio.h>
+#include <windows.h>
+#pragma comment(lib, "winmm.lib")
+#pragma warning(disable : 4996)
+#endif
+#if (defined (__linux__) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__APPLE__))
+
+#include <cstdint>
+#include <ctime>
+
+#endif
+
 void BinUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
     std::ofstream out_f0(Path, std::ios::out | std::ios::binary);
     if (!out_f0) {
@@ -74,17 +87,15 @@ AudioModel BinUnit::BINF0(const std::string &Path) {
     if (!is_f0.is_open()) {
         throw file_open_error(Path);
     }
-
+    // read the f0 length and allocate memory
+    audioModel.f0_length = static_cast<int>((is_f0.tellg() / sizeof(double)));
+    audioModel.f0 = new double[audioModel.f0_length];
+    // read the f0 data
     is_f0.read(reinterpret_cast<char *>(audioModel.f0), std::streamsize(audioModel.f0_length * sizeof(double)));
 #ifdef DEBUG_MODE
     for (int i = 0; i < audioModel.f0_length; i++)
-        LOG::DEBUG(audioModel.f0[i]);
+        LOG::DEBUG(std::to_string(audioModel.f0[i]) + " ");
 #endif
     is_f0.close();
     return audioModel;
-}
-
-std::ifstream::pos_type BinUnit::filesize(const std::string &filename) {
-    std::ifstream in(filename, std::ifstream::binary | std::ifstream::ate);
-    return in.tellg();
 }
