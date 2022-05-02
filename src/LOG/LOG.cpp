@@ -13,28 +13,32 @@
  *   You should have received a copy of the GNU General Public License
  *   along with libllsm. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "LOG.h"
 
+#include "config.h"
+#include "LOG.h"
+#include "exception.h"
 #include <ColorCout.hpp>
 
 [[maybe_unused]] void LOG::INFO(const std::string &msg) {
-    std::cout << cc::cyan << "[OpenixCard INFO] " << msg << cc::reset << std::endl;
+    std::cout << cc::cyan << "[" << PROJECT_NAME << " INFO] " << msg << cc::reset << std::endl;
 }
 
 [[maybe_unused]] void LOG::DEBUG(const std::string &msg) {
-    std::cout << cc::white << "[OpenixCard DEBUG] " << msg << cc::reset << std::endl;
+    std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << msg << cc::reset << std::endl;
 }
 
 [[maybe_unused]] void LOG::WARNING(const std::string &msg) {
-    std::cout << cc::yellow << "[OpenixCard WARNING] " << msg << cc::reset << std::endl;
+    std::cout << cc::yellow << "[" << PROJECT_NAME << " WARNING] " << msg << cc::reset << std::endl;
 }
 
 // expected unqualified-id before numeric constant fix.
 #ifdef __WINDOWS__
 #ifdef ERROR
 #undef ERROR
+
 [[maybe_unused]] void LOG::ERROR(const std::string &msg) {
-    std::cout << cc::red << "[OpenixCard ERROR] " << msg << cc::reset << std::endl;
+    std::cout << cc::red << "[" << PROJECT_NAME << " ERROR] " << msg << cc::reset << std::endl;
 }
+
 #endif
 #endif
