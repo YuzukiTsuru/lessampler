@@ -60,6 +60,10 @@ add_library(LOG ${log_source})
 file(GLOB utau_source src/libUTAU/*.cpp src/libUTAU/*.h)
 add_library(UTAU ${utau_source})
 
+# Library Dialog
+file(GLOB Dialog_source src/Dialogs/*.cpp src/Dialogs/*.h)
+add_library(Dialog ${Dialog_source})
+
 # Library Audio Model
 file(GLOB audio_model_source src/AudioModel/*.cpp src/AudioModel/*.h src/AudioModel/WorldModule/*.cpp src/AudioModel/WorldModule/*.h)
 add_library(AudioModel ${audio_model_source})
