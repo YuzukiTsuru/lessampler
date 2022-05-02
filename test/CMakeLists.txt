@@ -1,2 +1,8 @@
 add_executable(libUTAUTest libUTAUTest.cpp)
 target_link_libraries(libUTAUTest UTAU)
+
+add_executable(PitchBendTest PitchBendTest.cpp)
+target_link_libraries(PitchBendTest UTAU)
+
+add_executable(ScaleConvertTest ScaleConvertTest.cpp)
+target_link_libraries(ScaleConvertTest UTAU)

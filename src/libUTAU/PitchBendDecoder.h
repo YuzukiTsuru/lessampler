@@ -23,13 +23,18 @@ class PitchBendDecoder {
 public:
     explicit PitchBendDecoder(std::string &str, int count);
 
+    ~PitchBendDecoder();
+
+    int *getPitchBend();
+
 private:
     std::string pitch = {};
     int count = 0, pitch_length = 0;
 
-    int *dst = nullptr;
+    int *pitch_bend = nullptr;
 
     static int GetDataFromUTAU64(char i);
+
     void PitchBendDecode();
 };
 

@@ -20,8 +20,12 @@
 
 PitchBendDecoder::PitchBendDecoder(std::string &str, int count) : pitch(std::move(str)), count(count) {
     pitch_length = static_cast<int>(pitch.length());
-    dst = new int[count];
+    pitch_bend = new int[count];
     PitchBendDecode();
+}
+
+PitchBendDecoder::~PitchBendDecoder() {
+    delete[] pitch_bend;
 }
 
 int PitchBendDecoder::GetDataFromUTAU64(char i) {
@@ -52,7 +56,7 @@ void PitchBendDecoder::PitchBendDecode() {
                 ss << pitch.substr(pitch.find('#', i - 1) + 1, pitch.find('#', i + pitch.find('#')) - 1);
                 ss >> num;
                 for (ii = 0; ii < num && k < count; ii++) {
-                    dst[k++] = n;
+                    pitch_bend[k++] = n;
                 }
                 while (str[i] != '#' && str[i] != 0)
                     i++;
@@ -62,9 +66,13 @@ void PitchBendDecoder::PitchBendDecode() {
                 if (n > 2047)
                     n -= 4096;
                 if (k < count) {
-                    dst[k++] = n;
+                    pitch_bend[k++] = n;
                 }
             }
         }
     }
+}
+
+int *PitchBendDecoder::getPitchBend() {
+    return pitch_bend;
 }
