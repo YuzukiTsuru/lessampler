@@ -23,7 +23,6 @@
 
 #include "UTAUParameterPaser.h"
 #include "ScaleConvert.h"
-#include "UTAUParameterPaser.h"
 
 UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
     utauPara.localName = argv[0];
