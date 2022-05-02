@@ -29,8 +29,16 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(
         src
         src/LOG
+        src/Utils
         lib/World/src
         lib/ColorCout/includes
+        ${PROJECT_BINARY_DIR}
+)
+
+# Generate Configure file
+configure_file(
+        "${PROJECT_SOURCE_DIR}/config.h.in"
+        "${PROJECT_BINARY_DIR}/config.h"
 )
 
 # Library World
