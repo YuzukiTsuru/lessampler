@@ -24,8 +24,16 @@ template<typename T>
     std::cout << cc::cyan << "[" << PROJECT_NAME << " INFO] " << msg << cc::reset << std::endl;
 }
 
+[[maybe_unused]] void LOG::INFO(const std::string &msg) {
+    std::cout << cc::cyan << "[" << PROJECT_NAME << " INFO] " << msg << cc::reset << std::endl;
+}
+
 template<typename T>
 [[maybe_unused]] void LOG::DEBUG(T msg) {
+    std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << msg << cc::reset << std::endl;
+}
+
+[[maybe_unused]] void LOG::DEBUG(const std::string &msg) {
     std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << msg << cc::reset << std::endl;
 }
 
@@ -39,5 +47,7 @@ template<typename T>
     std::cout << cc::red << "[" << PROJECT_NAME << " ERROR] " << msg << cc::reset << std::endl;
     throw std::runtime_error(msg);
 }
+
+
 
 
