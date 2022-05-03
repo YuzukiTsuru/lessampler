@@ -23,7 +23,7 @@ else ()
 endif ()
 
 project(lessampler LANGUAGES C CXX VERSION ${_git_version})
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # Add support for -DDEBUG_MODE=ON
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
