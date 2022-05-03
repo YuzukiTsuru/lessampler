@@ -20,7 +20,7 @@
 #include <iostream>
 #include "config.h"
 #include "exception.h"
-#include <ColorCout.hpp>
+#include "ColorCout.hpp"
 
 class LOG {
 public:
