@@ -18,24 +18,34 @@
 #define LESSAMPLER_LOG_H
 
 #include <iostream>
+#include "config.h"
+#include "exception.h"
+#include <ColorCout.hpp>
 
 class LOG {
 public:
     template<typename T>
-    [[maybe_unused]] static void INFO(T msg);
-
-    [[maybe_unused]] static void INFO(const std::string &msg);
-
-    [[maybe_unused]] static void DEBUG(const std::string &msg);
+    [[maybe_unused]] static void INFO(T msg) {
+        std::cout << cc::cyan << "[" << PROJECT_NAME << " INFO] " << msg << cc::reset << std::endl;
+    };
 
     template<typename T>
-    [[maybe_unused]] static void DEBUG(T msg);
+    [[maybe_unused]] static void DEBUG(T msg) {
+#if DEBUG_MODE
+        std::cout << cc::white << "[DEBUG] " << cc::reset << msg << std::endl;
+#endif
+    };
 
     template<typename T>
-    [[maybe_unused]] static void WARNING(T msg);
+    [[maybe_unused]] static void WARNING(T msg) {
+        std::cout << cc::yellow << "[" << PROJECT_NAME << " WARNING] " << msg << cc::reset << std::endl;
+    };
 
     template<typename T>
-    [[maybe_unused]] static void FATAL(T msg);
+    [[maybe_unused]] static void FATAL(T msg) {
+        std::cout << cc::red << "[" << PROJECT_NAME << " ERROR] " << msg << cc::reset << std::endl;
+        throw std::runtime_error(msg);
+    };
 };
 
 #endif //LESSAMPLER_LOG_H
