@@ -28,10 +28,8 @@
 #pragma warning(disable : 4996)
 #endif
 #if (defined (__linux__) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__APPLE__))
-
 #include <cstdint>
 #include <ctime>
-
 #endif
 
 void BinUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
