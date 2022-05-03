@@ -87,10 +87,6 @@ add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
 # test
 add_subdirectory(test)
 
-# Library LOG
-file(GLOB log_source src/LOG/*.cpp src/LOG/*.h)
-add_library(LOG ${log_source})
-
 # Library UTAU
 file(GLOB utau_source src/libUTAU/*.cpp src/libUTAU/*.h)
 add_library(UTAU ${utau_source})
@@ -98,18 +94,19 @@ add_library(UTAU ${utau_source})
 # Library Dialog
 file(GLOB Dialogs_source src/Dialogs/*.cpp src/Dialogs/*.h)
 add_library(Dialogs ${Dialogs_source})
-target_link_libraries(Dialogs LOG)
+target_link_libraries(Dialogs)
 
 # Library FileIO
 file(GLOB FileIO_source src/FileIO/*.cpp src/FileIO/*.h)
 add_library(FileIO ${FileIO_source})
-target_link_libraries(FileIO LOG rapidjson)
+target_link_libraries(FileIO rapidjson)
 
 # Library Audio Model
 file(GLOB audio_model_source src/AudioModel/*.cpp src/AudioModel/*.h src/AudioModel/WorldModule/*.cpp src/AudioModel/WorldModule/*.h)
 add_library(AudioModel ${audio_model_source})
-target_link_libraries(AudioModel LOG world::core)
+target_link_libraries(AudioModel world::core)
 
+# Main
 file(GLOB lessampler_source src/*.cpp)
 add_executable(lessampler ${lessampler_source})
-target_link_libraries(lessampler AudioModel LOG Dialogs UTAU)
+target_link_libraries(lessampler AudioModel Dialogs UTAU)
