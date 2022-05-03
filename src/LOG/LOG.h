@@ -24,6 +24,10 @@ public:
     template<typename T>
     [[maybe_unused]] static void INFO(T msg);
 
+    [[maybe_unused]] static void INFO(const std::string &msg);
+
+    [[maybe_unused]] static void DEBUG(const std::string &msg);
+
     template<typename T>
     [[maybe_unused]] static void DEBUG(T msg);
 
