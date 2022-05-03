@@ -24,7 +24,8 @@
 Dialogs::Dialogs() {
     // Check that a backend is available
     if (!pfd::settings::available()) {
-        LOG::WARNING("Portable File Dialogs are not available on this platform.\n");
+        // FIXME undefined reference to `void LOG::FATAL<char const*>(char const*)'
+        LOG::WARNING("Portable File Dialogs are not available on this platform.");
     }
     // Set verbosity to true
     pfd::settings::verbose(true);
