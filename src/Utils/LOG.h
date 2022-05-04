@@ -32,7 +32,7 @@ public:
     template<typename T>
     [[maybe_unused]] static void DEBUG(T msg) {
 #if DEBUG_MODE
-        std::cout << cc::white << "[DEBUG] " << cc::reset << msg << std::endl;
+        std::cout << cc::white << "[" << PROJECT_NAME << " DEBUG] " << cc::reset << msg << std::endl;
 #endif
     };
 
