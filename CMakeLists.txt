@@ -106,6 +106,10 @@ file(GLOB audio_model_source src/AudioModel/*.cpp src/AudioModel/*.h src/AudioMo
 add_library(AudioModel ${audio_model_source})
 target_link_libraries(AudioModel world::core)
 
+# Library ConfigUnit
+file(GLOB config_source src/ConfigUnit/*.cpp src/ConfigUnit/*.h)
+add_library(Config ${config_source})
+
 # Main
 file(GLOB lessampler_source src/*.cpp)
 add_executable(lessampler ${lessampler_source})
