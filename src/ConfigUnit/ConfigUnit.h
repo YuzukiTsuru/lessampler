@@ -41,7 +41,10 @@ private:
     std::filesystem::path config_file_path;
     std::string config_file;
     inicpp::config config;
+    inicpp::schema config_schema;
     lessConfigure configure;
+
+    void make_schema();
 
     // read configure file
     void read_config_file();
