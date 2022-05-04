@@ -33,6 +33,8 @@ class ConfigUnit {
 public:
     explicit ConfigUnit(const std::string &config_file_path);
 
+    ~ConfigUnit();
+
     lessConfigure get_config();
 
     void print_config();

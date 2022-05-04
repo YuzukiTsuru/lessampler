@@ -27,15 +27,19 @@ ConfigUnit::ConfigUnit(const std::string &config_file_path) {
     this->config_file_path = config_file_path;
     make_schema();
     if (std::filesystem::exists(this->config_file_path)) {
+        LOG::DEBUG("Config file exists, loading...");
         read_config_file();
         parse_config();
-        print_config();
     } else {
+        LOG::DEBUG("Config file not exists, creating...");
         create_default_config();
         save_config_file();
+        parse_config();
     }
+    print_config();
 }
 
+ConfigUnit::~ConfigUnit() = default;
 
 void ConfigUnit::make_schema() {
     // create project info section
@@ -199,9 +203,21 @@ void ConfigUnit::parse_config() {
 }
 
 void ConfigUnit::print_config() {
-    std::cout << config_file << std::endl;
+    LOG::DEBUG("Configure: ");
+    LOG::DEBUG("version: " + configure.version);
+    LOG::DEBUG("debug_mode: " + std::to_string(configure.debug_mode));
+    LOG::DEBUG("audio_model_frame_period: " + std::to_string(configure.audio_model_frame_period));
+    LOG::DEBUG("fft_size: " + std::to_string(configure.fft_size));
+    LOG::DEBUG("f0_mode: " + configure.f0_mode);
+    LOG::DEBUG("f0_speed: " + std::to_string(configure.f0_speed));
+    LOG::DEBUG("f0_dio_floor: " + std::to_string(configure.f0_dio_floor));
+    LOG::DEBUG("f0_harvest_floor: " + std::to_string(configure.f0_harvest_floor));
+    LOG::DEBUG("f0_cheap_trick_floor: " + std::to_string(configure.f0_cheap_trick_floor));
+    LOG::DEBUG("f0_allow_range: " + std::to_string(configure.f0_allow_range));
+    LOG::DEBUG("ap_threshold: " + std::to_string(configure.ap_threshold));
 }
 
 lessConfigure ConfigUnit::get_config() {
     return configure;
 }
+
