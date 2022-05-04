@@ -108,10 +108,11 @@ add_library(AudioModel ${audio_model_source})
 target_link_libraries(AudioModel world::core)
 
 # Library ConfigUnit
-file(GLOB config_source src/ConfigUnit/*.cpp src/ConfigUnit/*.h)
-add_library(Config ${config_source})
+file(GLOB ConfigUnit_source src/ConfigUnit/*.cpp src/ConfigUnit/*.h)
+add_library(ConfigUnit ${ConfigUnit_source})
+target_link_libraries(ConfigUnit PRIVATE inicpp)
 
 # Main
 file(GLOB lessampler_source src/*.cpp)
 add_executable(lessampler ${lessampler_source})
-target_link_libraries(lessampler AudioModel Dialogs UTAU Config)
+target_link_libraries(lessampler AudioModel Dialogs UTAU ConfigUnit)

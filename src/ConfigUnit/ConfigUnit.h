@@ -22,7 +22,10 @@
 #define LESSAMPLER_CONFIGUNIT_H
 
 #include <iostream>
+#include <filesystem>
+
 #include <inicpp/inicpp.h>
+
 #include "lessConfigure.h"
 #include "LOG.h"
 
@@ -32,21 +35,23 @@ public:
 
     lessConfigure get_config();
 
+    void print_config();
+
 private:
     std::filesystem::path config_file_path;
     std::string config_file;
     inicpp::config config;
     lessConfigure configure;
 
+    // read configure file
     void read_config_file();
 
+    // set default configure file
     void save_config_file();
 
     void create_default_config();
 
     void parse_config();
-
-    void print_config();
 };
 
 
