@@ -25,6 +25,7 @@
 
 ConfigUnit::ConfigUnit(const std::string &config_file_path) {
     this->config_file_path = config_file_path;
+    make_schema();
     if (std::filesystem::exists(config_file_path)) {
         read_config_file();
         parse_config();
@@ -33,6 +34,108 @@ ConfigUnit::ConfigUnit(const std::string &config_file_path) {
         save_config_file();
     }
 }
+
+
+void ConfigUnit::make_schema() {
+    // create project info section
+    inicpp::section_schema_params section_config_params{};
+    section_config_params.name = "config";
+    section_config_params.comment = "Global Settings";
+    section_config_params.requirement = inicpp::item_requirement::mandatory;
+    this->config_schema.add_section(section_config_params);
+
+    inicpp::option_schema_params<inicpp::string_ini_t> version{};
+    version.name = "version";
+    version.default_value = "0";
+    version.type = inicpp::option_item::single;
+    this->config_schema.add_option("config", version);
+
+    inicpp::option_schema_params<inicpp::boolean_ini_t> debug{};
+    debug.name = "debug";
+#if DEBUG_MODE
+    debug.default_value = "true";
+#else
+    debug.default_value = "false";
+#endif
+    debug.type = inicpp::option_item::single;
+    this->config_schema.add_option("config", debug);
+
+    // create project audio model section
+    inicpp::section_schema_params section_audio_model_params{};
+    section_audio_model_params.name = "audio_model";
+    section_audio_model_params.comment = "Audio Model Settings";
+    section_audio_model_params.requirement = inicpp::item_requirement::mandatory;
+    this->config_schema.add_section(section_audio_model_params);
+
+    inicpp::option_schema_params<inicpp::float_ini_t> frame_period{};
+    frame_period.name = "frame_period";
+    frame_period.default_value = "5.0";
+    frame_period.type = inicpp::option_item::single;
+    this->config_schema.add_option("audio_model", frame_period);
+
+    inicpp::option_schema_params<inicpp::float_ini_t> fft_size{};
+    fft_size.name = "fft_size";
+    fft_size.default_value = "auto";
+    fft_size.type = inicpp::option_item::single;
+    this->config_schema.add_option("audio_model", fft_size);
+
+    // create project f0 section
+    inicpp::section_schema_params section_f0_params{};
+    section_f0_params.name = "f0";
+    section_f0_params.comment = "F0 Settings";
+    section_f0_params.requirement = inicpp::item_requirement::mandatory;
+    this->config_schema.add_section(section_f0_params);
+
+    inicpp::option_schema_params<inicpp::string_ini_t> f0_mode{};
+    f0_mode.name = "f0_mode";
+    f0_mode.default_value = "DIO";
+    f0_mode.type = inicpp::option_item::single;
+    this->config_schema.add_option("f0", f0_mode);
+
+    inicpp::option_schema_params<inicpp::signed_ini_t> f0_speed{};
+    f0_speed.name = "f0_speed";
+    f0_speed.default_value = "1";
+    f0_speed.type = inicpp::option_item::single;
+    this->config_schema.add_option("f0", f0_speed);
+
+    inicpp::option_schema_params<inicpp::float_ini_t> f0_dio_floor{};
+    f0_dio_floor.name = "f0_dio_floor";
+    f0_dio_floor.default_value = "40.0";
+    f0_dio_floor.type = inicpp::option_item::single;
+    this->config_schema.add_option("f0", f0_dio_floor);
+
+    inicpp::option_schema_params<inicpp::float_ini_t> f0_harvest_floor{};
+    f0_harvest_floor.name = "f0_harvest_floor";
+    f0_harvest_floor.default_value = "40.0";
+    f0_harvest_floor.type = inicpp::option_item::single;
+    this->config_schema.add_option("f0", f0_harvest_floor);
+
+    inicpp::option_schema_params<inicpp::float_ini_t> f0_cheap_trick_floor{};
+    f0_cheap_trick_floor.name = "f0_cheap_trick_floor";
+    f0_cheap_trick_floor.default_value = "71.0";
+    f0_cheap_trick_floor.type = inicpp::option_item::single;
+    this->config_schema.add_option("f0", f0_cheap_trick_floor);
+
+    inicpp::option_schema_params<inicpp::float_ini_t> f0_allow_range{};
+    f0_allow_range.name = "f0_allow_range";
+    f0_allow_range.default_value = "0.1";
+    f0_allow_range.type = inicpp::option_item::single;
+    this->config_schema.add_option("f0", f0_allow_range);
+
+    // create project ap section
+    inicpp::section_schema_params section_ap_params{};
+    section_ap_params.name = "ap";
+    section_ap_params.comment = "AP Settings";
+    section_ap_params.requirement = inicpp::item_requirement::mandatory;
+    this->config_schema.add_section(section_ap_params);
+
+    inicpp::option_schema_params<inicpp::float_ini_t> ap_threshold{};
+    ap_threshold.name = "ap_threshold";
+    ap_threshold.default_value = "0.85";
+    ap_threshold.type = inicpp::option_item::single;
+    this->config_schema.add_option("ap", ap_threshold);
+}
+
 
 void ConfigUnit::read_config_file() {
     // read config file
@@ -55,36 +158,9 @@ void ConfigUnit::save_config_file() {
 }
 
 void ConfigUnit::create_default_config() {
-    // create project info section
-    this->config.add_section("config");
-    inicpp::section &new_config = this->config["config"];
-    new_config["version"] = PROJECT_GIT_HASH;
-#if DEBUG_MODE
-    new_config["debug"] = "1";
-#else
-    new_config["debug"] = "0";
-#endif
-
-    // create audio model info
-    this->config.add_section("audio_model");
-    new_config = this->config["audio_model"];
-    new_config["frame_period"] = "5.0";
-    new_config["fft_size"] = "auto";
-
-    // create info for f0
-    this->config.add_section("f0");
-    new_config = this->config["f0"];
-    new_config["f0_mode"] = "DIO";
-    new_config["f0_speed"] = "1";
-    new_config["f0_dio_floor"] = "40.0";
-    new_config["f0_harvest_floor"] = "40.0";
-    new_config["f0_cheap_trick_floor"] = "71.0";
-    new_config["f0_allow_range"] = "0.1";
-
-    // create info for ap
-    this->config.add_section("ap");
-    new_config = this->config["ap"];
-    new_config["ap_threshold"] = "0.85";
+    std::stringstream str;
+    str << this->config_schema;
+    this->config_file = str.str();
 }
 
 void ConfigUnit::parse_config() {

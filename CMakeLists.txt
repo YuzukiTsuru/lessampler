@@ -30,26 +30,6 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
     ADD_DEFINITIONS(-DDEBUG_MODE)
 endif ()
 
-# include header files
-include_directories(
-        src
-        src/AudioModel
-        src/LOG
-        src/Utils
-        src/libUTAU
-        src/Dialogs
-        src/ConfigUnit
-        lib/World/src
-        lib/ColorCout/includes
-        lib/dialog
-        lib/ftxui/include
-        lib/inicpp/include
-        lib/rapidjson/include
-        lib/sndfile/include
-        ${PROJECT_BINARY_DIR}
-        ${PROJECT_BINARY_DIR}/lib/sndfile/include
-)
-
 # Generate Configure file
 configure_file(
         "${PROJECT_SOURCE_DIR}/config.h.in"
@@ -84,6 +64,27 @@ add_subdirectory(lib/inicpp EXCLUDE_FROM_ALL)
 add_subdirectory(lib/ftxui EXCLUDE_FROM_ALL)
 add_subdirectory(lib/rapidjson EXCLUDE_FROM_ALL)
 add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
+
+
+# include header files
+include_directories(
+        src
+        src/AudioModel
+        src/LOG
+        src/Utils
+        src/libUTAU
+        src/Dialogs
+        src/ConfigUnit
+        lib/World/src
+        lib/ColorCout/includes
+        lib/dialog
+        lib/ftxui/include
+        lib/inicpp/include
+        lib/rapidjson/include
+        lib/sndfile/include
+        ${PROJECT_BINARY_DIR}
+        ${PROJECT_BINARY_DIR}/lib/sndfile/include
+)
 
 # test
 add_subdirectory(test)
