@@ -16,6 +16,7 @@
 
 #include <ColorCout.hpp>
 
+#include "Dialogs.h"
 #include "lessampler.h"
 #include "config.h"
 

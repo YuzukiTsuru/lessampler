@@ -38,6 +38,7 @@ include_directories(
         src/Utils
         src/libUTAU
         src/Dialogs
+        src/ConfigUnit
         lib/World/src
         lib/ColorCout/includes
         lib/dialog
@@ -113,4 +114,4 @@ add_library(Config ${config_source})
 # Main
 file(GLOB lessampler_source src/*.cpp)
 add_executable(lessampler ${lessampler_source})
-target_link_libraries(lessampler AudioModel Dialogs UTAU)
+target_link_libraries(lessampler AudioModel Dialogs UTAU Config)
