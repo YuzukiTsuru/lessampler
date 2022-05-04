@@ -6,3 +6,6 @@ target_link_libraries(PitchBendTest UTAU)
 
 add_executable(ScaleConvertTest ScaleConvertTest.cpp)
 target_link_libraries(ScaleConvertTest UTAU)
+
+add_executable(ConfigUnitTest ConfigUnitTest.cpp)
+target_link_libraries(ConfigUnitTest ConfigUnit)

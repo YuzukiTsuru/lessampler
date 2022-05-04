@@ -27,6 +27,7 @@ ConfigUnit::ConfigUnit(const std::string &config_file_path) {
     this->config_file_path = config_file_path;
     if (std::filesystem::exists(config_file_path)) {
         read_config_file();
+        parse_config();
     } else {
         create_default_config();
         save_config_file();
