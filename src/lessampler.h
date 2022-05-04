@@ -23,7 +23,8 @@
 
 #include <iostream>
 #include <filesystem>
-#include <Dialogs.h>
+
+#include "ConfigUnit.h"
 
 class lessampler {
 public:
@@ -37,6 +38,8 @@ private:
     int argc;
     char **argv;
     std::filesystem::path exec_path;
+
+
 };
 
 

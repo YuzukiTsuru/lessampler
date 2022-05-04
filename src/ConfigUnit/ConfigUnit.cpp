@@ -26,11 +26,14 @@
 ConfigUnit::ConfigUnit(const std::string &config_file_path) {
     this->config_file_path = config_file_path;
     if (std::filesystem::exists(config_file_path)) {
-        read_config();
+        read_config_file();
+    } else {
+        create_default_config();
+        save_config_file();
     }
 }
 
-void ConfigUnit::read_config() {
+void ConfigUnit::read_config_file() {
     // read config file
     std::ifstream file(this->config_file_path);
     if (!file.is_open()) {
@@ -40,16 +43,31 @@ void ConfigUnit::read_config() {
     file.close();
 }
 
+void ConfigUnit::save_config_file() {
+    // read config file
+    std::ofstream file(this->config_file_path);
+    if (!file.is_open()) {
+        throw std::runtime_error("ConfigUnit file not found");
+    }
+    file << this->config_file;
+    file.close();
+}
+
 void ConfigUnit::create_default_config() {
     // create project info section
     this->config.add_section("config");
     inicpp::section &new_config = this->config["config"];
     new_config["version"] = PROJECT_GIT_HASH;
+#if DEBUG_MODE
+    new_config["debug"] = "1";
+#else
+    new_config["debug"] = "0";
+#endif
 
     // create audio model info
     this->config.add_section("audio_model");
     new_config = this->config["audio_model"];
-    new_config["frame_period"] = "0.2";
+    new_config["frame_period"] = "5.0";
     new_config["fft_size"] = "auto";
 
     // create info for f0
@@ -59,22 +77,18 @@ void ConfigUnit::create_default_config() {
     new_config["f0_speed"] = "1";
     new_config["f0_dio_floor"] = "40.0";
     new_config["f0_harvest_floor"] = "40.0";
-    new_config["f0_cheaptrick_floor"] = "71.0";
+    new_config["f0_cheap_trick_floor"] = "71.0";
     new_config["f0_allow_range"] = "0.1";
 
     // create info for ap
     this->config.add_section("ap");
     new_config = this->config["ap"];
     new_config["ap_threshold"] = "0.85";
-#if DEBUG_MODE
-    new_config["debug"] = "1";
-#else
-    new_config["debug"] = "0";
-#endif
 }
 
 void ConfigUnit::parse_config() {
     this->config = inicpp::parser::load(this->config_file);
+    // TODO: add config parser
 }
 
 void ConfigUnit::print_config() {

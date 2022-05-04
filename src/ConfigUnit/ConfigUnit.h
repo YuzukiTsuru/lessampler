@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <inicpp/inicpp.h>
+#include "lessConfigure.h"
 #include "LOG.h"
 
 class ConfigUnit {
@@ -33,8 +34,11 @@ private:
     std::filesystem::path config_file_path;
     std::string config_file;
     inicpp::config config;
+    lessConfigure configure;
 
-    void read_config();
+    void read_config_file();
+
+    void save_config_file();
 
     void create_default_config();
 
