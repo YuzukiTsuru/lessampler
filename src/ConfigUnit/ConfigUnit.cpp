@@ -88,9 +88,41 @@ void ConfigUnit::create_default_config() {
 
 void ConfigUnit::parse_config() {
     this->config = inicpp::parser::load(this->config_file);
-    // TODO: add config parser
+    // parse config file config section
+    auto config_section = this->config["config"];
+    this->configure.version = config_section["version"].get<inicpp::string_ini_t>();
+    this->configure.debug_mode = config_section["debug"].get<inicpp::boolean_ini_t>();
+
+    // parse config file audio model section
+    auto audio_model_section = this->config["audio_model"];
+    this->configure.audio_model_frame_period = audio_model_section["frame_period"].get<inicpp::float_ini_t>();
+    // check if fft_size is auto or not
+    if (audio_model_section["fft_size"].get<inicpp::string_ini_t>() == "auto") {
+        this->configure.fft_size = 0;
+    } else {
+        std::stringstream ss;
+        ss << audio_model_section["fft_size"].get<inicpp::string_ini_t>();
+        ss >> this->configure.fft_size;
+    }
+
+    // parse config file f0 section
+    auto f0_section = this->config["f0"];
+    this->configure.f0_mode = f0_section["f0_mode"].get<inicpp::string_ini_t>();
+    this->configure.f0_speed = static_cast<int>(f0_section["f0_speed"].get<inicpp::signed_ini_t>());
+    this->configure.f0_dio_floor = f0_section["f0_dio_floor"].get<inicpp::float_ini_t>();
+    this->configure.f0_harvest_floor = f0_section["f0_harvest_floor"].get<inicpp::float_ini_t>();
+    this->configure.f0_cheap_trick_floor = f0_section["f0_cheap_trick_floor"].get<inicpp::float_ini_t>();
+    this->configure.f0_allow_range = f0_section["f0_allow_range"].get<inicpp::float_ini_t>();
+
+    // parse config file ap section
+    auto ap_section = this->config["ap"];
+    this->configure.ap_threshold = ap_section["ap_threshold"].get<inicpp::float_ini_t>();
 }
 
 void ConfigUnit::print_config() {
     std::cout << this->config_file << std::endl;
+}
+
+lessConfigure ConfigUnit::get_config() {
+    return this->configure;
 }

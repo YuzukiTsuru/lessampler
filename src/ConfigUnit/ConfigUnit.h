@@ -30,6 +30,8 @@ class ConfigUnit {
 public:
     explicit ConfigUnit(const std::string &config_file_path);
 
+    lessConfigure get_config();
+
 private:
     std::filesystem::path config_file_path;
     std::string config_file;
