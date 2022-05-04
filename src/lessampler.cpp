@@ -23,6 +23,7 @@
 lessampler::lessampler(int argc, char **argv) {
     this->argc = argc;
     this->argv = argv;
+    this->exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
 }
 
 void lessampler::show_logo() {

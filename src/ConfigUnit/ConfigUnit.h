@@ -15,29 +15,33 @@
  */
 
 //
-// Created by gloom on 2022/5/2.
+// Created by gloom on 2022/5/4.
 //
 
-#ifndef LESSAMPLER_LESSAMPLER_H
-#define LESSAMPLER_LESSAMPLER_H
+#ifndef LESSAMPLER_CONFIGUNIT_H
+#define LESSAMPLER_CONFIGUNIT_H
 
 #include <iostream>
-#include <filesystem>
-#include <Dialogs.h>
+#include <inicpp/inicpp.h>
+#include "LOG.h"
 
-class lessampler {
+class ConfigUnit {
 public:
-    lessampler(int argc, char **argv);
-
-    void run();
-
-    static void show_logo();
+    explicit ConfigUnit(const std::string &config_file_path);
 
 private:
-    int argc;
-    char **argv;
-    std::filesystem::path exec_path;
+    std::filesystem::path config_file_path;
+    std::string config_file;
+    inicpp::config config;
+
+    void read_config();
+
+    void create_default_config();
+
+    void parse_config();
+
+    void print_config();
 };
 
 
-#endif //LESSAMPLER_LESSAMPLER_H
+#endif //LESSAMPLER_CONFIGUNIT_H
