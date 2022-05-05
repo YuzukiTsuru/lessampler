@@ -37,7 +37,7 @@ public:
 
     lessConfigure get_config();
 
-    void print_config();
+    void print_config() const;
 
 private:
     std::filesystem::path config_file_path;
