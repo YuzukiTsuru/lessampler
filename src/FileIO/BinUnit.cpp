@@ -28,8 +28,10 @@
 #pragma warning(disable : 4996)
 #endif
 #if (defined (__linux__) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__APPLE__))
+
 #include <cstdint>
 #include <ctime>
+
 #endif
 
 void BinUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
@@ -91,8 +93,9 @@ AudioModel BinUnit::BINF0(const std::string &Path) {
     // read the f0 data
     is_f0.read(reinterpret_cast<char *>(audioModel.f0), std::streamsize(audioModel.f0_length * sizeof(double)));
 #ifdef DEBUG_MODE
-    for (int i = 0; i < audioModel.f0_length; i++)
-        LOG::DEBUG(std::to_string(audioModel.f0[i]) + " ");
+    for (int i = 0; i < audioModel.f0_length; i++) {
+        YALL_DEBUG_ << std::to_string(audioModel.f0[i]) + " ";
+    }
 #endif
     is_f0.close();
     return audioModel;
