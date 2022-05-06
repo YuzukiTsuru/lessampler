@@ -9,12 +9,18 @@
 
 class lessConfigure {
 public:
+    enum class F0_MODE {
+        F0_MODE_DIO,
+        F0_MODE_HARVEST,
+        F0_MODE_UNKNOWN,
+    };
+
     std::string version;
     bool debug_mode;
     double audio_model_frame_period;
     bool custom_fft_size;
     int fft_size;
-    std::string f0_mode;
+    F0_MODE f0_mode;
     int f0_speed;
     double f0_dio_floor;
     double f0_harvest_floor;

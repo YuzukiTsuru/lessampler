@@ -28,18 +28,24 @@
 #include <world/harvest.h>
 #include <world/d4c.h>
 
-WorldModule::WorldModule(double *x, int x_length, int fs, double frame_period, F0_MDOE f0_mode) {
+#include <utility>
+
+WorldModule::WorldModule(double *x, int x_length, int fs, const lessConfigure &configure) : x(x), x_length(x_length), configure(configure) {
     this->x = x;
     this->x_length = x_length;
     this->worldPara.fs = fs;
-    this->worldPara.frame_period = frame_period;
-    if (f0_mode == F0_MDOE::F0_MDOE_DIO)
+    this->worldPara.frame_period = configure.audio_model_frame_period;
+    YALL_DEBUG_ << "Generate F0 from PCM file.";
+    if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO) {
         F0EstimationDio();
-    else if (f0_mode == F0_MDOE_HARVEST)
+    } else if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST) {
         F0EstimationHarvest();
-    else
-        YALL_ERROR_ << "F0 Estimation Mode Error";
+    } else {
+        YALL_ERROR_ << "F0 Estimation Mode Error.";
+    }
+    YALL_DEBUG_ << "Generate Envelope from PCM file and F0.";
     SpectralEnvelopeEstimation();
+    YALL_DEBUG_ << "Generate Aperiodicity.";
     AperiodicityEstimation();
 }
 
@@ -129,7 +135,7 @@ void WorldModule::SpectralEnvelopeEstimation() {
     option.f0_floor = 71.0;
     option.fft_size = GetFFTSizeForCheapTrick(this->worldPara.fs, &option);
     // We can directly set fft_size.
-//   option.fft_size = 1024;
+    // option.fft_size = 1024;
 
     // Parameters setting and memory allocation.
     this->worldPara.fft_size = option.fft_size;

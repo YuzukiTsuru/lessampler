@@ -22,17 +22,12 @@
 #define LESSAMPLER_WORLDMODULE_H
 
 #include "WorldPara.h"
+#include "lessConfigure.h"
 
 
 class WorldModule {
 public:
-    enum F0_MDOE {
-        F0_MDOE_UNKNOWN = 0,
-        F0_MDOE_DIO = 1,
-        F0_MDOE_HARVEST = 2
-    };
-
-    WorldModule(double *x, int x_length, int fs, double frame_period, F0_MDOE f0_mode = F0_MDOE_DIO);
+    WorldModule(double *x, int x_length, int fs, const lessConfigure &configure);
 
     ~WorldModule();
 
@@ -52,6 +47,8 @@ protected:
     int x_length = 0;
 
     WorldPara worldPara;
+
+    lessConfigure configure;
 };
 
 #endif //LESSAMPLER_WORLDMODULE_H
