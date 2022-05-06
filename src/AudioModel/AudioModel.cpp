@@ -19,3 +19,9 @@
 //
 
 #include "AudioModel.h"
+#include "WorldModule/WorldPara.h"
+#include "WorldModule/WorldModule.h"
+
+AudioModel::AudioModel(lessConfigure configure) : configure(configure) {
+    WorldModule()
+}
