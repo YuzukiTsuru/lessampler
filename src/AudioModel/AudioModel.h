@@ -21,9 +21,14 @@
 #ifndef LESSAMPLER_AUDIOMODEL_H
 #define LESSAMPLER_AUDIOMODEL_H
 
+#include "lessConfigure.h"
 
 class AudioModel {
+public:
+    explicit AudioModel(lessConfigure configure);
 
+private:
+    lessConfigure configure;
 };
 
 
