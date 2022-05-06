@@ -182,15 +182,23 @@ void ConfigUnit::parse_config() {
     // check if fft_size is auto or not
     if (audio_model_section["fft_size"].get<inicpp::string_ini_t>() == "auto") {
         configure.fft_size = 0;
+        configure.custom_fft_size = false;
     } else {
         std::stringstream ss;
         ss << audio_model_section["fft_size"].get<inicpp::string_ini_t>();
         ss >> configure.fft_size;
+        configure.custom_fft_size = true;
     }
 
     // parse config file f0 section
     auto f0_section = config["f0"];
-    configure.f0_mode = f0_section["f0_mode"].get<inicpp::string_ini_t>();
+    if (f0_section["f0_mode"].get<inicpp::string_ini_t>() == "DIO")
+        configure.f0_mode = lessConfigure::F0_MODE::F0_MODE_DIO;
+    else if (f0_section["f0_mode"].get<inicpp::string_ini_t>() == "HARVEST")
+        configure.f0_mode = lessConfigure::F0_MODE::F0_MODE_HARVEST;
+    else
+        configure.f0_mode = lessConfigure::F0_MODE::F0_MODE_UNKNOWN;
+
     configure.f0_speed = static_cast<int>(f0_section["f0_speed"].get<inicpp::signed_ini_t>());
     configure.f0_dio_floor = f0_section["f0_dio_floor"].get<inicpp::float_ini_t>();
     configure.f0_harvest_floor = f0_section["f0_harvest_floor"].get<inicpp::float_ini_t>();
@@ -208,7 +216,13 @@ void ConfigUnit::print_config() const {
     YALL_DEBUG_ << "debug_mode: " + std::to_string(configure.debug_mode);
     YALL_DEBUG_ << "audio_model_frame_period: " + std::to_string(configure.audio_model_frame_period);
     YALL_DEBUG_ << "fft_size: " + std::to_string(configure.fft_size);
-    YALL_DEBUG_ << "f0_mode: " + configure.f0_mode;
+    YALL_DEBUG_ << "f0_mode: " + [&]() -> std::string {
+        if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO)
+            return "DIO";
+        if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST)
+            return "HARVEST";
+        return "UNKNOWN";
+    }();
     YALL_DEBUG_ << "f0_speed: " + std::to_string(configure.f0_speed);
     YALL_DEBUG_ << "f0_dio_floor: " + std::to_string(configure.f0_dio_floor);
     YALL_DEBUG_ << "f0_harvest_floor: " + std::to_string(configure.f0_harvest_floor);
