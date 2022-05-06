@@ -18,7 +18,7 @@
 
 #include "Dialogs.h"
 #include "lessampler.h"
-#include "config.h"
+#include "lessconfig.h"
 
 
 lessampler::lessampler(int argc, char **argv) {

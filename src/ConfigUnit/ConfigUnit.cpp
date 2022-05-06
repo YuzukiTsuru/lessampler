@@ -20,7 +20,7 @@
 
 #include <fstream>
 #include <filesystem>
-#include "config.h"
+#include "lessconfig.h"
 #include "ConfigUnit.h"
 
 ConfigUnit::ConfigUnit(const std::string &config_file_path) {
