@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "LOG.h"
 #include "exception.h"
 #include "UTAUParameterPaser.h"
 
@@ -30,22 +31,24 @@ libUTAU::libUTAU(int argc, char **argv) {
 }
 
 void libUTAU::printUTAUPara() const {
-    std::cout << "Program Name:           " << utauPara.localName << std::endl;
-    std::cout << "In File Name:           " << utauPara.inputFileName << std::endl;
-    std::cout << "Out File Name:          " << utauPara.outputFileName << std::endl;
-    std::cout << "Scale Name:             " << utauPara.scaleName << std::endl;
-    std::cout << "Scale Number:           " << utauPara.scaleNum << std::endl;
-    std::cout << "Time Percent:           " << utauPara.timePercent << std::endl;
-    std::cout << "Velocity:               " << utauPara.velocity << std::endl;
-    std::cout << "Flags:                  " << utauPara.flags << std::endl;
-    std::cout << "Offset:                 " << utauPara.offset << std::endl;
-    std::cout << "Host Required Length:   " << utauPara.requiredLength << std::endl;
-    std::cout << "First Half Fixed Part:  " << utauPara.firstHalfFixedPart << std::endl;
-    std::cout << "Last Unused Part:       " << utauPara.lastUnusedPart << std::endl;
-    std::cout << "Volumes:                " << utauPara.volumes << std::endl;
-    std::cout << "Tempo:                  " << utauPara.tempo << std::endl;
-    std::cout << "Tempo Number:           " << utauPara.tempoNum << std::endl;
-    std::cout << "Pitch String:           " << utauPara.pitch << std::endl;
+    std::stringstream ss;
+    ss << "\nProgram Name:           " << utauPara.localName;
+    ss << "\nIn File Name:           " << utauPara.inputFileName;
+    ss << "\nOut File Name:          " << utauPara.outputFileName;
+    ss << "\nScale Name:             " << utauPara.scaleName;
+    ss << "\nScale Number:           " << utauPara.scaleNum;
+    ss << "\nTime Percent:           " << utauPara.timePercent;
+    ss << "\nVelocity:               " << utauPara.velocity;
+    ss << "\nFlags:                  " << utauPara.flags;
+    ss << "\nOffset:                 " << utauPara.offset;
+    ss << "\nHost Required Length:   " << utauPara.requiredLength;
+    ss << "\nFirst Half Fixed Part:  " << utauPara.firstHalfFixedPart;
+    ss << "\nLast Unused Part:       " << utauPara.lastUnusedPart;
+    ss << "\nVolumes:                " << utauPara.volumes;
+    ss << "\nTempo:                  " << utauPara.tempo;
+    ss << "\nTempo Number:           " << utauPara.tempoNum;
+    ss << "\nPitch String:           " << utauPara.pitch;
+    YALL_DEBUG_ << ss.str();
 }
 
 [[maybe_unused]] UTAUPara libUTAU::getUTAUPara() const {
