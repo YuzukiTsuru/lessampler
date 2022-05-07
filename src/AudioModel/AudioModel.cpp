@@ -23,5 +23,4 @@
 #include "WorldModule/WorldModule.h"
 
 AudioModel::AudioModel(lessConfigure configure) : configure(configure) {
-    WorldModule()
 }
