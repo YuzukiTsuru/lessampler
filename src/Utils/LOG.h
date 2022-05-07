@@ -49,10 +49,10 @@ public:
                     *stream << cc::on_red << "[CRITICAL]" << cc::reset;
                     break;
                 case Yall_LEVEL::LOG_FILE:
-                    *stream << cc::green << "[FILE]" << cc::reset;
+                    *stream << cc::cyan << "[FILE]" << cc::reset;
                     break;
                 case Yall_LEVEL::LOG_FUNC:
-                    *stream << cc::magenta << "[FUNC]" << cc::reset;
+                    *stream << cc::yellow << "[FUNC]" << cc::reset;
                     break;
                 case Yall_LEVEL::LOG_LINE:
                     *stream << cc::white << "[LINE]" << cc::reset;
