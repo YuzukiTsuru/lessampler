@@ -30,7 +30,7 @@ class lessampler {
 public:
     lessampler(int argc, char **argv);
 
-    void run();
+    void run() const;
 
     static void show_logo();
 

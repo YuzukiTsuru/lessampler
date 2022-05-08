@@ -15,16 +15,17 @@
  */
 
 #include <ColorCout.hpp>
+#include <LOG.h>
 
 #include "Dialogs.h"
 #include "lessampler.h"
+#include "ConfigUnit.h"
+#include "lessConfigure.h"
 #include "lessconfig.h"
 
-
-lessampler::lessampler(int argc, char **argv) {
-    this->argc = argc;
-    this->argv = argv;
+lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
     this->exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
+    //ConfigUnit configUnit(this->exec_path / ".cfg");
 }
 
 void lessampler::show_logo() {
@@ -41,9 +42,33 @@ void lessampler::show_logo() {
               << std::endl;
 }
 
-void lessampler::run() {
+void aaa(){
+    YALL_DEBUG_ << "Hi!";
+}
+
+int main(){
+    YALL_DEBUG_.EnableDebug();
+    YALL_DEBUG_ << "Hello!";
+    aaa();
+    YALL_DEBUG_.DisableDebug();
+    YALL_DEBUG_ << "FUCK";
+}
+
+void lessampler::run() const {
+    // Read configure
+    lessConfigure configure;
+    if (configure.debug_mode) {
+        YALL_DEBUG_.EnableDebug();
+    }
+
+    YALL_DEBUG_.EnableDebug();
+    YALL_DEBUG_ << "Hello!";
+    aaa();
+    YALL_DEBUG_.DisableDebug();
+    YALL_DEBUG_ << "FUCK";
+
     if (argc < 2) {
-        show_logo();
+        //show_logo();
         Dialogs::notify("lessampler", "lessampler: no input file");
         return;
     }
