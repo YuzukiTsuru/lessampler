@@ -50,7 +50,7 @@ void lessampler::run() const {
     }
 
     if (argc < 2) {
-        //show_logo();
+        show_logo();
         Dialogs::notify("lessampler", "lessampler: no input file");
         return;
     }
