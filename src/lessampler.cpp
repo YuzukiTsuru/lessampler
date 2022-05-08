@@ -25,7 +25,8 @@
 
 lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
     this->exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
-    //ConfigUnit configUnit(this->exec_path / ".cfg");
+    YALL_DEBUG_ << "exec path: " + this->exec_path.string();
+    ConfigUnit configUnit((this->exec_path / "less.cfg").string());
 }
 
 void lessampler::show_logo() {
