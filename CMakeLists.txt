@@ -29,9 +29,12 @@ set(CMAKE_CXX_STANDARD 20)
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -EHsc")
 endif ()
+
 # Add support for -DDEBUG_MODE=ON
+set(DEBUG_SUFFIX)
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
     ADD_DEFINITIONS(-DDEBUG_MODE)
+    set(DEBUG_SUFFIX "d")
 endif ()
 
 # Generate Configure file
@@ -71,7 +74,6 @@ add_subdirectory(lib/inicpp EXCLUDE_FROM_ALL)
 add_subdirectory(lib/ftxui EXCLUDE_FROM_ALL)
 add_subdirectory(lib/rapidjson EXCLUDE_FROM_ALL)
 add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
-
 
 # include header files
 include_directories(
@@ -124,3 +126,4 @@ target_link_libraries(ConfigUnit PRIVATE inicpp)
 file(GLOB lessampler_source src/*.cpp)
 add_executable(lessampler ${lessampler_source})
 target_link_libraries(lessampler AudioModel Dialogs UTAU ConfigUnit)
+
