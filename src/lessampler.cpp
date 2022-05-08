@@ -42,30 +42,12 @@ void lessampler::show_logo() {
               << std::endl;
 }
 
-void aaa(){
-    YALL_DEBUG_ << "Hi!";
-}
-
-int main(){
-    YALL_DEBUG_.EnableDebug();
-    YALL_DEBUG_ << "Hello!";
-    aaa();
-    YALL_DEBUG_.DisableDebug();
-    YALL_DEBUG_ << "FUCK";
-}
-
 void lessampler::run() const {
     // Read configure
     lessConfigure configure;
     if (configure.debug_mode) {
         YALL_DEBUG_.EnableDebug();
     }
-
-    YALL_DEBUG_.EnableDebug();
-    YALL_DEBUG_ << "Hello!";
-    aaa();
-    YALL_DEBUG_.DisableDebug();
-    YALL_DEBUG_ << "FUCK";
 
     if (argc < 2) {
         //show_logo();
