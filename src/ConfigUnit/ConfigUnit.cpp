@@ -192,12 +192,15 @@ void ConfigUnit::parse_config() {
 
     // parse config file f0 section
     auto f0_section = config["f0"];
-    if (f0_section["f0_mode"].get<inicpp::string_ini_t>() == "DIO")
-        configure.f0_mode = lessConfigure::F0_MODE::F0_MODE_DIO;
-    else if (f0_section["f0_mode"].get<inicpp::string_ini_t>() == "HARVEST")
-        configure.f0_mode = lessConfigure::F0_MODE::F0_MODE_HARVEST;
-    else
-        configure.f0_mode = lessConfigure::F0_MODE::F0_MODE_UNKNOWN;
+    configure.f0_mode = [&]() -> lessConfigure::F0_MODE {
+        auto f0_mode = f0_section["f0_mode"].get<inicpp::string_ini_t>();
+        if (f0_mode == "DIO")
+            return lessConfigure::F0_MODE::F0_MODE_DIO;
+        else if (f0_mode == "HARVEST")
+            return lessConfigure::F0_MODE::F0_MODE_HARVEST;
+        else
+            return lessConfigure::F0_MODE::F0_MODE_UNKNOWN;
+    }();
 
     configure.f0_speed = static_cast<int>(f0_section["f0_speed"].get<inicpp::signed_ini_t>());
     configure.f0_dio_floor = f0_section["f0_dio_floor"].get<inicpp::float_ini_t>();

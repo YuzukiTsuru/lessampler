@@ -16,11 +16,11 @@ public:
     };
 
     std::string version;
-    bool debug_mode;
-    double audio_model_frame_period;
-    bool custom_fft_size;
-    int fft_size;
-    F0_MODE f0_mode;
+    bool debug_mode = false;
+    double audio_model_frame_period = 2.0;
+    bool custom_fft_size = false;
+    int fft_size = 1024;
+    F0_MODE f0_mode = F0_MODE::F0_MODE_DIO;
     int f0_speed;
     double f0_dio_floor;
     double f0_harvest_floor;
