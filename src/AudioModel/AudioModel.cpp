@@ -22,6 +22,6 @@
 #include "WorldModule/WorldPara.h"
 #include "WorldModule/WorldModule.h"
 
-AudioModel::AudioModel(lessConfigure configure) : configure(configure) {
-    //TODO: Add AduioModel
+AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure& configure) : configure(configure) {
+    WorldModule(x, x_length, fs, configure);
 }
