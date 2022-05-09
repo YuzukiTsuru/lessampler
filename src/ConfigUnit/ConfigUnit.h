@@ -27,7 +27,7 @@
 #include <inicpp/inicpp.h>
 
 #include "lessConfigure.h"
-#include "LOG.h"
+#include "Utils/LOG.h"
 
 class ConfigUnit {
 public:

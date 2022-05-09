@@ -16,8 +16,8 @@
 
 #include <iostream>
 
-#include "LOG.h"
-#include "exception.h"
+#include "Utils/LOG.h"
+#include "Utils/exception.h"
 #include "UTAUParameterPaser.h"
 
 #include "libUTAU.h"

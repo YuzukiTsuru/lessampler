@@ -14,19 +14,22 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ColorCout.hpp>
-#include <LOG.h>
+#include <iostream>
 
-#include "Dialogs.h"
-#include "lessampler.h"
-#include "ConfigUnit.h"
-#include "lessConfigure.h"
+#include "Utils/LOG.h"
+#include "Dialogs/Dialogs.h"
+#include "ConfigUnit/lessConfigure.h"
 #include "lessconfig.h"
 
+#include "lessampler.h"
+
 lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
+    // Get the executable file path
     this->exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
     YALL_DEBUG_ << "exec path: " + this->exec_path.string();
+    // Setting the configure file and get config
     ConfigUnit configUnit((this->exec_path / "less.cfg").string());
+    this->configure = configUnit.get_config();
 }
 
 void lessampler::show_logo() {
@@ -45,8 +48,7 @@ void lessampler::show_logo() {
 
 void lessampler::run() const {
     // Read configure
-    lessConfigure configure;
-    if (configure.debug_mode) {
+    if (this->configure.debug_mode) {
         YALL_DEBUG_.EnableDebug();
     }
 
@@ -55,5 +57,9 @@ void lessampler::run() const {
         Dialogs::notify("lessampler", "lessampler: no input file");
         return;
     }
+}
+
+void lessampler::read_audio_file() {
+
 }
 

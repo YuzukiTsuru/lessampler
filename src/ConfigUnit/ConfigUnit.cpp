@@ -118,6 +118,13 @@ void ConfigUnit::make_schema() {
     inicpp::option_schema_params<inicpp::float_ini_t> f0_cheap_trick_floor{};
     f0_cheap_trick_floor.name = "f0_cheap_trick_floor";
     f0_cheap_trick_floor.default_value = "71.0";
+    f0_cheap_trick_floor.comment =
+            "When fft_size changes from default value,\n"
+            "a replaced f0_cheap_trick_floor will be used in CheapTrick\n"
+            "for Spectral envelope estimation.\n"
+            "The lowest F0 that WORLD can work as expected is determined\n"
+            "by the following : f0_cheap_trick_floor = 3.0 * fs / fft_size.\n\n"
+            "You can also set your own fft_size";
     f0_cheap_trick_floor.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_cheap_trick_floor);
 
@@ -140,7 +147,6 @@ void ConfigUnit::make_schema() {
     ap_threshold.type = inicpp::option_item::single;
     config_schema.add_option("ap", ap_threshold);
 }
-
 
 void ConfigUnit::read_config_file() {
     // read config file
