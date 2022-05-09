@@ -7,7 +7,7 @@
 
 #include <iostream>
 #include <fstream>
-#include "lessAudioModel.h"
+#include "AudioModel/lessAudioModel.h"
 
 class BinUnit {
 public:

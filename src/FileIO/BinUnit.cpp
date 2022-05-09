@@ -18,8 +18,8 @@
 #include <fstream>
 
 #include "BinUnit.h"
-#include "LOG.h"
-#include "exception.h"
+#include "Utils/LOG.h"
+#include "Utils/exception.h"
 
 #if (defined (__WIN32__) || defined (_WIN32)) && !defined (__MINGW32__)
 #include <conio.h>
