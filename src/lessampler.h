@@ -24,7 +24,7 @@
 #include <iostream>
 #include <filesystem>
 
-#include "ConfigUnit.h"
+#include "ConfigUnit/ConfigUnit.h"
 
 class lessampler {
 public:
@@ -32,14 +32,15 @@ public:
 
     void run() const;
 
-    static void show_logo();
-
 private:
     int argc;
     char **argv;
     std::filesystem::path exec_path;
+    lessConfigure configure;
 
+    static void show_logo();
 
+    void read_audio_file();
 };
 
 

@@ -20,7 +20,7 @@
 
 #include "WorldModule.h"
 
-#include "LOG.h"
+#include "Utils/LOG.h"
 
 #include <world/dio.h>
 #include <world/stonemask.h>
@@ -29,8 +29,6 @@
 #include <world/d4c.h>
 
 WorldModule::WorldModule(double *x, int x_length, int fs, const lessConfigure &configure) : x(x), x_length(x_length), configure(configure) {
-    this->x = x;
-    this->x_length = x_length;
     this->worldPara.fs = fs;
     this->worldPara.frame_period = configure.audio_model_frame_period;
     YALL_DEBUG_ << "Generate F0 from PCM file.";
@@ -72,11 +70,11 @@ void WorldModule::F0EstimationDio() {
     // Valuable option.speed represents the ratio for downsampling.
     // The signal is downsampled to fs / speed Hz.
     // If you want to obtain the accurate result, speed should be set to 1.
-    option.speed = 1;
+    option.speed = configure.f0_speed;
 
     // You can set the f0_floor below world::kFloorF0.
-    option.f0_floor = 40.0;
-    option.allowed_range = 0.1;
+    option.f0_floor = configure.f0_dio_floor;
+    option.allowed_range = configure.f0_allow_range;
 
     // Parameters setting and memory allocation.
     this->worldPara.f0_length = GetSamplesForDIO(this->worldPara.fs, x_length, this->worldPara.frame_period);
@@ -105,7 +103,7 @@ void WorldModule::F0EstimationHarvest() {
     option.frame_period = this->worldPara.frame_period;
 
     // You can set the f0_floor below world::kFloorF0.
-    option.f0_floor = 40.0;
+    option.f0_floor = configure.f0_harvest_floor;
 
     // Parameters setting and memory allocation.
     this->worldPara.f0_length = GetSamplesForHarvest(this->worldPara.fs, x_length, this->worldPara.frame_period);
@@ -130,10 +128,14 @@ void WorldModule::SpectralEnvelopeEstimation() {
     // a replaced f0_floor will be used in CheapTrick().
     // The lowest F0 that WORLD can work as expected is determined
     // by the following : 3.0 * fs / fft_size.
-    option.f0_floor = 71.0;
-    option.fft_size = GetFFTSizeForCheapTrick(this->worldPara.fs, &option);
-    // We can directly set fft_size.
-    // option.fft_size = 1024;
+    option.f0_floor = configure.f0_cheap_trick_floor;
+    option.fft_size = [&]() {
+        if (configure.custom_fft_size) {
+            return configure.fft_size;
+        } else {
+            return GetFFTSizeForCheapTrick(this->worldPara.fs, &option);
+        }
+    }();
 
     // Parameters setting and memory allocation.
     this->worldPara.fft_size = option.fft_size;
@@ -156,7 +158,7 @@ void WorldModule::AperiodicityEstimation() {
     // If the estimated value falls below the threshold,
     // the aperiodicity in entire frequency band will set to 1.0.
     // If you want to use the conventional D4C, please set the threshold to 0.0.
-    option.threshold = 0.85;
+    option.threshold = configure.ap_threshold;
 
     // Parameters setting and memory allocation.
     this->worldPara.aperiodicity = new double *[this->worldPara.f0_length];

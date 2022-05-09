@@ -22,8 +22,7 @@
 #define LESSAMPLER_WORLDMODULE_H
 
 #include "WorldPara.h"
-#include "lessConfigure.h"
-
+#include "ConfigUnit/lessConfigure.h"
 
 class WorldModule {
 public:

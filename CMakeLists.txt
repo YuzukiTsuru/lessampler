@@ -78,15 +78,9 @@ add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
 # include header files
 include_directories(
         src
-        src/AudioModel
-        src/LOG
-        src/Utils
-        src/libUTAU
-        src/Dialogs
-        src/ConfigUnit
-        lib/World/src
-        lib/ColorCout/includes
         lib/dialog
+        lib/ColorCout/includes
+        lib/World/src
         lib/ftxui/include
         lib/inicpp/include
         lib/rapidjson/include
