@@ -19,7 +19,7 @@
 //
 
 #include "Dialogs.h"
-#include "LOG.h"
+#include "Utils/LOG.h"
 
 Dialogs::Dialogs() {
     // Check that a backend is available

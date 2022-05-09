@@ -9,8 +9,6 @@
 #include <mutex>
 #include <iomanip>
 
-#include "lessConfigure.h"
-
 enum Yall_LEVEL {
     LOG_DEBUG,
     LOG_INFO,
