@@ -95,35 +95,11 @@ include_directories(
         ${PROJECT_BINARY_DIR}/lib/sndfile/include
 )
 
-# test
 add_subdirectory(test)
+add_subdirectory(src)
 
-# Library UTAU
-file(GLOB utau_source src/libUTAU/*.cpp src/libUTAU/*.h)
-add_library(UTAU ${utau_source})
 
-# Library Dialog
-file(GLOB Dialogs_source src/Dialogs/*.cpp src/Dialogs/*.h)
-add_library(Dialogs ${Dialogs_source})
-target_link_libraries(Dialogs)
 
-# Library FileIO
-file(GLOB FileIO_source src/FileIO/*.cpp src/FileIO/*.h)
-add_library(FileIO ${FileIO_source})
-target_link_libraries(FileIO rapidjson)
 
-# Library Audio Model
-file(GLOB audio_model_source src/AudioModel/*.cpp src/AudioModel/*.h src/AudioModel/WorldModule/*.cpp src/AudioModel/WorldModule/*.h)
-add_library(AudioModel ${audio_model_source})
-target_link_libraries(AudioModel world::core)
 
-# Library ConfigUnit
-file(GLOB ConfigUnit_source src/ConfigUnit/*.cpp src/ConfigUnit/*.h)
-add_library(ConfigUnit ${ConfigUnit_source})
-target_link_libraries(ConfigUnit PRIVATE inicpp)
-
-# Main
-file(GLOB lessampler_source src/*.cpp)
-add_executable(lessampler ${lessampler_source})
-target_link_libraries(lessampler AudioModel Dialogs UTAU ConfigUnit)
 
