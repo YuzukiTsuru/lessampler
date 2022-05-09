@@ -3,7 +3,7 @@
 //
 
 #include <filesystem>
-#include "ConfigUnit.h"
+#include "ConfigUnit/ConfigUnit.h"
 
 int main(int argc, char *argv[]) {
     if (std::filesystem::exists("config.ini")) {

@@ -9,3 +9,5 @@ target_link_libraries(ScaleConvertTest UTAU)
 
 add_executable(ConfigUnitTest ConfigUnitTest.cpp)
 target_link_libraries(ConfigUnitTest ConfigUnit)
+
+add_executable(LOGTest LOGTest.cpp)
