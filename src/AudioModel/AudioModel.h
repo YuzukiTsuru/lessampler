@@ -21,14 +21,24 @@
 #ifndef LESSAMPLER_AUDIOMODEL_H
 #define LESSAMPLER_AUDIOMODEL_H
 
+#include "lessAudioModel.h"
+
 #include "ConfigUnit/lessConfigure.h"
+#include "WorldModule/WorldPara.h"
 
 class AudioModel {
 public:
     AudioModel(double *x, int x_length, int fs, const lessConfigure& configure);
 
+    void SaveAudioModelToJsonFile();
+
 private:
-    lessConfigure configure;
+    lessConfigure configure{};
+    WorldPara worldPara{};
+    lessAudioModel lessAudioModel{};
+
+private:
+    void InitAudioModel();
 };
 
 
