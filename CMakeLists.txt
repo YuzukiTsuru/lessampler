@@ -89,5 +89,5 @@ include_directories(
         ${PROJECT_BINARY_DIR}/lib/sndfile/include
 )
 
-add_subdirectory(test)
 add_subdirectory(src)
+add_subdirectory(test)

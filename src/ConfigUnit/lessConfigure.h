@@ -21,12 +21,12 @@ public:
     bool custom_fft_size = false;
     int fft_size = 1024;
     F0_MODE f0_mode = F0_MODE::F0_MODE_DIO;
-    int f0_speed;
-    double f0_dio_floor;
-    double f0_harvest_floor;
-    double f0_cheap_trick_floor;
-    double f0_allow_range;
-    double ap_threshold;
+    int f0_speed = 1;
+    double f0_dio_floor = 40.0;
+    double f0_harvest_floor = 40.0;
+    double f0_cheap_trick_floor = 71.0;
+    double f0_allow_range = 0.1;
+    double ap_threshold = 0.85;
 };
 
 #endif //LESSAMPLER_LESSCONFIGURE_H
