@@ -14,22 +14,22 @@ public:
     /*
      * F0 to binary
      */
-    void F0BIN(const std::string &Path, AudioModel audioModel);
+    void F0BIN(const std::string &Path, lessAudioModel audioModel);
 
     /*
      * Sp to binary
      */
-    void SPBIN(const std::string &Path, AudioModel audioModel);
+    void SPBIN(const std::string &Path, lessAudioModel audioModel);
 
     /*
      * Ap to binary
      */
-    void APBIN(const std::string &Path, AudioModel audioModel);
+    void APBIN(const std::string &Path, lessAudioModel audioModel);
 
     /*
      * Binary to F0
      */
-    static AudioModel BINF0(const std::string &Path);
+    static lessAudioModel BINF0(const std::string &Path);
 };
 
 
