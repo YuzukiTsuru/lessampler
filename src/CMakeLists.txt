@@ -3,6 +3,7 @@ add_subdirectory(ConfigUnit)
 add_subdirectory(Dialogs)
 add_subdirectory(FileIO)
 add_subdirectory(libUTAU)
+add_subdirectory(TimeStretch)
 
 file(GLOB lessampler_source *.cpp *.h)
 add_executable(lessampler ${lessampler_source})
