@@ -34,7 +34,7 @@
 
 #endif
 
-void BinUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
+void BinUnit::F0BIN(const std::string &Path, lessAudioModel audioModel) {
     std::ofstream out_f0(Path, std::ios::out | std::ios::binary);
     if (!out_f0) {
         std::cerr << "Cannot open file: " << Path << "while saving." << std::endl;
@@ -46,7 +46,7 @@ void BinUnit::F0BIN(const std::string &Path, AudioModel audioModel) {
     out_f0.close();
 }
 
-void BinUnit::SPBIN(const std::string &Path, AudioModel audioModel) {
+void BinUnit::SPBIN(const std::string &Path, lessAudioModel audioModel) {
     std::ofstream out_spectrogram(Path, std::ios::out | std::ios::binary);
     if (!out_spectrogram) {
         std::cerr << "Cannot open file: " << Path << "while saving." << std::endl;
@@ -67,7 +67,7 @@ void BinUnit::SPBIN(const std::string &Path, AudioModel audioModel) {
     out_spectrogram.close();
 }
 
-void BinUnit::APBIN(const std::string &Path, AudioModel audioModel) {
+void BinUnit::APBIN(const std::string &Path, lessAudioModel audioModel) {
     std::ofstream out_aperiodicity(Path, std::ios::out | std::ios::binary);
     if (!out_aperiodicity) {
         std::cerr << "Cannot open file: " << Path << "while saving." << std::endl;
@@ -81,8 +81,8 @@ void BinUnit::APBIN(const std::string &Path, AudioModel audioModel) {
     out_aperiodicity.close();
 }
 
-AudioModel BinUnit::BINF0(const std::string &Path) {
-    AudioModel audioModel{};
+lessAudioModel BinUnit::BINF0(const std::string &Path) {
+    lessAudioModel audioModel{};
     std::ifstream is_f0(Path, std::ios::binary | std::ios::in);
     if (!is_f0.is_open()) {
         throw file_open_error(Path);
