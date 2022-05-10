@@ -7,29 +7,33 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include "AudioModel/lessAudioModel.h"
 
 class BinUnit {
 public:
-    /*
-     * F0 to binary
-     */
-    void F0BIN(const std::string &Path, lessAudioModel audioModel);
+    BinUnit(const std::string &Path, lessAudioModel audioModel);
 
-    /*
-     * Sp to binary
-     */
-    void SPBIN(const std::string &Path, lessAudioModel audioModel);
+    [[maybe_unused]] void SetFilePath(const std::string &Path);
 
-    /*
-     * Ap to binary
-     */
-    void APBIN(const std::string &Path, lessAudioModel audioModel);
+    [[maybe_unused]] void SetAudioModel(lessAudioModel audioModel);
 
-    /*
-     * Binary to F0
-     */
-    static lessAudioModel BINF0(const std::string &Path);
+    [[maybe_unused]] std::string GetFilePath();
+
+    [[maybe_unused]] lessAudioModel GetAudioModel();
+
+    void SaveAudioModel();
+
+    void ReadAudioModel();
+
+private:
+    lessAudioModel _audioModel{.f0_length = 0};
+    std::filesystem::path FilePath{};
+
+private:
+    void WriteAudioContent();
+
+    void ReadAudioContent();
 };
 
 
