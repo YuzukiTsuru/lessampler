@@ -18,10 +18,46 @@
 // Created by gloom on 2022/5/2.
 //
 
+#include "FileIO/BinUnit.h"
+
 #include "AudioModel.h"
-#include "WorldModule/WorldPara.h"
 #include "WorldModule/WorldModule.h"
 
-AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure& configure) : configure(configure) {
-    WorldModule(x, x_length, fs, configure);
+AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure &configure) : configure(configure) {
+    lessAudioModel.x = x;
+    lessAudioModel.x_length = x_length;
+    lessAudioModel.fs = fs;
+
+    // initialize the audio model from x, x_length, fs using World Vocoder
+    WorldModule model(x, x_length, fs, configure);
+    worldPara = model.GetModule();
+    InitAudioModel();
+}
+
+void AudioModel::InitAudioModel() {
+    lessAudioModel.fft_size = worldPara.fft_size;
+    lessAudioModel.frame_period = worldPara.frame_period;
+    lessAudioModel.f0 = worldPara.f0;
+    lessAudioModel.f0_length = worldPara.f0_length;
+    lessAudioModel.time_axis = worldPara.time_axis;
+    lessAudioModel.spectrogram = worldPara.spectrogram;
+    lessAudioModel.speclength = [&]() -> int * {
+        auto _temp = new int[lessAudioModel.f0_length];
+        for (int i = 0; i < lessAudioModel.f0_length; ++i) {
+            _temp[i] = lessAudioModel.fft_size / 2 + 1;
+        }
+        return _temp;
+    }();
+    lessAudioModel.aperiodicity = worldPara.aperiodicity;
+    lessAudioModel.aperiodlength = [&]() -> int * {
+        auto _temp = new int[lessAudioModel.f0_length];
+        for (int i = 0; i < lessAudioModel.f0_length; ++i) {
+            _temp[i] = lessAudioModel.fft_size / 2 + 1;
+        }
+        return _temp;
+    }();
+}
+
+void AudioModel::SaveAudioModelToJsonFile() {
+
 }
