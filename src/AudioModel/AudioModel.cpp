@@ -34,6 +34,10 @@ AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure &con
     InitAudioModel();
 }
 
+lessAudioModel AudioModel::GetAudioModel() {
+    return this->lessAudioModel;
+}
+
 void AudioModel::InitAudioModel() {
     lessAudioModel.fft_size = worldPara.fft_size;
     lessAudioModel.frame_period = worldPara.frame_period;
@@ -61,3 +65,4 @@ void AudioModel::InitAudioModel() {
 void AudioModel::SaveAudioModelToJsonFile() {
 
 }
+
