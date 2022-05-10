@@ -21,7 +21,7 @@
 #ifndef LESSAMPLER_LESSAUDIOMODEL_H
 #define LESSAMPLER_LESSAUDIOMODEL_H
 
-class AudioModel {
+class lessAudioModel {
 public:
     double w_length;
     int x_length;
