@@ -29,6 +29,11 @@ public:
     explicit file_open_error(const std::string &what) : std::runtime_error("Fail to open file: " + what + ".") {};
 };
 
+class header_check_error : public std::runtime_error {
+public:
+    header_check_error(const std::string &what, const std::string &expect) : std::runtime_error("Header: " + what + "is not same as " + expect + ".") {};
+};
+
 class parameter_error : public std::runtime_error {
 public:
     explicit parameter_error(const std::string &what) : std::runtime_error("Parameter error: " + what + ".") {};
