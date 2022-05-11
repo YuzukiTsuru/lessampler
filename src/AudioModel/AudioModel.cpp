@@ -18,7 +18,7 @@
 // Created by gloom on 2022/5/2.
 //
 
-#include "FileIO/BinUnit.h"
+#include "FileIO/AudioModelIO.h"
 
 #include "AudioModel.h"
 #include "WorldModule/WorldModule.h"
@@ -45,21 +45,7 @@ void AudioModel::InitAudioModel() {
     lessAudioModel.f0_length = worldPara.f0_length;
     lessAudioModel.time_axis = worldPara.time_axis;
     lessAudioModel.spectrogram = worldPara.spectrogram;
-    lessAudioModel.speclength = [&]() -> int * {
-        auto _temp = new int[lessAudioModel.f0_length];
-        for (int i = 0; i < lessAudioModel.f0_length; ++i) {
-            _temp[i] = lessAudioModel.fft_size / 2 + 1;
-        }
-        return _temp;
-    }();
     lessAudioModel.aperiodicity = worldPara.aperiodicity;
-    lessAudioModel.aperiodlength = [&]() -> int * {
-        auto _temp = new int[lessAudioModel.f0_length];
-        for (int i = 0; i < lessAudioModel.f0_length; ++i) {
-            _temp[i] = lessAudioModel.fft_size / 2 + 1;
-        }
-        return _temp;
-    }();
 }
 
 void AudioModel::SaveAudioModelToJsonFile() {
