@@ -16,7 +16,7 @@
 // Created by gloom on 2022/5/10.
 //
 
-#include "FileIO/BinUnit.h"
+#include "FileIO/AudioModelIO.h"
 #include "AudioModel/AudioModel.h"
 #include "ConfigUnit/lessConfigure.h"
 #include "../lib/World/tools/audioio.h"
@@ -46,12 +46,12 @@ int main() {
 
     auto less_i = audioModel.GetAudioModel();
 
-    BinUnit WriteBinUnit("a.o", less_i);
+    AduioModelIO WriteBinUnit("a.o", less_i);
     WriteBinUnit.SaveAudioModel();
 
     lessAudioModel less_o{};
 
-    BinUnit ReadBinUnit("a.o");
+    AduioModelIO ReadBinUnit("a.o");
     less_o = ReadBinUnit.ReadAudioModel();
     getchar();
 }
