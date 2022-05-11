@@ -23,21 +23,19 @@
 
 class lessAudioModel {
 public:
-    double w_length;
-    int x_length;
-    double frame_period;
-    int fs;
+    double w_length = 0.0;
+    int x_length = 0;
+    double frame_period = 0.0;
+    int fs = 0;
 
-    double *x;
-    double *f0;
-    double *time_axis;
-    int f0_length;
+    double *x = nullptr;
+    double *f0 = nullptr;
+    double *time_axis = nullptr;
+    int f0_length = 0;
 
-    double **spectrogram;
-    int *speclength;
-    double **aperiodicity;
-    int *aperiodlength;
-    int fft_size;
+    double **spectrogram = nullptr;
+    double **aperiodicity = nullptr;
+    int fft_size = 0;
 };
 
 class TransAudioModel {
