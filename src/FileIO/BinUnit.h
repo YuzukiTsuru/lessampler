@@ -14,6 +14,10 @@ class BinUnit {
 public:
     BinUnit(const std::string &Path, lessAudioModel audioModel);
 
+    explicit BinUnit(const std::string &Path);
+
+    ~BinUnit();
+
     [[maybe_unused]] void SetFilePath(const std::string &Path);
 
     [[maybe_unused]] void SetAudioModel(lessAudioModel audioModel);
@@ -24,7 +28,7 @@ public:
 
     void SaveAudioModel();
 
-    void ReadAudioModel();
+    lessAudioModel ReadAudioModel();
 
 private:
     lessAudioModel _audioModel{.f0_length = 0};

@@ -36,6 +36,21 @@
 
 BinUnit::BinUnit(const std::string &FilePath, lessAudioModel audioModel) : FilePath(FilePath), _audioModel(audioModel) {}
 
+BinUnit::BinUnit(const std::string &FilePath) : FilePath(FilePath) {}
+
+BinUnit::~BinUnit() {
+    delete[] this->_audioModel.time_axis;
+    delete[] this->_audioModel.f0;
+    for (int i = 0; i < this->_audioModel.f0_length; ++i) {
+        delete[] this->_audioModel.spectrogram[i];
+        delete[] this->_audioModel.aperiodicity[i];
+    }
+    delete[] this->_audioModel.aperiodlength;
+    delete[] this->_audioModel.speclength;
+    delete[] this->_audioModel.spectrogram;
+    delete[] this->_audioModel.aperiodicity;
+}
+
 [[maybe_unused]] void BinUnit::SetFilePath(const std::string &Path) {
     this->FilePath = Path;
 }
@@ -58,8 +73,9 @@ void BinUnit::SaveAudioModel() {
     WriteAudioContent();
 }
 
-void BinUnit::ReadAudioModel() {
+lessAudioModel BinUnit::ReadAudioModel() {
     ReadAudioContent();
+    return this->_audioModel;
 }
 
 void BinUnit::WriteAudioContent() {
@@ -69,7 +85,8 @@ void BinUnit::WriteAudioContent() {
     }
 
     // FIXME: Find a proprietary way to solve this
-    out_audio_model.write(reinterpret_cast<const char *>(this->_audioModel.f0_length), std::streamsize(sizeof(this->_audioModel.f0_length)));
+    out_audio_model.write(reinterpret_cast<const char *>(&this->_audioModel.f0_length), std::streamsize(sizeof(this->_audioModel.f0_length)));
+    out_audio_model.tellp();
 
     // write f0 to bin
     out_audio_model.write(reinterpret_cast<const char *>(this->_audioModel.f0), std::streamsize(this->_audioModel.f0_length * sizeof(double)));
@@ -141,6 +158,7 @@ void BinUnit::ReadAudioContent() {
 
     in_audio_model.close();
 }
+
 
 
 

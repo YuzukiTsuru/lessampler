@@ -44,8 +44,14 @@ int main() {
 
     AudioModel audioModel(x, x_length, fs, configure);
 
-    auto lessAudioModel = audioModel.GetAudioModel();
+    auto less_i = audioModel.GetAudioModel();
 
-    BinUnit WriteBinUnit("a.o", lessAudioModel);
+    BinUnit WriteBinUnit("a.o", less_i);
     WriteBinUnit.SaveAudioModel();
+
+    lessAudioModel less_o{};
+
+    BinUnit ReadBinUnit("a.o");
+    less_o = ReadBinUnit.ReadAudioModel();
+    getchar();
 }
