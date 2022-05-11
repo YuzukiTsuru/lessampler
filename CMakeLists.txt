@@ -81,6 +81,7 @@ include_directories(
         lib/dialog
         lib/ColorCout/includes
         lib/World/src
+        lib/World/tools
         lib/ftxui/include
         lib/inicpp/include
         lib/rapidjson/include
