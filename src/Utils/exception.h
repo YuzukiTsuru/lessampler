@@ -31,7 +31,7 @@ public:
 
 class header_check_error : public std::runtime_error {
 public:
-    header_check_error(const std::string &what, const std::string &expect) : std::runtime_error("Header: " + what + "is not same as " + expect + ".") {};
+    header_check_error(const std::string &what, const std::string &expect) : std::runtime_error("Header: " + what + " is not same as " + expect + ".") {};
 };
 
 class parameter_error : public std::runtime_error {
