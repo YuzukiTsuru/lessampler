@@ -26,11 +26,9 @@
 
 class WorldModule {
 public:
-    WorldModule();
+    WorldModule(double *x, int x_length, int fs, const lessConfigure &configure);
 
     ~WorldModule();
-
-    void AnalysisModel(double *x, int x_length, int fs, const lessConfigure &configure);
 
     WorldPara GetModule();
 
