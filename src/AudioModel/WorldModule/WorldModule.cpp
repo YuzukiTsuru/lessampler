@@ -28,14 +28,9 @@
 #include <world/harvest.h>
 #include <world/d4c.h>
 
-WorldModule::WorldModule() = default;
-
-void WorldModule::AnalysisModel(double *_x, int _x_length, int _fs, const lessConfigure &_configure) {
-    this->x = _x;
-    this->x_length = _x_length;
-    this->worldPara.fs = _fs;
-    this->worldPara.frame_period = _configure.audio_model_frame_period;
-    this->configure = _configure;
+WorldModule::WorldModule(double *x, int x_length, int fs, const lessConfigure &configure) : x(x), x_length(x_length), configure(configure) {
+    this->worldPara.fs = fs;
+    this->worldPara.frame_period = configure.audio_model_frame_period;
     YALL_DEBUG_ << "Generate F0 from PCM file.";
     if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO) {
         F0EstimationDio();
@@ -49,7 +44,6 @@ void WorldModule::AnalysisModel(double *_x, int _x_length, int _fs, const lessCo
     YALL_DEBUG_ << "Generate Aperiodicity.";
     AperiodicityEstimation();
 }
-
 
 WorldModule::~WorldModule() {
     delete[] this->worldPara.time_axis;
