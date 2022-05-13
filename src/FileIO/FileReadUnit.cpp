@@ -14,7 +14,7 @@
 #pragma warning(disable : 4996)
 #endif
 
-int less::FileReadUnit::GetAudioLength(const char *filename) {
+int FileReadUnit::GetAudioLength(const char *filename) {
     SNDFILE *sf;
     SF_INFO info;
     info.format = 0;
@@ -27,7 +27,7 @@ int less::FileReadUnit::GetAudioLength(const char *filename) {
     return len;
 }
 
-int less::FileReadUnit::WavRead(const char *FilePath, double *output) {
+int FileReadUnit::WavRead(const char *FilePath, double *output) {
     SNDFILE *sf;
     SF_INFO info;
     info.format = 0;
@@ -36,7 +36,7 @@ int less::FileReadUnit::WavRead(const char *FilePath, double *output) {
         std::cerr << "Failed to open the file." << std::endl;
         exit(-1);
     }
-    int f = info.frames;
+    sf_count_t f = info.frames;
     int c = info.channels;
     if (c > 1) {
         std::cerr << "Can't read stereo file for lessampler." << std::endl;
@@ -44,7 +44,7 @@ int less::FileReadUnit::WavRead(const char *FilePath, double *output) {
     }
     int num_items = f * c;
     auto buf = new double[num_items];
-    int num = sf_read_double(sf, buf, num_items);
+    sf_count_t num = sf_read_double(sf, buf, num_items);
     sf_close(sf);
     for (int i = 0; i < num; i += c) {
         for (int j = 0; j < c; ++j) {
@@ -55,20 +55,5 @@ int less::FileReadUnit::WavRead(const char *FilePath, double *output) {
     }
     delete[] buf;
     return info.samplerate;
-}
-
-//TODO
-void less::FileReadUnit::FileToWav(const std::string &Path, double *output) {
-    rapidjson::Document AudioData;
-    std::ifstream filedata;
-    filedata.open(Path);
-    filedata.seekg(0, std::ios::end);
-    int len = filedata.tellg();
-    filedata.seekg(0, std::ios::beg);
-    auto file = new char[len];
-    filedata.read(file, len);
-    filedata.close();
-    AudioData.Parse(file);
-    std::cout << AudioData.GetString();
 }
 
