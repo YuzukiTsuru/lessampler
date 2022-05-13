@@ -21,34 +21,33 @@
 #include "FileIO/AudioModelIO.h"
 
 #include "AudioModel.h"
-#include "WorldModule/WorldModule.h"
 
 AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure &configure) : configure(configure) {
-    lessAudioModel.x = x;
-    lessAudioModel.x_length = x_length;
-    lessAudioModel.fs = fs;
+    this->_lessAudioModel.x = x;
+    this->_lessAudioModel.x_length = x_length;
+    this->_lessAudioModel.fs = fs;
 
     // initialize the audio model from x, x_length, fs using World Vocoder
-    WorldModule model(x, x_length, fs, configure);
-    worldPara = model.GetModule();
+    worldModule.AnalysisModel(x, x_length, fs, configure);
+    worldPara = worldModule.GetModule();
     InitAudioModel();
 }
 
 lessAudioModel AudioModel::GetAudioModel() {
-    return this->lessAudioModel;
+    return this->_lessAudioModel;
 }
 
 void AudioModel::InitAudioModel() {
-    lessAudioModel.fft_size = worldPara.fft_size;
-    lessAudioModel.frame_period = worldPara.frame_period;
-    lessAudioModel.f0 = worldPara.f0;
-    lessAudioModel.f0_length = worldPara.f0_length;
-    lessAudioModel.time_axis = worldPara.time_axis;
-    lessAudioModel.spectrogram = worldPara.spectrogram;
-    lessAudioModel.aperiodicity = worldPara.aperiodicity;
+    this->_lessAudioModel.fft_size = worldPara.fft_size;
+    this->_lessAudioModel.frame_period = worldPara.frame_period;
+    this->_lessAudioModel.f0 = worldPara.f0;
+    this->_lessAudioModel.f0_length = worldPara.f0_length;
+    this->_lessAudioModel.time_axis = worldPara.time_axis;
+    this->_lessAudioModel.spectrogram = worldPara.spectrogram;
+    this->_lessAudioModel.aperiodicity = worldPara.aperiodicity;
 }
 
 void AudioModel::SaveAudioModelToJsonFile() {
-
+    // TODO AT
 }
 
