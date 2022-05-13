@@ -58,9 +58,9 @@ AduioModelIO::~AduioModelIO() {
 }
 
 void AduioModelIO::GenerateFilePath() {
-    this->F0FilePath = this->RootFilePath / this->F0FileExt;
-    this->SPFilePath = this->RootFilePath / this->SPFilePath;
-    this->APFilePath = this->RootFilePath / this->APFilePath;
+    this->F0FilePath = this->RootFilePath.replace_extension(this->F0FileExt);
+    this->SPFilePath = this->RootFilePath.replace_extension(this->SPFileExt);
+    this->APFilePath = this->RootFilePath.replace_extension(this->APFileExt);
 }
 
 void AduioModelIO::SaveAudioModel() {
@@ -74,11 +74,15 @@ lessAudioModel AduioModelIO::ReadAudioModel() {
 }
 
 void AduioModelIO::WriteAudioContent() {
-
+    WriteF0();
+    WriteSP();
+    WriteAP();
 }
 
 void AduioModelIO::ReadAudioContent() {
-
+    ReadF0();
+    ReadSP();
+    ReadAP();
 }
 
 void AduioModelIO::WriteOneParameter(FILE *fp, const char *text, double parameter, int size) {
@@ -116,6 +120,7 @@ int AduioModelIO::CheckHeader(FILE *fp, const char *text) {
         fclose(fp);
         throw header_check_error(data_check, text);
     }
+    return 0;
 }
 
 void AduioModelIO::WriteF0() {
@@ -174,7 +179,7 @@ void AduioModelIO::WriteAP() {
     fclose(fp);
 }
 
-[[noreturn]] void AduioModelIO::ReadF0() {
+void AduioModelIO::ReadF0() {
     FILE *fp = fopen(this->F0FilePath.string().c_str(), "rb");
     if (nullptr == fp)
         throw file_open_error(this->F0FilePath.string());
@@ -189,20 +194,20 @@ void AduioModelIO::WriteAP() {
     char data_check[5];
     // "NOF "
     fread(data_check, 1, 4, fp);
-    int f0_length = 0;
-    fread(&f0_length, 4, 1, fp);
-
+    fread(&this->_audioModel.f0_length, 4, 1, fp);
     // "FP  "
     fread(data_check, 1, 4, fp);
-    double frame_period;
-    fread(&frame_period, 8, 1, fp);
+    fread(&this->_audioModel.frame_period, 8, 1, fp);
 
     // Data
-    fread(this->_audioModel.f0, 8, f0_length, fp);
+    this->_audioModel.f0 = new double[this->_audioModel.f0_length];
+    fread(this->_audioModel.f0, 8, this->_audioModel.f0_length, fp);
 
     fclose(fp);
-    for (int i = 0; i < f0_length; ++i)
-        this->_audioModel.time_axis[i] = i / 1000.0 * frame_period;
+
+    this->_audioModel.time_axis = new double[this->_audioModel.f0_length];
+    for (int i = 0; i < this->_audioModel.f0_length; ++i)
+        this->_audioModel.time_axis[i] = i / 1000.0 * this->_audioModel.frame_period;
 }
 
 void AduioModelIO::ReadSP() {
@@ -211,13 +216,18 @@ void AduioModelIO::ReadSP() {
         throw file_open_error(this->SPFilePath.string());
 
     // Header
-    CheckHeader(fp, this->SPHeader);
+    try {
+        CheckHeader(fp, this->SPHeader);
+    } catch (header_check_error &error) {
+        YALL_ERROR_ << error.what();
+    }
 
     // Parameters
     LoadParameters(fp, &this->_audioModel.f0_length, &this->_audioModel.fft_size);
 
+    this->_audioModel.spectrogram = new double *[this->_audioModel.f0_length];
     for (int i = 0; i < this->_audioModel.f0_length; ++i)
-        this->_audioModel.spectrogram[i] = new double[this->_audioModel.fft_size];
+        this->_audioModel.spectrogram[i] = new double[this->_audioModel.fft_size / 2 + 1];
     // Data
     for (int i = 0; i < this->_audioModel.f0_length; ++i)
         fread(this->_audioModel.spectrogram[i], 8, 0, fp);
@@ -231,17 +241,22 @@ void AduioModelIO::ReadAP() {
         throw file_open_error(this->APFilePath.string());
 
     // Header
-    CheckHeader(fp, this->APHeader);
+    try {
+        CheckHeader(fp, this->APHeader);
+    } catch (header_check_error &error) {
+        YALL_ERROR_ << error.what();
+    }
 
     // Parameters
     int f0_length, fft_size;
     LoadParameters(fp, &f0_length, &fft_size);
     if (f0_length != this->_audioModel.f0_length) {
-        throw parameter_error("SP AP File diff F0 LENGTH, Broken Modeling");
+        throw parameter_error("SP AP File diff F0 LENGTH OR FFT Size, Broken Modeling");
     }
 
+    this->_audioModel.aperiodicity = new double *[this->_audioModel.f0_length];
     for (int i = 0; i < this->_audioModel.f0_length; ++i)
-        this->_audioModel.aperiodicity[i] = new double[this->_audioModel.fft_size];
+        this->_audioModel.aperiodicity[i] = new double[this->_audioModel.fft_size / 2 + 1];
     // Data
     for (int i = 0; i < f0_length; ++i)
         fread(this->_audioModel.aperiodicity[i], 8, 0, fp);
