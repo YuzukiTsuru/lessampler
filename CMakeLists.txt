@@ -42,6 +42,10 @@ configure_file(
         "${PROJECT_SOURCE_DIR}/config.h.in"
         "${PROJECT_BINARY_DIR}/lessconfig.h"
 )
+if (MSVC)
+    add_definitions(-DMSVC_MODE)
+    set(RC_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/lessampler.rc")
+endif ()
 
 # Library World
 set(WORLD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
