@@ -68,12 +68,18 @@ private: // Writer
 private: // Reader
     [[noreturn]] void ReadF0();
 
+    [[noreturn]] void ReadSP();
+
+    [[noreturn]] void ReadAP();
+
 private:
     static void WriteOneParameter(FILE *fp, const char *text, double parameter, int size);
 
-    static void LoadParameters(FILE *fp, int *f0_length, int *fft_size, int *number_of_dimensions);
+    static void LoadParameters(FILE *fp, int *f0_length, int *fft_size);
 
-    static void CheckHeader(FILE *fp, const char *text);
+    static int CheckHeader(FILE *fp, const char *text);
+
+    static double GetHeaderInformation(const char *filename, const char *parameter);
 };
 
 

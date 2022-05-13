@@ -91,7 +91,7 @@ void AduioModelIO::WriteOneParameter(FILE *fp, const char *text, double paramete
     }
 }
 
-void AduioModelIO::LoadParameters(FILE *fp, int *f0_length, int *fft_size, int *number_of_dimensions) {
+void AduioModelIO::LoadParameters(FILE *fp, int *f0_length, int *fft_size) {
     char data_check[12];
     // NOF
     fread(&data_check, 1, 4, fp);
@@ -104,16 +104,11 @@ void AduioModelIO::LoadParameters(FILE *fp, int *f0_length, int *fft_size, int *
     fread(&data_check, 1, 4, fp);
     fread(fft_size, 4, 1, fp);
 
-    // NOD
-    fread(&data_check, 1, 4, fp);
-    fread(number_of_dimensions, 4, 1, fp);
-    *number_of_dimensions = *number_of_dimensions == 0 ? *fft_size / 2 + 1 : *number_of_dimensions;
-
     // FS (may skipped)
     fread(&data_check, 1, 8, fp);
 }
 
-void AduioModelIO::CheckHeader(FILE *fp, const char *text) {
+int AduioModelIO::CheckHeader(FILE *fp, const char *text) {
     char data_check[5];
     fread(data_check, 1, 4, fp);
     data_check[4] = '\0';
@@ -141,11 +136,42 @@ void AduioModelIO::WriteF0() {
 }
 
 void AduioModelIO::WriteSP() {
+    FILE *fp = fopen(this->SPFilePath.string().c_str(), "wb");
+    if (nullptr == fp)
+        throw file_open_error(this->SPFilePath.string());
+    // Header
+    fwrite(this->SPHeader, 1, 4, fp);
 
+    // Parameters
+    WriteOneParameter(fp, this->F0LengthHeader, this->_audioModel.f0_length, 4);
+    WriteOneParameter(fp, this->FramePeridoHeader, this->_audioModel.frame_period, 8);
+    WriteOneParameter(fp, this->FFTSizeHeader, this->_audioModel.fft_size, 4);
+    WriteOneParameter(fp, this->FSHeader, this->_audioModel.fs, 4);
+
+    // Data
+    for (int i = 0; i < this->_audioModel.f0_length; ++i)
+        fwrite(this->_audioModel.spectrogram[i], 8, 0, fp);
+    fclose(fp);
 }
 
 void AduioModelIO::WriteAP() {
+    FILE *fp = fopen(this->APFilePath.string().c_str(), "wb");
+    if (nullptr == fp)
+        throw file_open_error(this->APFilePath.string());
 
+    // Header
+    fwrite(this->APHeader, 1, 4, fp);
+
+    // Parameters
+    WriteOneParameter(fp, this->F0LengthHeader, this->_audioModel.f0_length, 4);
+    WriteOneParameter(fp, this->FramePeridoHeader, this->_audioModel.frame_period, 8);
+    WriteOneParameter(fp, this->FFTSizeHeader, this->_audioModel.fft_size, 4);
+    WriteOneParameter(fp, this->FSHeader, this->_audioModel.fs, 4);
+
+    // Data
+    for (int i = 0; i < this->_audioModel.f0_length; ++i)
+        fwrite(this->_audioModel.aperiodicity[i], 8, 0, fp);
+    fclose(fp);
 }
 
 [[noreturn]] void AduioModelIO::ReadF0() {
@@ -177,5 +203,74 @@ void AduioModelIO::WriteAP() {
     fclose(fp);
     for (int i = 0; i < f0_length; ++i)
         this->_audioModel.time_axis[i] = i / 1000.0 * frame_period;
+}
+
+void AduioModelIO::ReadSP() {
+    FILE *fp = fopen(this->SPFilePath.string().c_str(), "rb");
+    if (nullptr == fp)
+        throw file_open_error(this->SPFilePath.string());
+
+    // Header
+    CheckHeader(fp, this->SPHeader);
+
+    // Parameters
+    LoadParameters(fp, &this->_audioModel.f0_length, &this->_audioModel.fft_size);
+
+    for (int i = 0; i < this->_audioModel.f0_length; ++i)
+        this->_audioModel.spectrogram[i] = new double[this->_audioModel.fft_size];
+    // Data
+    for (int i = 0; i < this->_audioModel.f0_length; ++i)
+        fread(this->_audioModel.spectrogram[i], 8, 0, fp);
+
+    fclose(fp);
+}
+
+void AduioModelIO::ReadAP() {
+    FILE *fp = fopen(this->APFilePath.string().c_str(), "rb");
+    if (nullptr == fp)
+        throw file_open_error(this->APFilePath.string());
+
+    // Header
+    CheckHeader(fp, this->APHeader);
+
+    // Parameters
+    int f0_length, fft_size;
+    LoadParameters(fp, &f0_length, &fft_size);
+    if (f0_length != this->_audioModel.f0_length) {
+        throw parameter_error("SP AP File diff F0 LENGTH, Broken Modeling");
+    }
+
+    for (int i = 0; i < this->_audioModel.f0_length; ++i)
+        this->_audioModel.aperiodicity[i] = new double[this->_audioModel.fft_size];
+    // Data
+    for (int i = 0; i < f0_length; ++i)
+        fread(this->_audioModel.aperiodicity[i], 8, 0, fp);
+
+    fclose(fp);
+}
+
+double AduioModelIO::GetHeaderInformation(const char *filename, const char *parameter) {
+    FILE *fp = fopen(filename, "rb");
+    if (nullptr == fp)
+        throw file_open_error(filename);
+
+    char data_check[5];
+    data_check[4] = '\0';
+    for (int i = 0; i < 13; ++i) {
+        fread(data_check, 1, 4, fp);
+        if (0 != strcmp(data_check, parameter)) continue;
+        if (0 == strcmp(parameter, "FP  ")) {
+            double answer;
+            fread(&answer, 8, 1, fp);
+            fclose(fp);
+            return answer;
+        } else {
+            int answer;
+            fread(&answer, 4, 1, fp);
+            fclose(fp);
+            return static_cast<double>(answer);
+        }
+    }
+    return 0;
 }
 
