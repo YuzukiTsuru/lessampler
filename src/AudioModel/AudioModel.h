@@ -25,6 +25,7 @@
 
 #include "ConfigUnit/lessConfigure.h"
 #include "WorldModule/WorldPara.h"
+#include "WorldModule/WorldModule.h"
 
 class AudioModel {
 public:
@@ -37,9 +38,9 @@ public:
 private:
     lessConfigure configure{};
     WorldPara worldPara{};
-    lessAudioModel lessAudioModel{};
+    WorldModule worldModule{};
+    lessAudioModel _lessAudioModel{};
 
-private:
     void InitAudioModel();
 };
 
