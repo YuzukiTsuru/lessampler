@@ -42,14 +42,13 @@ protected:
     const std::string F0FileExt = "lessaudiof0";
     const std::string SPFileExt = "lessaudiosp";
     const std::string APFileExt = "lessaudioap";
-    const char F0LengthHeader[4] = {'F', '0', 'L', ' '};            // number of samples (int)
-    const char FramePeridoHeader[4] = {'F', 'P', ' ', ' '};         // frame perido (double)
-    const char FFTSizeHeader[4] = {'F', 'F', 'T', ' '};             //  FFT size (int)
-    const char DimensionsNumberHeader[4] = {'N', 'O', 'D', ' '};    // number of dimensions (int)
-    const char FSHeader[4] = {'F', 'S', ' ', ' '};                  // number of dimensions (int)
-    const char F0Header[4] = {'5', '4', '0', '0'};                  // F0
-    const char SPHeader[4] = {'5', '4', '0', '1'};                  // SP
-    const char APHeader[4] = {'5', '4', '0', '2'};                  // AP
+    const char F0LengthHeader[5] = {'F', '0', 'L', ' ', '\0'};            // number of samples (int)
+    const char FramePeridoHeader[5] = {'F', 'P', ' ', ' ', '\0'};         // frame perido (double)
+    const char FFTSizeHeader[5] = {'F', 'F', 'T', ' ', '\0'};             // FFT size (int)
+    const char FSHeader[5] = {'F', 'S', ' ', ' ', '\0'};                  // frame per sample (int)
+    const char F0Header[5] = {'5', '4', '0', '0', '\0'};                  // F0
+    const char SPHeader[5] = {'5', '4', '0', '1', '\0'};                  // SP
+    const char APHeader[5] = {'5', '4', '0', '2', '\0'};                  // AP
 
 private:
     void WriteAudioContent();
@@ -66,11 +65,11 @@ private: // Writer
     void WriteAP();
 
 private: // Reader
-    [[noreturn]] void ReadF0();
+    void ReadF0();
 
-    [[noreturn]] void ReadSP();
+    void ReadSP();
 
-    [[noreturn]] void ReadAP();
+    void ReadAP();
 
 private:
     static void WriteOneParameter(FILE *fp, const char *text, double parameter, int size);
