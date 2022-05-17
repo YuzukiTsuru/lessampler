@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "FileIO/AudioModelIO.h"
+#include "FileIO/JSONFileIO.h"
 
 #include "AudioModel.h"
 #include "WorldModule/WorldModule.h"
@@ -67,7 +68,8 @@ void AudioModel::InitAudioModel() {
     }
 }
 
-void AudioModel::SaveAudioModelToJsonFile() {
-    // TODO AT
+void AudioModel::SaveAudioModelToJsonFile(const std::string &Path) {
+    JSONFileIO jsonFileIo(_lessAudioModel);
+    jsonFileIo.SaveFile(Path);
 }
 
