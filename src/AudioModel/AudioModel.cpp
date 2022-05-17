@@ -50,18 +50,20 @@ void AudioModel::InitAudioModel() {
     _lessAudioModel.time_axis = new double[worldPara.f0_length];
     std::memcpy(_lessAudioModel.time_axis, worldPara.time_axis, sizeof(double) * worldPara.f0_length);
 
+    _lessAudioModel.w_length = worldPara.fft_size / 2 + 1;
+
     _lessAudioModel.spectrogram = new double *[worldPara.f0_length];
     std::memcpy(_lessAudioModel.spectrogram, worldPara.spectrogram, sizeof(double) * worldPara.f0_length);
     for (int i = 0; i < worldPara.f0_length; ++i) {
-        _lessAudioModel.spectrogram[i] = new double[worldPara.fft_size / 2 + 1];
-        std::memcpy(_lessAudioModel.spectrogram[i], worldPara.spectrogram[i], sizeof(double) * worldPara.fft_size / 2 + 1);
+        _lessAudioModel.spectrogram[i] = new double[_lessAudioModel.w_length];
+        std::memcpy(_lessAudioModel.spectrogram[i], worldPara.spectrogram[i], sizeof(double) * _lessAudioModel.w_length);
     }
 
     _lessAudioModel.aperiodicity = new double *[worldPara.f0_length];
     std::memcpy(_lessAudioModel.aperiodicity, worldPara.aperiodicity, sizeof(double) * worldPara.f0_length);
     for (int i = 0; i < worldPara.f0_length; ++i) {
-        _lessAudioModel.aperiodicity[i] = new double[worldPara.fft_size / 2 + 1];
-        std::memcpy(_lessAudioModel.aperiodicity[i], worldPara.aperiodicity[i], sizeof(double) * worldPara.fft_size / 2 + 1);
+        _lessAudioModel.aperiodicity[i] = new double[_lessAudioModel.w_length];
+        std::memcpy(_lessAudioModel.aperiodicity[i], worldPara.aperiodicity[i], sizeof(double) * _lessAudioModel.w_length);
     }
 }
 
