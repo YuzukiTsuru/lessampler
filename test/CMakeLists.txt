@@ -14,3 +14,6 @@ add_executable(LOGTest LOGTest.cpp)
 
 add_executable(AudioModelBinTest AudioModelBinTest.cpp)
 target_link_libraries(AudioModelBinTest FileIO AudioModel world::tool)
+
+add_executable(WorldAnalysisTest WorldAnalysisTest.cpp)
+target_link_libraries(WorldAnalysisTest world::tool world::core)
