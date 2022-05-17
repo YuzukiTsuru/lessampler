@@ -55,6 +55,8 @@ int main() {
     less_o = ReadBinUnit.ReadAudioModel();
 
     for (int i = 0; i < less_i.f0_length; ++i) {
-        std::cout << i << ": " << less_i.f0[i] << " -> " << less_o.f0[i] << std::endl;
+        for (int j = 0; j < less_i.w_length; ++j) {
+            std::cout << i << ": " << less_i.spectrogram[i][j] << " -> " << less_o.spectrogram[i][j] << std::endl;
+        }
     }
 }

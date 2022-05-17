@@ -78,8 +78,6 @@ private:
     static void LoadParameters(FILE *fp, int *f0_length, int *fft_size);
 
     static int CheckHeader(FILE *fp, const char *text);
-
-    static double GetHeaderInformation(const char *filename, const char *parameter);
 };
 
 

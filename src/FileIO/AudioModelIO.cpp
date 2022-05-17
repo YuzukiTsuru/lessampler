@@ -30,37 +30,37 @@ AduioModelIO::AduioModelIO(const std::string &FilePath) : RootFilePath(FilePath)
 }
 
 AduioModelIO::~AduioModelIO() {
-    delete[] this->_audioModel.time_axis;
-    delete[] this->_audioModel.f0;
-    for (int i = 0; i < this->_audioModel.f0_length; ++i) {
-        delete[] this->_audioModel.spectrogram[i];
-        delete[] this->_audioModel.aperiodicity[i];
+    delete[] _audioModel.time_axis;
+    delete[] _audioModel.f0;
+    for (int i = 0; i < _audioModel.f0_length; ++i) {
+        delete[] _audioModel.spectrogram[i];
+        delete[] _audioModel.aperiodicity[i];
     }
-    delete[] this->_audioModel.spectrogram;
-    delete[] this->_audioModel.aperiodicity;
+    delete[] _audioModel.spectrogram;
+    delete[] _audioModel.aperiodicity;
 }
 
 [[maybe_unused]] void AduioModelIO::SetFilePath(const std::string &Path) {
-    this->RootFilePath = Path;
+    RootFilePath = Path;
     GenerateFilePath();
 }
 
 [[maybe_unused]] void AduioModelIO::SetAudioModel(lessAudioModel audioModel) {
-    this->_audioModel = audioModel;
+    _audioModel = audioModel;
 }
 
 [[maybe_unused]] lessAudioModel AduioModelIO::GetAudioModel() {
-    return this->_audioModel;
+    return _audioModel;
 }
 
 [[maybe_unused]] std::string AduioModelIO::GetFilePath() {
-    return this->RootFilePath.string();
+    return RootFilePath.string();
 }
 
 void AduioModelIO::GenerateFilePath() {
-    this->F0FilePath = this->RootFilePath.replace_extension(this->F0FileExt);
-    this->SPFilePath = this->RootFilePath.replace_extension(this->SPFileExt);
-    this->APFilePath = this->RootFilePath.replace_extension(this->APFileExt);
+    F0FilePath = RootFilePath.replace_extension(F0FileExt);
+    SPFilePath = RootFilePath.replace_extension(SPFileExt);
+    APFilePath = RootFilePath.replace_extension(APFileExt);
 }
 
 void AduioModelIO::SaveAudioModel() {
@@ -70,7 +70,7 @@ void AduioModelIO::SaveAudioModel() {
 
 lessAudioModel AduioModelIO::ReadAudioModel() {
     ReadAudioContent();
-    return this->_audioModel;
+    return _audioModel;
 }
 
 void AduioModelIO::WriteAudioContent() {
@@ -124,68 +124,68 @@ int AduioModelIO::CheckHeader(FILE *fp, const char *text) {
 }
 
 void AduioModelIO::WriteF0() {
-    FILE *fp = fopen(this->F0FilePath.string().c_str(), "wb");
+    FILE *fp = fopen(F0FilePath.string().c_str(), "wb");
     if (nullptr == fp)
-        throw file_open_error(this->F0FilePath.string());
+        throw file_open_error(F0FilePath.string());
 
     // Header
-    fwrite(this->F0Header, 1, 4, fp);
+    fwrite(F0Header, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, this->F0LengthHeader, this->_audioModel.f0_length, 4);
-    WriteOneParameter(fp, this->FramePeridoHeader, this->_audioModel.frame_period, 8);
+    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length, 4);
+    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period, 8);
 
     // Data
-    fwrite(this->_audioModel.f0, 8, this->_audioModel.f0_length, fp);
+    fwrite(_audioModel.f0, 8, _audioModel.f0_length, fp);
     fclose(fp);
 }
 
 void AduioModelIO::WriteSP() {
-    FILE *fp = fopen(this->SPFilePath.string().c_str(), "wb");
+    FILE *fp = fopen(SPFilePath.string().c_str(), "wb");
     if (nullptr == fp)
-        throw file_open_error(this->SPFilePath.string());
+        throw file_open_error(SPFilePath.string());
     // Header
-    fwrite(this->SPHeader, 1, 4, fp);
+    fwrite(SPHeader, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, this->F0LengthHeader, this->_audioModel.f0_length, 4);
-    WriteOneParameter(fp, this->FramePeridoHeader, this->_audioModel.frame_period, 8);
-    WriteOneParameter(fp, this->FFTSizeHeader, this->_audioModel.fft_size, 4);
-    WriteOneParameter(fp, this->FSHeader, this->_audioModel.fs, 4);
+    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length, 4);
+    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period, 8);
+    WriteOneParameter(fp, FFTSizeHeader, _audioModel.fft_size, 4);
+    WriteOneParameter(fp, FSHeader, _audioModel.fs, 4);
 
     // Data
-    for (int i = 0; i < this->_audioModel.f0_length; ++i)
-        fwrite(this->_audioModel.spectrogram[i], 8, 0, fp);
+    for (int i = 0; i < _audioModel.f0_length; ++i)
+        fwrite(_audioModel.spectrogram[i], 8, _audioModel.w_length, fp);
     fclose(fp);
 }
 
 void AduioModelIO::WriteAP() {
-    FILE *fp = fopen(this->APFilePath.string().c_str(), "wb");
+    FILE *fp = fopen(APFilePath.string().c_str(), "wb");
     if (nullptr == fp)
-        throw file_open_error(this->APFilePath.string());
+        throw file_open_error(APFilePath.string());
 
     // Header
-    fwrite(this->APHeader, 1, 4, fp);
+    fwrite(APHeader, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, this->F0LengthHeader, this->_audioModel.f0_length, 4);
-    WriteOneParameter(fp, this->FramePeridoHeader, this->_audioModel.frame_period, 8);
-    WriteOneParameter(fp, this->FFTSizeHeader, this->_audioModel.fft_size, 4);
-    WriteOneParameter(fp, this->FSHeader, this->_audioModel.fs, 4);
+    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length, 4);
+    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period, 8);
+    WriteOneParameter(fp, FFTSizeHeader, _audioModel.fft_size, 4);
+    WriteOneParameter(fp, FSHeader, _audioModel.fs, 4);
 
     // Data
-    for (int i = 0; i < this->_audioModel.f0_length; ++i)
-        fwrite(this->_audioModel.aperiodicity[i], 8, 0, fp);
+    for (int i = 0; i < _audioModel.f0_length; ++i)
+        fwrite(_audioModel.aperiodicity[i], 8, _audioModel.w_length, fp);
     fclose(fp);
 }
 
 void AduioModelIO::ReadF0() {
-    FILE *fp = fopen(this->F0FilePath.string().c_str(), "rb");
+    FILE *fp = fopen(F0FilePath.string().c_str(), "rb");
     if (nullptr == fp)
-        throw file_open_error(this->F0FilePath.string());
+        throw file_open_error(F0FilePath.string());
     // Header
     try {
-        CheckHeader(fp, this->F0Header);
+        CheckHeader(fp, F0Header);
     } catch (header_check_error &error) {
         YALL_ERROR_ << error.what();
     }
@@ -194,55 +194,57 @@ void AduioModelIO::ReadF0() {
     char data_check[5];
     // "NOF "
     fread(data_check, 1, 4, fp);
-    fread(&this->_audioModel.f0_length, 4, 1, fp);
+    fread(&_audioModel.f0_length, 4, 1, fp);
     // "FP  "
     fread(data_check, 1, 4, fp);
-    fread(&this->_audioModel.frame_period, 8, 1, fp);
+    fread(&_audioModel.frame_period, 8, 1, fp);
 
     // Data
-    this->_audioModel.f0 = new double[this->_audioModel.f0_length];
-    fread(this->_audioModel.f0, 8, this->_audioModel.f0_length, fp);
+    _audioModel.f0 = new double[_audioModel.f0_length];
+    fread(_audioModel.f0, 8, _audioModel.f0_length, fp);
 
     fclose(fp);
 
-    this->_audioModel.time_axis = new double[this->_audioModel.f0_length];
-    for (int i = 0; i < this->_audioModel.f0_length; ++i)
-        this->_audioModel.time_axis[i] = i / 1000.0 * this->_audioModel.frame_period;
+    _audioModel.time_axis = new double[_audioModel.f0_length];
+    for (int i = 0; i < _audioModel.f0_length; ++i)
+        _audioModel.time_axis[i] = i / 1000.0 * _audioModel.frame_period;
 }
 
 void AduioModelIO::ReadSP() {
-    FILE *fp = fopen(this->SPFilePath.string().c_str(), "rb");
+    FILE *fp = fopen(SPFilePath.string().c_str(), "rb");
     if (nullptr == fp)
-        throw file_open_error(this->SPFilePath.string());
+        throw file_open_error(SPFilePath.string());
 
     // Header
     try {
-        CheckHeader(fp, this->SPHeader);
+        CheckHeader(fp, SPHeader);
     } catch (header_check_error &error) {
         YALL_ERROR_ << error.what();
     }
 
     // Parameters
-    LoadParameters(fp, &this->_audioModel.f0_length, &this->_audioModel.fft_size);
+    LoadParameters(fp, &_audioModel.f0_length, &_audioModel.fft_size);
 
-    this->_audioModel.spectrogram = new double *[this->_audioModel.f0_length];
-    for (int i = 0; i < this->_audioModel.f0_length; ++i)
-        this->_audioModel.spectrogram[i] = new double[this->_audioModel.fft_size / 2 + 1];
+    _audioModel.w_length = _audioModel.fft_size / 2 + 1;
+
+    _audioModel.spectrogram = new double *[_audioModel.f0_length];
+    for (int i = 0; i < _audioModel.f0_length; ++i)
+        _audioModel.spectrogram[i] = new double[_audioModel.fft_size / 2 + 1];
     // Data
-    for (int i = 0; i < this->_audioModel.f0_length; ++i)
-        fread(this->_audioModel.spectrogram[i], 8, 0, fp);
+    for (int i = 0; i < _audioModel.f0_length; ++i)
+        fread(_audioModel.spectrogram[i], 8, _audioModel.w_length, fp);
 
     fclose(fp);
 }
 
 void AduioModelIO::ReadAP() {
-    FILE *fp = fopen(this->APFilePath.string().c_str(), "rb");
+    FILE *fp = fopen(APFilePath.string().c_str(), "rb");
     if (nullptr == fp)
-        throw file_open_error(this->APFilePath.string());
+        throw file_open_error(APFilePath.string());
 
     // Header
     try {
-        CheckHeader(fp, this->APHeader);
+        CheckHeader(fp, APHeader);
     } catch (header_check_error &error) {
         YALL_ERROR_ << error.what();
     }
@@ -250,42 +252,16 @@ void AduioModelIO::ReadAP() {
     // Parameters
     int f0_length, fft_size;
     LoadParameters(fp, &f0_length, &fft_size);
-    if (f0_length != this->_audioModel.f0_length) {
+    if (f0_length != _audioModel.f0_length) {
         throw parameter_error("SP AP File diff F0 LENGTH OR FFT Size, Broken Modeling");
     }
 
-    this->_audioModel.aperiodicity = new double *[this->_audioModel.f0_length];
-    for (int i = 0; i < this->_audioModel.f0_length; ++i)
-        this->_audioModel.aperiodicity[i] = new double[this->_audioModel.fft_size / 2 + 1];
+    _audioModel.aperiodicity = new double *[_audioModel.f0_length];
+    for (int i = 0; i < _audioModel.f0_length; ++i)
+        _audioModel.aperiodicity[i] = new double[_audioModel.fft_size / 2 + 1];
     // Data
     for (int i = 0; i < f0_length; ++i)
-        fread(this->_audioModel.aperiodicity[i], 8, 0, fp);
+        fread(_audioModel.aperiodicity[i], 8, _audioModel.w_length, fp);
 
     fclose(fp);
 }
-
-double AduioModelIO::GetHeaderInformation(const char *filename, const char *parameter) {
-    FILE *fp = fopen(filename, "rb");
-    if (nullptr == fp)
-        throw file_open_error(filename);
-
-    char data_check[5];
-    data_check[4] = '\0';
-    for (int i = 0; i < 13; ++i) {
-        fread(data_check, 1, 4, fp);
-        if (0 != strcmp(data_check, parameter)) continue;
-        if (0 == strcmp(parameter, "FP  ")) {
-            double answer;
-            fread(&answer, 8, 1, fp);
-            fclose(fp);
-            return answer;
-        } else {
-            int answer;
-            fread(&answer, 4, 1, fp);
-            fclose(fp);
-            return static_cast<double>(answer);
-        }
-    }
-    return 0;
-}
-
