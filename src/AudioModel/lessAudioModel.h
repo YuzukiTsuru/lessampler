@@ -23,7 +23,6 @@
 
 class lessAudioModel {
 public:
-    double w_length = 0.0;
     int x_length = 0;
     double frame_period = 0.0;
     int fs = 0;
@@ -32,6 +31,7 @@ public:
     double *f0 = nullptr;
     double *time_axis = nullptr;
     int f0_length = 0;
+    int w_length = 0;
 
     double **spectrogram = nullptr;
     double **aperiodicity = nullptr;
