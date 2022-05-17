@@ -14,7 +14,7 @@
 #pragma warning(disable : 4996)
 #endif
 
-int FileReadUnit::GetAudioLength(const char *filename) {
+size_t FileReadUnit::GetAudioLength(const char *filename) {
     SNDFILE *sf;
     SF_INFO info;
     info.format = 0;
@@ -23,7 +23,7 @@ int FileReadUnit::GetAudioLength(const char *filename) {
         std::cerr << "Failed to open the file." << std::endl;
         exit(-1);
     }
-    int len = info.frames;
+    size_t len = info.frames;
     return len;
 }
 
