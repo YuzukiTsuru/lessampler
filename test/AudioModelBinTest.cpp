@@ -22,9 +22,15 @@
 #include "../lib/World/tools/audioio.h"
 
 
-int main() {
+int main(int argc, char *argv[]) {
+    std::string FileName;
+
+    if (argc < 2) {
+        FileName = "../../test/vaiueo2d.wav";
+    } else {
+        FileName = argv[1];
+    }
     // Open wav File
-    std::string FileName = "../../test/vaiueo2d.wav";
 
     int x_length = GetAudioLength(FileName.c_str());
     if (x_length <= 0) {
@@ -54,9 +60,5 @@ int main() {
     AduioModelIO ReadBinUnit("a.o");
     less_o = ReadBinUnit.ReadAudioModel();
 
-    for (int i = 0; i < less_i.f0_length; ++i) {
-        for (int j = 0; j < less_i.w_length; ++j) {
-            std::cout << i << ": " << less_i.spectrogram[i][j] << " -> " << less_o.spectrogram[i][j] << std::endl;
-        }
-    }
+    audioModel.SaveAudioModelToJsonFile("a.json");
 }
