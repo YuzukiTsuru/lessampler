@@ -6,6 +6,9 @@
 
 [![CMake](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake.yml)
 
+## Features
+
+
 ## Special Thanks
 [@shine5402](https://github.com/shine5402)  
 [@hyperzlib](https://github.com/hyperzlib)
