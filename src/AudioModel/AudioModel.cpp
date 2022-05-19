@@ -67,9 +67,3 @@ void AudioModel::InitAudioModel() {
         std::memcpy(_lessAudioModel.aperiodicity[i], worldPara.aperiodicity[i], sizeof(double) * _lessAudioModel.w_length);
     }
 }
-
-void AudioModel::SaveAudioModelToJsonFile(const std::string &Path) {
-    JSONFileIO jsonFileIo(_lessAudioModel);
-    jsonFileIo.SaveFile(Path);
-}
-
