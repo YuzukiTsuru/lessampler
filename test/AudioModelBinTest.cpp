@@ -19,6 +19,7 @@
 #include "FileIO/AudioModelIO.h"
 #include "AudioModel/AudioModel.h"
 #include "ConfigUnit/lessConfigure.h"
+#include "FileIO/JSONFileIO.h"
 #include "../lib/World/tools/audioio.h"
 
 
@@ -60,5 +61,32 @@ int main(int argc, char *argv[]) {
     AduioModelIO ReadBinUnit("a.o");
     less_o = ReadBinUnit.ReadAudioModel();
 
-    audioModel.SaveAudioModelToJsonFile("a.json");
+    size_t error_count = 0;
+
+    for (int i = 0; i < less_i.f0_length; ++i) {
+        if (less_i.f0[i] != less_o.f0[i]) {
+            std::cout << " ERROR: " << i << less_i.f0[i] << "->" << less_o.f0[i] << std::endl;
+            error_count++;
+        }
+        for (int j = 0; j < less_i.w_length; ++j) {
+            if (less_i.spectrogram[i][j] != less_i.spectrogram[i][j]) {
+                std::cout << " ERROR: " << i << ", " << j << less_i.spectrogram[i][j] << "->" << less_o.spectrogram[i][j] << std::endl;
+                error_count++;
+            }
+            if (less_i.aperiodicity[i][j] != less_i.aperiodicity[i][j]) {
+                std::cout << " ERROR: " << i << ", " << j << less_i.aperiodicity[i][j] << "->" << less_o.aperiodicity[i][j] << std::endl;
+                error_count++;
+            }
+        }
+    }
+
+    std::cout << "All Test Done! " << [&]() {
+        if (error_count == 0) {
+            return std::string("No Error");
+        } else {
+            return "Error: " + std::to_string(error_count);
+        }
+    }() << std::endl;
+
+    JSONFileIO jsonFileIo(less_o, "a.json");
 }
