@@ -32,8 +32,6 @@ public:
 
     lessAudioModel GetAudioModel();
 
-    void SaveAudioModelToJsonFile(const std::string &Path);
-
 private:
     lessConfigure configure{};
     WorldPara worldPara{};

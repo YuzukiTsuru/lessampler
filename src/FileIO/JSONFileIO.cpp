@@ -30,10 +30,7 @@
 #pragma warning(disable : 4996)
 #endif
 
-JSONFileIO::JSONFileIO(lessAudioModel audioModel) : _audioModel(audioModel) {}
-
-void JSONFileIO::SaveFile(std::string path) {
-    Path = std::move(path);
+JSONFileIO::JSONFileIO(lessAudioModel audioModel, std::string path) : _audioModel(audioModel), Path(std::move(path)) {
     SaveJsonModel();
 }
 

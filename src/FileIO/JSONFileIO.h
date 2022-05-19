@@ -24,9 +24,7 @@
 
 class JSONFileIO {
 public:
-    explicit JSONFileIO(lessAudioModel audioModel);
-
-    void SaveFile(std::string path);
+    JSONFileIO(lessAudioModel audioModel, std::string path);
 
 private:
     lessAudioModel _audioModel;
