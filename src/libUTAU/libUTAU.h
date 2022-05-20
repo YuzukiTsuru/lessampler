@@ -18,6 +18,12 @@
 #define LESSAMPLER_LIBUTAU_H
 
 #include <iostream>
+#include "libUTAU/FlagsDecoder.h"
+
+class UTAUFlags {
+public:
+    bool isLoopStratch = false;
+};
 
 // AudioProcess Concept
 //  offset    fixed   pre_cross  blank
@@ -53,6 +59,7 @@ public:
 
 // Extended transformation parameters
 public:
+    double wave_length = 0.0;
     double pre_cross_length = 0.0;
     double base_length = 0.0;
     double cross_length = 0.0;
