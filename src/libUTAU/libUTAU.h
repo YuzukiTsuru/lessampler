@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include "libUTAU/FlagsDecoder.h"
+#include "AudioModel/lessAudioModel.h"
 
 class UTAUFlags {
 public:
@@ -42,7 +43,6 @@ public:
     std::string inputFileName = {};
     std::string outputFileName = {};
     std::string scaleName = {};
-    double scaleNum = 0.0;
     int timePercent = 0;
     double velocity = 0.0;
     std::string flags = {};
@@ -53,9 +53,7 @@ public:
     double volumes = 0;
     int modulation = 0;
     std::string tempo = {};
-    int tempoNum = 0;
     std::string pitch = {};
-    bool isCustomPitch = false;
 
 public:
     // Extended transformation parameters
@@ -66,6 +64,9 @@ public:
     double stretch_length = 0.0;
     int output_samples = 0;
     int *pitch_bend = nullptr;
+    double scaleNum = 0.0;
+    int tempoNum = 0;
+    bool isCustomPitch = false;
 };
 
 class libUTAU {
@@ -73,6 +74,8 @@ public:
     libUTAU(int argc, char *argv[]);
 
     void printUTAUPara() const;
+
+    void CheckPara(lessAudioModel audioModel);
 
     [[maybe_unused]] [[nodiscard]] UTAUPara getUTAUPara() const;
 

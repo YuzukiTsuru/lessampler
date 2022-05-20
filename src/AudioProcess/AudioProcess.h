@@ -37,13 +37,12 @@ private:
 
     int pitch_length = 0;
     int pitch_step = 256;
+    int required_frame = 0;
 
 private:
     void DecodePitchBend();
 
     [[nodiscard]] double GetAvgFreq() const;
-
-    void PitchEqualize();
 
     void TimeStretch();
 
