@@ -17,11 +17,9 @@
 #ifndef LESSAMPLER_FLAGSDECODER_H
 #define LESSAMPLER_FLAGSDECODER_H
 
-
 class FlagsDecoder {
 public:
     FlagsDecoder();
-
 };
 
 

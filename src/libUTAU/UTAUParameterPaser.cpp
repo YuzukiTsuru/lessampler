@@ -108,24 +108,24 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
 }
 
 void UTAUParameterPaser::CheckPara(lessAudioModel audioModel) {
-    auto wave_length = static_cast<double>(audioModel.x_length) / static_cast<double>(audioModel.fs) * 1000;
+    utauPara.wave_length = static_cast<double>(audioModel.x_length) / static_cast<double>(audioModel.fs) * 1000;
     // Check last Unused Part of audio less 0
     if (utauPara.lastUnusedPart < 0) {
-        utauPara.lastUnusedPart = wave_length - utauPara.offset + utauPara.lastUnusedPart;
+        utauPara.lastUnusedPart = utauPara.wave_length - utauPara.offset + utauPara.lastUnusedPart;
         // Check again: last Unused Part of audio less 0
         if (utauPara.lastUnusedPart < 0)
             utauPara.lastUnusedPart = 0;
     }
 
     // Check the required time
-    if (utauPara.offset + utauPara.lastUnusedPart >= wave_length)
+    if (utauPara.offset + utauPara.lastUnusedPart >= utauPara.wave_length)
         throw parameter_error("The audio offset and whitespace are greater than the required audio length");
 
     // Check the fixed length para
-    if (utauPara.offset + utauPara.lastUnusedPart + utauPara.firstHalfFixedPart >= wave_length)
-        utauPara.firstHalfFixedPart = wave_length - utauPara.offset + utauPara.lastUnusedPart;
+    if (utauPara.offset + utauPara.lastUnusedPart + utauPara.firstHalfFixedPart >= utauPara.wave_length)
+        utauPara.firstHalfFixedPart = utauPara.wave_length - utauPara.offset + utauPara.lastUnusedPart;
 
-    utauPara.pre_cross_length = wave_length - utauPara.offset - utauPara.firstHalfFixedPart - utauPara.lastUnusedPart;
+    utauPara.pre_cross_length = utauPara.wave_length - utauPara.offset - utauPara.firstHalfFixedPart - utauPara.lastUnusedPart;
     utauPara.base_length = utauPara.firstHalfFixedPart / utauPara.velocity;
     utauPara.cross_length = utauPara.requiredLength - utauPara.base_length;
 
