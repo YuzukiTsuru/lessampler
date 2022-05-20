@@ -51,7 +51,7 @@ void AduioProcess::DecodePitchBend() {
         required_frame = static_cast<int>(lround(utauPara.requiredLength / audioModel.frame_period));
         YALL_DEBUG_ << "The required frame is: " + std::to_string(required_frame);
 
-        pitch_length = required_frame / pitch_step + 1;
+        pitch_length = utauPara.output_samples / pitch_step + 1;
         PitchBendDecoder pitchBendDecoder(utauPara.pitch, pitch_length);
 
         YALL_DEBUG_ << "The Pitch Length is: " + std::to_string(pitch_length);
@@ -69,6 +69,15 @@ void AduioProcess::DecodePitchBend() {
         }
     }
     transAudioModel.t_f0_length = required_frame + 1;
+
+#ifdef DEBUG_MODE
+    std::stringstream ss;
+    ss << "\nGet Pitch Bend\n";
+    for (int i = 0; i < pitch_length; ++i) {
+        ss << utauPara.pitch_bend[i] << "\n";
+    }
+    YALL_DEBUG_ << ss.str();
+#endif
 }
 
 double AduioProcess::GetAvgFreq() const {
@@ -171,9 +180,8 @@ void AduioProcess::TimeStretch() {
         YALL_DEBUG_ << "Trans SP ";
         for (int j = 0; j <= audioModel.fft_size / 2; ++j) {
             if (_sp_trans_index < audioModel.f0_length - 1) {
-                auto a = audioModel.spectrogram[_sp_trans_index][j] * (1.0 - _sample_sp_trans_index) +
-                         audioModel.spectrogram[_sp_trans_index + 1][j] * _sample_sp_trans_index;
-                transAudioModel.t_spectrogram[i][j] = a;
+                transAudioModel.t_spectrogram[i][j] = audioModel.spectrogram[_sp_trans_index][j] * (1.0 - _sample_sp_trans_index) +
+                                                      audioModel.spectrogram[_sp_trans_index + 1][j] * _sample_sp_trans_index;;
             } else {
                 transAudioModel.t_spectrogram[i][j] = audioModel.spectrogram[audioModel.f0_length - 1][j];
             }
