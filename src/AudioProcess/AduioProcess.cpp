@@ -17,36 +17,24 @@
 // Created by gloom on 2022/5/7.
 //
 #include <cmath>
-#include <iostream>
-#include <memory>
 #include <utility>
 #include <cstring>
 
+#include "Utils/LOG.h"
 #include "AudioProcess.h"
 #include "libUTAU/PitchBendDecoder.h"
 
-AduioProcess::AduioProcess(lessAudioModel audioModel, UTAUPara utauPara, UTAUFlags flags) : audioModel(audioModel),
-                                                                                            utauPara(std::move(
-                                                                                                    utauPara)),
+AduioProcess::AduioProcess(lessAudioModel audioModel, UTAUPara utauPara, UTAUFlags flags) : audioModel(audioModel), utauPara(std::move(utauPara)),
                                                                                             flags(flags) {
-    AllocateMemory();
     DecodePitchBend();
-    PitchShift();
+    YALL_DEBUG_ << "Equalizing Pitch...";
+    PitchEqualize();
+    YALL_DEBUG_ << "Time Stretch...";
+    TimeStretch();
 }
 
 TransAudioModel AduioProcess::GetTransAudioModel() {
     return transAudioModel;
-}
-
-void AduioProcess::AllocateMemory() {
-    transAudioModel.t_f0_length = audioModel.f0_length;
-    transAudioModel.t_f0 = new double[transAudioModel.t_f0_length];
-    transAudioModel.t_spectrogram = new double *[transAudioModel.t_f0_length];
-    transAudioModel.t_aperiodicity = new double *[transAudioModel.t_f0_length];
-    for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
-        transAudioModel.t_spectrogram[i] = new double[audioModel.w_length];
-        transAudioModel.t_aperiodicity[i] = new double[audioModel.w_length];
-    }
 }
 
 void AduioProcess::DecodePitchBend() {
@@ -55,7 +43,7 @@ void AduioProcess::DecodePitchBend() {
     if (utauPara.tempoNum == 0)
         utauPara.tempoNum = 120;
 
-    if (utauPara.custom_pitch) {
+    if (utauPara.isCustomPitch) {
         pitch_step = static_cast<int>(lround(60.0 / 96.0 / utauPara.tempoNum * audioModel.fs));
         pitch_length = utauPara.output_samples / pitch_step + 1;
         PitchBendDecoder pitchBendDecoder(utauPara.pitch, pitch_length);
@@ -67,8 +55,8 @@ void AduioProcess::DecodePitchBend() {
     }
 }
 
-void AduioProcess::GetAvgFreq() {
-    double timePercent, r, p[6], q, base_timePercent = 0;
+double AduioProcess::GetAvgFreq() const {
+    double freq_avg, timePercent, r, p[6], q, base_timePercent = 0;
     for (int i = 0; i < audioModel.f0_length; ++i) {
         timePercent = audioModel.f0[i];
         if (timePercent < 1000.0 && timePercent > 55.0) {
@@ -87,117 +75,87 @@ void AduioProcess::GetAvgFreq() {
         }
     }
     if (base_timePercent > 0) freq_avg /= base_timePercent;
+    return freq_avg;
 }
 
-void AduioProcess::PitchShift() {
-    double temp_input, temp_output, last_stretch_pos, temp_pre_cross_length = 0, temp_virt, temp_pit, temp_f0;
-    int loop_times, loop_count, num_temp_virt, num_temp_pit, num_temp_pit_ap;
-    bool direct = false;
-
-    if (!flags.isLoopStratch) {
-        temp_pre_cross_length = utauPara.cross_length - audioModel.frame_period / 2.0;
-        loop_times = static_cast<int>(floor(utauPara.cross_length / temp_pre_cross_length)) - 1;
-        if (loop_times > 0)
-            last_stretch_pos = utauPara.pre_cross_length / (utauPara.cross_length - temp_pre_cross_length * loop_times);
-        else
-            flags.isLoopStratch = true;
+void AduioProcess::PitchEqualize() {
+    auto freq_avg = GetAvgFreq();
+    YALL_DEBUG_ << "The average frequency is " + std::to_string(freq_avg);
+    if (freq_avg == 0.0) {
+        for (int i = 0; i < audioModel.f0_length; ++i) {
+            if (audioModel.f0[i] != 0.0) {
+                audioModel.f0[i] = utauPara.scaleNum;
+            } else {
+                audioModel.f0[i] = 0;
+            }
+        }
+    } else {
+        for (int i = 0; i < audioModel.f0_length; ++i) {
+            if (audioModel.f0[i] != 0.0) {
+                audioModel.f0[i] = ((audioModel.f0[i] - freq_avg) * utauPara.modulation / 100.0 + freq_avg) * (utauPara.scaleNum / freq_avg);
+            } else {
+                audioModel.f0[i] = 0;
+            }
+        }
     }
-
-    loop_count = 1;
-
-    GetAvgFreq();
-
+#ifdef DEBUG_MODE
+    std::stringstream ss;
+    ss << "\n";
     for (int i = 0; i < audioModel.f0_length; ++i) {
-        if (flags.isLoopStratch) {
-            temp_output = audioModel.frame_period * i;
-            if (temp_output < utauPara.base_length) {
-                temp_input = utauPara.offset + temp_output * utauPara.velocity;
-            } else if (temp_output < (utauPara.base_length + temp_pre_cross_length * loop_times)) {
-                if (direct) {
-                    temp_input = utauPara.wave_length - utauPara.lastUnusedPart -
-                                 (temp_output - utauPara.base_length - temp_pre_cross_length * (loop_count - 1));
-                    if (temp_output - utauPara.base_length > temp_pre_cross_length * loop_count) {
-                        ++loop_count;
-                        direct = false;
-                    }
-                } else {
-                    temp_input = utauPara.offset + utauPara.firstHalfFixedPart +
-                                 (temp_output - utauPara.base_length - temp_pre_cross_length * (loop_count - 1));
-                    if (temp_output - utauPara.base_length > temp_pre_cross_length * loop_count) {
-                        ++loop_count;
-                        direct = true;
-                    }
-                }
-            } else {
-                if (direct) {
-                    temp_input = utauPara.offset + utauPara.firstHalfFixedPart +
-                                 (temp_output - utauPara.base_length - temp_pre_cross_length * loop_times) *
-                                 last_stretch_pos;
-                } else {
-                    temp_input = utauPara.wave_length - utauPara.lastUnusedPart -
-                                 (temp_output - utauPara.base_length - temp_pre_cross_length * loop_times) *
-                                 last_stretch_pos;
-                }
-            }
-        } else {
-            temp_output = audioModel.frame_period * i;
-            if (temp_output < utauPara.base_length) {
-                temp_input = utauPara.offset + temp_output * utauPara.velocity;
-            } else {
-                temp_input = utauPara.offset + utauPara.firstHalfFixedPart +
-                             (temp_output - utauPara.base_length) * utauPara.stretch_length;
-            }
-        }
-
-        temp_virt = temp_input / audioModel.frame_period;
-        num_temp_virt = static_cast<int>(floor(temp_virt));
-        temp_virt = temp_virt - num_temp_virt;
-        temp_f0 = audioModel.f0[num_temp_virt];
-        if (num_temp_virt < audioModel.f0_length - 1) {
-            auto temp_f0_n = audioModel.f0[num_temp_virt + 1];
-            if (temp_f0 != 0 || temp_f0_n != 0) {
-                if (temp_f0 == 0)
-                    temp_f0 = freq_avg;
-                if (temp_f0_n == 0)
-                    temp_f0_n = freq_avg;
-                temp_f0 = temp_f0 * (1.0 - temp_virt) + temp_f0_n * temp_virt;
-            }
-        }
-
-        temp_pit = temp_output * 0.001 * audioModel.fs / pitch_step;
-        num_temp_pit = static_cast<int>(floor(temp_pit));
-        temp_pit = temp_pit - num_temp_pit;
-        if (num_temp_pit >= pitch_length) {
-            num_temp_pit = pitch_length - 1;
-            temp_virt = 0.0;
-        }
-
-        transAudioModel.t_f0[i] = utauPara.scaleNum * pow(2, (utauPara.pitch_bend[num_temp_pit] * (1.0 - temp_pit) +
-                                                              utauPara.pitch_bend[num_temp_pit + 1] * temp_pit) /
-                                                             1200.0);
-        transAudioModel.t_f0[i] *= pow(temp_f0 / freq_avg, utauPara.modulation * 0.01);
-
-        for (int j = 0; j < audioModel.fft_size / 2; ++j) {
-            if (num_temp_virt < audioModel.f0_length - 1) {
-                transAudioModel.t_spectrogram[i][j] = audioModel.spectrogram[num_temp_virt][j] * (1.0 - temp_virt) +
-                                                      audioModel.spectrogram[num_temp_virt + 1][j] * temp_virt;
-            } else {
-                transAudioModel.t_spectrogram[i][j] = audioModel.spectrogram[audioModel.f0_length - 1][j];
-            }
-        }
-
-        num_temp_pit_ap = num_temp_pit;
-        if (temp_virt > 0.5) {
-            ++num_temp_pit_ap;
-        }
-
-        for (int j = 0; j < audioModel.fft_size / 2; ++j) {
-            if (num_temp_pit_ap < audioModel.f0_length) {
-                transAudioModel.t_aperiodicity[i][j] = audioModel.aperiodicity[num_temp_pit_ap][j];
-            } else {
-                transAudioModel.t_aperiodicity[i][j] = audioModel.aperiodicity[audioModel.f0_length - 1][j];
-            }
-        }
+        ss << audioModel.f0[i] << std::endl;
     }
+    YALL_DEBUG_ << ss.str();
+#endif
 }
 
+void AduioProcess::TimeStretch() {
+    YALL_DEBUG_ << "Allocate memory for target audio f0";
+
+    auto required_frame = static_cast<int>(lround(utauPara.requiredLength / audioModel.frame_period));
+    YALL_DEBUG_ << "The required frame is: " + std::to_string(required_frame);
+    transAudioModel.t_f0 = new double[required_frame];
+    for (int i = 0; i < required_frame; ++i) {
+        transAudioModel.t_f0[i] = 0.0;
+    }
+
+}
+
+void AduioProcess::interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi) {
+    auto *h = new double[x_length - 1];
+    int *k = new int[xi_length];
+
+    for (int i = 0; i < x_length - 1; ++i) h[i] = x[i + 1] - x[i];
+    for (int i = 0; i < xi_length; ++i) {
+        k[i] = 0;
+    }
+
+    histc(x, x_length, xi, xi_length, k);
+
+    for (int i = 0; i < xi_length; ++i) {
+        double s = (xi[i] - x[k[i] - 1]) / h[k[i] - 1];
+        yi[i] = y[k[i] - 1] + s * (y[k[i]] - y[k[i] - 1]);
+    }
+
+    delete[] k;
+    delete[] h;
+}
+
+void AduioProcess::histc(const double *x, int x_length, const double *edges, int edges_length, int *index) {
+    int count = 1;
+
+    int i = 0;
+    for (; i < edges_length; ++i) {
+        index[i] = 1;
+        if (edges[i] >= x[0]) break;
+    }
+    for (; i < edges_length; ++i) {
+        if (edges[i] < x[count]) {
+            index[i] = count;
+        } else {
+            index[i--] = count++;
+        }
+        if (count == x_length) break;
+    }
+    count--;
+    for (i++; i < edges_length; ++i) index[i] = count;
+}

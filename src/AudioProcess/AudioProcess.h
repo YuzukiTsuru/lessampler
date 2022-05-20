@@ -35,18 +35,22 @@ private:
     UTAUPara utauPara{};
     UTAUFlags flags;
 
-    double freq_avg = 0;
     int pitch_length = 0;
     int pitch_step = 256;
 
 private:
-    void AllocateMemory();
-
     void DecodePitchBend();
 
-    void GetAvgFreq();
+    [[nodiscard]] double GetAvgFreq() const;
 
-    void PitchShift();
+    void PitchEqualize();
+
+    void TimeStretch();
+
+private:
+    static void interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi);
+
+    static void histc(const double *x, int x_length, const double *edges, int edges_length, int *index);
 };
 
 
