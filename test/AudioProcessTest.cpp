@@ -21,11 +21,16 @@
 #include "ConfigUnit/lessConfigure.h"
 #include "AudioProcess/AudioProcess.h"
 #include "libUTAU/libUTAU.h"
+#include "Utils/LOG.h"
+#include "world/synthesis.h"
 
 #include "../lib/World/tools/audioio.h"
 
+// "../../test/ne.wav" "../../test/ne2.wav" A#3 100 "" 3.0 2100 80.0 66.0 100 0 !120 AA#10#
 
 int main(int argc, char *argv[]) {
+    YALL_DEBUG_.EnableDebug();
+
     std::string FileName;
 
     if (argc < 2) {
@@ -55,8 +60,23 @@ int main(int argc, char *argv[]) {
 
     auto less_i = audioModel.GetAudioModel();
 
-    UTAUPara utauPara;
+    libUTAU utau(argc, argv);
+
+    utau.printUTAUPara();
+
+    auto utauPara = utau.getUTAUPara();
+
     UTAUFlags utauFlags;
 
     AduioProcess aduioProcess(less_i, utauPara, utauFlags);
+
+    auto less_t = aduioProcess.GetTransAudioModel();
+
+    int y_length = static_cast<int>((less_t.t_f0_length - 1) * less_i.frame_period / 1000.0 * less_i.fs) + 1;
+    auto *y = new double[y_length];
+    for (int i = 0; i < y_length; ++i) y[i] = 0.0;
+    Synthesis(less_t.t_f0, less_t.t_f0_length, less_i.spectrogram, less_i.aperiodicity,
+              less_i.fft_size, less_i.frame_period, less_i.fs, y_length, y);
+
+    wavwrite(y, y_length, less_i.fs, nbit, argv[2]);
 }
