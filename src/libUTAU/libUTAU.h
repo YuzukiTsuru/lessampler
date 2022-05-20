@@ -36,8 +36,8 @@ public:
 // l1 + l2  = required length ＝ argv[7]         -> required length
 
 class UTAUPara {
-// Basic Transformation Parameters
 public:
+    // Basic Transformation Parameters
     std::string localName = {};
     std::string inputFileName = {};
     std::string outputFileName = {};
@@ -55,10 +55,10 @@ public:
     std::string tempo = {};
     int tempoNum = 0;
     std::string pitch = {};
-    bool custom_pitch = false;
+    bool isCustomPitch = false;
 
-// Extended transformation parameters
 public:
+    // Extended transformation parameters
     double wave_length = 0.0;
     double pre_cross_length = 0.0;
     double base_length = 0.0;

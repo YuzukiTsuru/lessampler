@@ -25,9 +25,8 @@ class UTAUParameterPaser {
 public:
     UTAUParameterPaser(int argc, char *argv[]);
 
-    void CheckPara(lessAudioModel audioModel);
-
     UTAUPara get_para();
+
 private:
     UTAUPara utauPara;
 };
