@@ -31,5 +31,11 @@ TransAudioModel AduioProcess::GetTransAudioModel() {
 
 void AduioProcess::AllocateMemory() {
     transAudioModel.t_f0_length = audioModel.f0_length;
-
+    transAudioModel.t_f0 = new double[transAudioModel.t_f0_length];
+    transAudioModel.t_spectrogram = new double *[transAudioModel.t_f0_length];
+    transAudioModel.t_aperiodicity = new double *[transAudioModel.t_f0_length];
+    for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
+        transAudioModel.t_spectrogram[i] = new double[audioModel.w_length];
+        transAudioModel.t_aperiodicity[i] = new double[audioModel.w_length];
+    }
 }
