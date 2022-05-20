@@ -49,6 +49,7 @@ public:
     std::string tempo = {};
     int tempoNum = 0;
     std::string pitch = {};
+    bool custom_pitch = false;
 
 // Extended transformation parameters
 public:
@@ -57,6 +58,7 @@ public:
     double cross_length = 0.0;
     double stretch_length = 0.0;
     int output_samples = 0;
+    int *pitch_bend = nullptr;
 };
 
 class libUTAU {

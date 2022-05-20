@@ -16,12 +16,18 @@
 //
 // Created by gloom on 2022/5/7.
 //
+#include <cmath>
+#include <iostream>
+#include <memory>
+#include <utility>
+#include <cstring>
 
 #include "AudioProcess.h"
-
-#include <utility>
+#include "libUTAU/PitchBendDecoder.h"
 
 AduioProcess::AduioProcess(lessAudioModel audioModel, UTAUPara utauPara) : audioModel(audioModel), utauPara(std::move(utauPara)) {
+    AllocateMemory();
+
 
 }
 
@@ -37,5 +43,24 @@ void AduioProcess::AllocateMemory() {
     for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
         transAudioModel.t_spectrogram[i] = new double[audioModel.w_length];
         transAudioModel.t_aperiodicity[i] = new double[audioModel.w_length];
+    }
+}
+
+void AduioProcess::DecodePitchBend() {
+    int pitch_length = transAudioModel.t_f0_length;
+    int pitch_step = 256;
+
+    if (utauPara.tempoNum == 0)
+        utauPara.tempoNum = 120;
+
+    if (utauPara.custom_pitch) {
+        pitch_step = static_cast<int>(lround(60.0 / 96.0 / utauPara.tempoNum * audioModel.fs));
+        pitch_length = utauPara.output_samples / pitch_step + 1;
+        PitchBendDecoder pitchBendDecoder(utauPara.pitch, pitch_length);
+
+        utauPara.pitch_bend = new int[pitch_length + 1];
+        std::memcpy(utauPara.pitch_bend, pitchBendDecoder.getPitchBend(), sizeof(int) * pitch_length);
+    } else {
+        utauPara.pitch_bend = new int[pitch_length + 1];
     }
 }
