@@ -19,7 +19,18 @@
 
 #include <iostream>
 
+// AudioProcess Concept
+//  offset    fixed   pre_cross  blank
+//|--------|--------|---------|---------| Original Signal
+//         |        |          |
+//         |   l1   |    l2     |
+//         |--------|------------|        Output Signal
+// l1  = fixed / velocity                        -> base_length
+// l2  = m2    / stretch                         -> cross_length
+// l1 + l2  = required length ＝ argv[7]         -> required length
+
 class UTAUPara {
+// Basic Transformation Parameters
 public:
     std::string localName = {};
     std::string inputFileName = {};
@@ -38,6 +49,14 @@ public:
     std::string tempo = {};
     int tempoNum = 0;
     std::string pitch = {};
+
+// Extended transformation parameters
+public:
+    double pre_cross_length = 0.0;
+    double base_length = 0.0;
+    double cross_length = 0.0;
+    double stretch_length = 0.0;
+    int output_samples = 0;
 };
 
 class libUTAU {
