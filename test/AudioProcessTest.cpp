@@ -62,6 +62,8 @@ int main(int argc, char *argv[]) {
 
     libUTAU utau(argc, argv);
 
+    utau.CheckPara(less_i);
+
     utau.printUTAUPara();
 
     auto utauPara = utau.getUTAUPara();
@@ -75,7 +77,7 @@ int main(int argc, char *argv[]) {
     int y_length = static_cast<int>((less_t.t_f0_length - 1) * less_i.frame_period / 1000.0 * less_i.fs) + 1;
     auto *y = new double[y_length];
     for (int i = 0; i < y_length; ++i) y[i] = 0.0;
-    Synthesis(less_t.t_f0, less_t.t_f0_length, less_i.spectrogram, less_i.aperiodicity,
+    Synthesis(less_t.t_f0, less_t.t_f0_length, less_t.t_spectrogram, less_t.t_aperiodicity,
               less_i.fft_size, less_i.frame_period, less_i.fs, y_length, y);
 
     wavwrite(y, y_length, less_i.fs, nbit, argv[2]);
