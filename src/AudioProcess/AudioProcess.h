@@ -31,6 +31,8 @@ class AduioProcess {
 private:
     void AllocateMemory();
 
+    void DecodePitchBend();
+
 private:
     lessAudioModel audioModel{};
     TransAudioModel transAudioModel{};
