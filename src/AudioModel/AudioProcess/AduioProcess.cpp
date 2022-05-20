@@ -17,8 +17,19 @@
 // Created by gloom on 2022/5/7.
 //
 
-#include "TimeStretch.h"
+#include "AudioProcess.h"
 
-TimeStretch::TimeStretch(lessAudioModel audioModel) : audioModel(audioModel) {
+#include <utility>
+
+AduioProcess::AduioProcess(lessAudioModel audioModel, UTAUPara utauPara) : audioModel(audioModel), utauPara(std::move(utauPara)) {
+
+}
+
+TransAudioModel AduioProcess::GetTransAudioModel() {
+    return transAudioModel;
+}
+
+void AduioProcess::AllocateMemory() {
+    transAudioModel.t_f0_length = audioModel.f0_length;
 
 }

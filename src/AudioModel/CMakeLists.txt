@@ -2,7 +2,7 @@
 
 add_subdirectory(WorldModule)
 add_subdirectory(DSP)
-add_subdirectory(TimeStretch)
+add_subdirectory(AudioProcess)
 
 file(GLOB audio_model_source *.cpp *.h)
 add_library(AudioModel ${audio_model_source})

@@ -17,29 +17,25 @@
 // Created by gloom on 2022/5/7.
 //
 
-#ifndef LESSAMPLER_TIMESTRETCH_H
-#define LESSAMPLER_TIMESTRETCH_H
-
-// TODO: Add baisc fix part diff
-
-//伸縮の概念図
-//  offset    fixed      m2      blank
-//|--------|--------|---------|---------| 原音
-//         |        |          |
-//         |   l1   |    l2     |
-//         |--------|------------|  出力
-// l1  = fixed / velocity
-// l2  = m2    / stretch
-// l1 + l2  = 要求長＝argv[7]
+#ifndef LESSAMPLER_AUDIOPROCESS_H
+#define LESSAMPLER_AUDIOPROCESS_H
 
 #include "AudioModel/lessAudioModel.h"
+#include "libUTAU/libUTAU.h"
 
-class TimeStretch {
-    explicit TimeStretch(lessAudioModel audioModel);
+class AduioProcess {
+    AduioProcess(lessAudioModel audioModel, UTAUPara utauPara);
+
+    TransAudioModel GetTransAudioModel();
 
 private:
-    lessAudioModel audioModel;
+    void AllocateMemory();
+
+private:
+    lessAudioModel audioModel{};
+    TransAudioModel transAudioModel{};
+    UTAUPara utauPara{};
 };
 
 
-#endif //LESSAMPLER_TIMESTRETCH_H
+#endif //LESSAMPLER_AUDIOPROCESS_H
