@@ -35,49 +35,49 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
     utauPara.scaleNum = scaleConvert.GetScaleNum();
 
     // velocity
-    if (argc > 3) {
+    if (argc > 4) {
         std::istringstream sstream(argv[4]);
         sstream >> utauPara.timePercent;
         utauPara.velocity = pow(2, utauPara.timePercent / 100.0 - 1.0);
         sstream.clear();
     }
 
-    if (argc > 4) {
+    if (argc > 5) {
         std::istringstream sstream(argv[5]);
         sstream >> utauPara.flags;
         sstream.clear();
     }
 
     // offset
-    if (argc > 5) {
+    if (argc > 6) {
         std::istringstream sstream(argv[6]);
         sstream >> utauPara.offset;
         sstream.clear();
     }
 
     // require length
-    if (argc > 6) {
+    if (argc > 7) {
         std::istringstream sstream(argv[7]);
         sstream >> utauPara.requiredLength;
         sstream.clear();
     }
 
     // fixed length
-    if (argc > 7) {
+    if (argc > 8) {
         std::istringstream sstream(argv[8]);
         sstream >> utauPara.firstHalfFixedPart;
         sstream.clear();
     }
 
     // blank length
-    if (argc > 8) {
+    if (argc > 9) {
         std::istringstream sstream(argv[9]);
         sstream >> utauPara.lastUnusedPart;
         sstream.clear();
     }
 
     // volume
-    if (argc > 9) {
+    if (argc > 10) {
         std::istringstream sstream(argv[10]);
         sstream >> utauPara.volumes;
         utauPara.volumes *= 0.01;
@@ -85,14 +85,14 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
     }
 
     // modulation
-    if (argc > 10) {
+    if (argc > 11) {
         std::istringstream sstream(argv[11]);
         sstream >> utauPara.modulation;
         sstream.clear();
     }
 
     // tempo
-    if (argc > 11) {
+    if (argc > 12) {
         std::istringstream sstream(argv[12]);
         sstream >> utauPara.tempo;
         utauPara.tempoNum = std::stoi(utauPara.tempo.substr(1, utauPara.tempo.length()));
@@ -100,7 +100,8 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
     }
 
     // pitchbend
-    if (argc > 12) {
+    if (argc > 13) {
+        utauPara.custom_pitch = true;
         std::istringstream sstream(argv[13]);
         sstream >> utauPara.pitch;
     }
