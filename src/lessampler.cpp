@@ -41,7 +41,7 @@ void lessampler::show_logo() {
               " Version: "
               << PROJECT_GIT_HASH
               << "       |_|            "
-              << "\nCopyright (c)  2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>"
+              << "\nCopyright (c)  2018 - 2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>"
               << cc::reset
               << std::endl;
 }
