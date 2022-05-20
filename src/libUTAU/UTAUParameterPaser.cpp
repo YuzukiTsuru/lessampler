@@ -21,6 +21,8 @@
 #include <algorithm>
 #endif
 
+#include "Utils/exception.h"
+
 #include "UTAUParameterPaser.h"
 #include "ScaleConvert.h"
 
@@ -102,6 +104,41 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
         std::istringstream sstream(argv[13]);
         sstream >> utauPara.pitch;
     }
+}
+
+void UTAUParameterPaser::CheckPara(lessAudioModel audioModel) {
+    auto wave_length = static_cast<double>(audioModel.x_length) / static_cast<double>(audioModel.fs) * 1000;
+    // Check last Unused Part of audio less 0
+    if (utauPara.lastUnusedPart < 0) {
+        utauPara.lastUnusedPart = wave_length - utauPara.offset + utauPara.lastUnusedPart;
+        // Check again: last Unused Part of audio less 0
+        if (utauPara.lastUnusedPart < 0)
+            utauPara.lastUnusedPart = 0;
+    }
+
+    // Check the required time
+    if (utauPara.offset + utauPara.lastUnusedPart >= wave_length)
+        throw parameter_error("The audio offset and whitespace are greater than the required audio length");
+
+    // Check the fixed length para
+    if (utauPara.offset + utauPara.lastUnusedPart + utauPara.firstHalfFixedPart >= wave_length)
+        utauPara.firstHalfFixedPart = wave_length - utauPara.offset + utauPara.lastUnusedPart;
+
+    utauPara.pre_cross_length = wave_length - utauPara.offset - utauPara.firstHalfFixedPart - utauPara.lastUnusedPart;
+    utauPara.base_length = utauPara.firstHalfFixedPart / utauPara.velocity;
+    utauPara.cross_length = utauPara.requiredLength - utauPara.base_length;
+
+    if (utauPara.pre_cross_length <= 0)
+        throw parameter_error("The input audio length does not match the required cross-transformation length, and its reference value is less than 0");
+    if (utauPara.cross_length > 0)
+        throw parameter_error("Parameter error, cross crop length is greater than 0");
+
+    utauPara.stretch_length = utauPara.pre_cross_length / utauPara.cross_length;
+    // Prevent telescopic cutting beyond the required length
+    if (utauPara.stretch_length > 1.0)
+        utauPara.stretch_length = 1.0;
+
+    utauPara.output_samples = static_cast<int>(utauPara.requiredLength * 0.001 * audioModel.fs) + 1;
 }
 
 UTAUPara UTAUParameterPaser::get_para() {
