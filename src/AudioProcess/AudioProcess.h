@@ -24,19 +24,29 @@
 #include "libUTAU/libUTAU.h"
 
 class AduioProcess {
-    AduioProcess(lessAudioModel audioModel, UTAUPara utauPara);
+public:
+    AduioProcess(lessAudioModel audioModel, UTAUPara utauPara, UTAUFlags flags);
 
     TransAudioModel GetTransAudioModel();
+
+private:
+    lessAudioModel audioModel{};
+    TransAudioModel transAudioModel{};
+    UTAUPara utauPara{};
+    UTAUFlags flags;
+
+    double freq_avg = 0;
+    int pitch_length = 0;
+    int pitch_step = 256;
 
 private:
     void AllocateMemory();
 
     void DecodePitchBend();
 
-private:
-    lessAudioModel audioModel{};
-    TransAudioModel transAudioModel{};
-    UTAUPara utauPara{};
+    void GetAvgFreq();
+
+    void PitchShift();
 };
 
 
