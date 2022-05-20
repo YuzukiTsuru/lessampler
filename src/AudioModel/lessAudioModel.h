@@ -41,12 +41,9 @@ public:
 class TransAudioModel {
 public:
     int t_f0_length;
-
     double *t_f0;
     double **t_spectrogram;
-    int *t_speclength;
     double **t_aperiodicity;
-    int *t_aperiodlength;
 };
 
 #endif //LESSAMPLER_LESSAUDIOMODEL_H

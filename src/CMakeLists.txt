@@ -3,6 +3,7 @@ add_subdirectory(ConfigUnit)
 add_subdirectory(Dialogs)
 add_subdirectory(FileIO)
 add_subdirectory(libUTAU)
+add_subdirectory(AudioProcess)
 
 file(GLOB lessampler_source *.cpp *.h)
 
