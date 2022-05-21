@@ -37,8 +37,8 @@ private:
     double *x_out = nullptr;
 
     const double default_sample_value = 0.86;
-    const double MaxValue = 32767.0;
-    const double MinValue = -32767.0;
+    const double MaxValue = 1.0;
+    const double MinValue = -1.0;
 
     double sample_value = 0.0;
     double MaxAMP = 0.0;
