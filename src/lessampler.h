@@ -25,6 +25,8 @@
 #include <filesystem>
 
 #include "ConfigUnit/ConfigUnit.h"
+#include "AudioModel/AudioModel.h"
+#include "FileIO/AudioModelIO.h"
 
 class lessampler {
 public:
@@ -39,10 +41,13 @@ private:
     lessConfigure configure;
 
 private:
-
-    static void show_logo();
-
     void read_audio_file();
+
+    void GenerateAudioModelDictory();
+
+    void GenerateAudioModel();
+private:
+    static void show_logo();
 };
 
 
