@@ -48,7 +48,7 @@ double *AutoAMP::GetAMP() {
 
 void AutoAMP::GetMaxAMP() {
     for (int i = 0; i < x_length; ++i) {
-        if (!_isnan(x[i])) {
+        if (!std::isnan(x[i])) {
             if (MaxAMP < std::abs(x[i])) {
                 MaxAMP = std::abs(x[i]);
             }
@@ -64,7 +64,7 @@ void AutoAMP::SetDefaultValue() {
 void AutoAMP::DiminishedConsonantFricative() {
     for (int i = 0; i < x_length; ++i) {
         // remove blank fricatives
-        if (_isnan(x[i])) {
+        if (std::isnan(x[i])) {
             x_out[i] = 0.0;
         } else {
             x_out[i] = x[i] * 0.5 * utauPara.volumes / MaxAMP;
