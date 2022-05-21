@@ -40,6 +40,8 @@ private:
     int required_frame = 0;
 
 private:
+    void PicthEqualizing();
+
     void DecodePitchBend();
 
     [[nodiscard]] double GetAvgFreq() const;
