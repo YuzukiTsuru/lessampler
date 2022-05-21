@@ -21,6 +21,9 @@
 PitchBendDecoder::PitchBendDecoder(std::string &str, int count) : pitch(std::move(str)), count(count) {
     pitch_length = static_cast<int>(pitch.length());
     pitch_bend = new int[count];
+    for (int i = 0; i < count; ++i) {
+        pitch_bend[i] = 0;
+    }
     PitchBendDecode();
 }
 
