@@ -65,15 +65,6 @@ void AduioProcess::DecodePitchBend() {
     required_frame = static_cast<int>(1000.0 * utauPara.output_samples / audioModel.fs / audioModel.frame_period) + 1;
     YALL_DEBUG_ << "The required frame is: " + std::to_string(required_frame);
     transAudioModel.t_f0_length = required_frame;
-
-#ifdef DEBUG_MODE
-    std::stringstream ss;
-    ss << "\nGet Pitch Bend\n";
-    for (int i = 0; i < pitch_length; ++i) {
-        ss << utauPara.pitch_bend[i] << "\n";
-    }
-    YALL_DEBUG_ << ss.str();
-#endif
 }
 
 double AduioProcess::GetAvgFreq() const {
@@ -115,6 +106,10 @@ void AduioProcess::TimeStretch() {
     for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
         transAudioModel.t_spectrogram[i] = new double[audioModel.w_length];
         transAudioModel.t_aperiodicity[i] = new double[audioModel.w_length];
+        for (int j = 0; j < audioModel.w_length; ++j) {
+            transAudioModel.t_spectrogram[i][j] = 0.0;
+            transAudioModel.t_aperiodicity[i][j] = 0.0;
+        }
     }
 
     YALL_DEBUG_ << "Get Stretch Paras";
