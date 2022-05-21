@@ -18,7 +18,6 @@
 
 #include "Utils/LOG.h"
 #include "Dialogs/Dialogs.h"
-#include "ConfigUnit/lessConfigure.h"
 #include "lessconfig.h"
 
 #include "lessampler.h"
@@ -52,14 +51,37 @@ void lessampler::run() const {
         YALL_DEBUG_.EnableDebug();
     }
 
+    // model generation
+    if (argc == 1) {
+        show_logo();
+        YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
+
+
+    }
+
     if (argc < 2) {
         show_logo();
         Dialogs::notify("lessampler", "lessampler: no input file");
         return;
     }
+
 }
 
 void lessampler::read_audio_file() {
 
+}
+
+void lessampler::GenerateAudioModel() {
+    // AudioModel audioModel();
+}
+
+void lessampler::GenerateAudioModelDictory() {
+    auto target_voice_folder = std::filesystem::path(argv[1]);
+    YALL_INFO_ << "Working on folder: " + target_voice_folder.string();
+    for (const auto &entry: std::filesystem::directory_iterator(target_voice_folder)) {
+        if (entry.path().extension() == ".wav"){
+
+        }
+    }
 }
 
