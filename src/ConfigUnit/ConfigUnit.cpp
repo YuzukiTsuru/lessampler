@@ -51,7 +51,7 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::string_ini_t> version{};
     version.name = "version";
-    version.default_value = "0";
+    version.default_value = PROJECT_GIT_HASH;
     version.type = inicpp::option_item::single;
     config_schema.add_option("config", version);
 
