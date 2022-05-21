@@ -27,6 +27,8 @@
 
 AduioProcess::AduioProcess(lessAudioModel audioModel, UTAUPara utauPara, UTAUFlags flags) : audioModel(audioModel), utauPara(std::move(utauPara)),
                                                                                             flags(flags) {
+    YALL_DEBUG_ << "Equalizing Picth...";
+    PicthEqualizing();
     YALL_DEBUG_ << "Decode Pitch Bend...";
     DecodePitchBend();
     YALL_DEBUG_ << "Time Stretch...";
@@ -35,6 +37,28 @@ AduioProcess::AduioProcess(lessAudioModel audioModel, UTAUPara utauPara, UTAUFla
 
 TransAudioModel AduioProcess::GetTransAudioModel() {
     return transAudioModel;
+}
+
+void AduioProcess::PicthEqualizing() {
+    auto freq_avg = GetAvgFreq();
+    YALL_DEBUG_ << "The average frequency is " + std::to_string(freq_avg);
+    if (freq_avg == 0.0) {
+        for (int i = 0; i < audioModel.f0_length; ++i) {
+            if (audioModel.f0[i] != 0.0) {
+                audioModel.f0[i] = utauPara.scaleNum;
+            } else {
+                audioModel.f0[i] = 0;
+            }
+        }
+    } else {
+        for (int i = 0; i < audioModel.f0_length; ++i) {
+            if (audioModel.f0[i] != 0.0) {
+                audioModel.f0[i] = ((audioModel.f0[i] - freq_avg) * utauPara.modulation / 100.0 + freq_avg) * (utauPara.scaleNum / freq_avg);
+            } else {
+                audioModel.f0[i] = 0;
+            }
+        }
+    }
 }
 
 void AduioProcess::DecodePitchBend() {
@@ -235,3 +259,4 @@ void AduioProcess::histc(const double *x, int x_length, const double *edges, int
     count--;
     for (i++; i < edges_length; ++i) index[i] = count;
 }
+
