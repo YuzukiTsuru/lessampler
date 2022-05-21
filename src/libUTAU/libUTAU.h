@@ -33,7 +33,7 @@ public:
 //         |   l1   |    l2     |
 //         |--------|------------|        Output Signal
 // l1  = fixed / velocity                        -> base_length
-// l2  = m2    / stretch                         -> cross_length
+// l2  = pre_cross / stretch                     -> cross_length
 // l1 + l2  = required length ＝ argv[7]         -> required length
 
 class UTAUPara {
