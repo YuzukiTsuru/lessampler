@@ -38,6 +38,8 @@ private:
     std::filesystem::path exec_path;
     lessConfigure configure;
 
+private:
+
     static void show_logo();
 
     void read_audio_file();
