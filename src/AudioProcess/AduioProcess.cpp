@@ -81,7 +81,7 @@ void AduioProcess::DecodePitchBend() {
 }
 
 double AduioProcess::GetAvgFreq() const {
-    double freq_avg, timePercent, r, p[6], q, base_timePercent = 0;
+    double freq_avg = 0.0, timePercent, r, p[6], q, base_timePercent = 0;
     for (int i = 0; i < audioModel.f0_length; ++i) {
         timePercent = audioModel.f0[i];
         if (timePercent < 1000.0 && timePercent > 55.0) {
