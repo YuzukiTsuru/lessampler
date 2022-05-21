@@ -38,23 +38,16 @@ TransAudioModel AduioProcess::GetTransAudioModel() {
 }
 
 void AduioProcess::DecodePitchBend() {
-    pitch_length = transAudioModel.t_f0_length;
-
-    YALL_DEBUG_ << "Output Wave F0 Length: " + std::to_string(pitch_length);
-
     if (utauPara.tempoNum == 0)
         utauPara.tempoNum = 120;
 
     if (utauPara.isCustomPitch) {
         pitch_step = static_cast<int>(lround(60.0 / 96.0 / utauPara.tempoNum * audioModel.fs));
-
-        required_frame = static_cast<int>(lround(utauPara.requiredLength / audioModel.frame_period));
-        YALL_DEBUG_ << "The required frame is: " + std::to_string(required_frame);
-
         pitch_length = utauPara.output_samples / pitch_step + 1;
-        PitchBendDecoder pitchBendDecoder(utauPara.pitch, pitch_length);
 
         YALL_DEBUG_ << "The Pitch Length is: " + std::to_string(pitch_length);
+
+        PitchBendDecoder pitchBendDecoder(utauPara.pitch, pitch_length);
 
         utauPara.pitch_bend = new int[pitch_length + 1];
         for (int i = 0; i < pitch_length + 1; ++i) {
@@ -68,7 +61,10 @@ void AduioProcess::DecodePitchBend() {
             utauPara.pitch_bend[i] = 0;
         }
     }
-    transAudioModel.t_f0_length = required_frame + 1;
+
+    required_frame = static_cast<int>(1000.0 * utauPara.output_samples / audioModel.fs / audioModel.frame_period) + 1;
+    YALL_DEBUG_ << "The required frame is: " + std::to_string(required_frame);
+    transAudioModel.t_f0_length = required_frame;
 
 #ifdef DEBUG_MODE
     std::stringstream ss;
@@ -162,26 +158,28 @@ void AduioProcess::TimeStretch() {
         _ap_trans_index = static_cast<int>(floor(_sample_ap_trans_index));
         _sample_ap_trans_index -= _ap_trans_index;
 
-        YALL_DEBUG_ << "_sp_trans_index -> " + std::to_string(_ap_trans_index);
-        YALL_DEBUG_ << "_sample_sp_trans_index -> " + std::to_string(_ap_trans_index + _sample_ap_trans_index);
-
         if (_ap_trans_index >= pitch_length) {
             _ap_trans_index = pitch_length - 1;
             _sample_sp_trans_index = 0.0;
         }
 
-        YALL_DEBUG_ << "Trans F0 Using Pitch Bend";
-        transAudioModel.t_f0[i] = utauPara.scaleNum * pow(2, (utauPara.pitch_bend[_ap_trans_index] * (1.0 - _sample_ap_trans_index) +
-                                                              utauPara.pitch_bend[_ap_trans_index + 1] * _sample_ap_trans_index) / 1200.0);
+        YALL_DEBUG_ << "_ap_trans_index -> " + std::to_string(_ap_trans_index);
+        YALL_DEBUG_ << "_sample_ap_trans_index -> " + std::to_string(_ap_trans_index + _sample_ap_trans_index);
 
-        YALL_DEBUG_ << "Trans F0";
+        YALL_DEBUG_ << "Apply Pitch Shift With Pitch Bend";
+        auto pitch_base = utauPara.scaleNum * pow(2, (utauPara.pitch_bend[_ap_trans_index] * (1.0 - _sample_ap_trans_index) +
+                                                      utauPara.pitch_bend[_ap_trans_index + 1] * _sample_ap_trans_index) / 1200.0);
+
+        YALL_DEBUG_ << "Trans F0 " + std::to_string(transAudioModel.t_f0[i]) + " Add " + std::to_string(pitch_base);
+        transAudioModel.t_f0[i] = pitch_base;
+
         transAudioModel.t_f0[i] = transAudioModel.t_f0[i] * pow(temp_f0 / avg_freq, utauPara.modulation * 0.01);
 
         YALL_DEBUG_ << "Trans SP ";
-        for (int j = 0; j <= audioModel.fft_size / 2; ++j) {
+        for (int j = 0; j < audioModel.w_length; ++j) {
             if (_sp_trans_index < audioModel.f0_length - 1) {
                 transAudioModel.t_spectrogram[i][j] = audioModel.spectrogram[_sp_trans_index][j] * (1.0 - _sample_sp_trans_index) +
-                                                      audioModel.spectrogram[_sp_trans_index + 1][j] * _sample_sp_trans_index;;
+                                                      audioModel.spectrogram[_sp_trans_index + 1][j] * _sample_sp_trans_index;
             } else {
                 transAudioModel.t_spectrogram[i][j] = audioModel.spectrogram[audioModel.f0_length - 1][j];
             }
@@ -193,7 +191,7 @@ void AduioProcess::TimeStretch() {
             ++_ap_trans_index;
         }
 
-        for (int j = 0; j <= audioModel.fft_size / 2; ++j) {
+        for (int j = 0; j < audioModel.w_length; ++j) {
             if (_ap_trans_index < audioModel.f0_length) {
                 transAudioModel.t_aperiodicity[i][j] = audioModel.aperiodicity[_ap_trans_index][j];
             } else {
