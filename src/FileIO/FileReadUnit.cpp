@@ -4,10 +4,6 @@
 
 #include "FileReadUnit.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
-
-#include <fstream>
 #include <iostream>
 
 #if (defined (__WIN32__) || defined (_WIN32)) && !defined (__MINGW32__)
@@ -42,7 +38,7 @@ int FileReadUnit::WavRead(const char *FilePath, double *output) {
         std::cerr << "Can't read stereo file for lessampler." << std::endl;
         exit(-1);
     }
-    int num_items = f * c;
+    auto num_items = f * c;
     auto buf = new double[num_items];
     sf_count_t num = sf_read_double(sf, buf, num_items);
     sf_close(sf);
