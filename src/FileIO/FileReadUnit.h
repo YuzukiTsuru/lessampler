@@ -14,14 +14,6 @@ extern "C" {
 
 #define ENABLE_SNDFILE_WINDOWS_PROTOTYPES 1
 
-class AudioFile {
-public:
-    std::filesystem::path audio_file_path;
-    size_t x_length;
-    double *x;
-    int fs;
-};
-
 class FileReadUnit {
 public:
     /*

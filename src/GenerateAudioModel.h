@@ -22,23 +22,25 @@
 #include <filesystem>
 #include <vector>
 
+#include <ConfigUnit/ConfigUnit.h>
+
 class GenerateAudioModel {
 public:
-    explicit GenerateAudioModel(std::filesystem::path path);
+    GenerateAudioModel(std::filesystem::path path, const lessConfigure &configure);
 
     void PrintWavFiles();
 
 private:
     std::filesystem::path target_voice_path;
     std::vector<std::filesystem::path> wav_files;
+    lessConfigure configure;
 
 private:
     void GetWavFileLists();
 
-protected:
-    static void ReadWavFile(const std::filesystem::path& wav_path);
+    void GenerateModelFromFile();
 
-    static void GenerateModelFromFile();
+    void WavFileModel(const std::filesystem::path &wav_path);
 };
 
 
