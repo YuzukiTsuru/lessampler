@@ -65,6 +65,7 @@ void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
 }
 
 void GenerateAudioModel::GenerateModelFromFile() {
+    // TODO: Add mutithread support
     for (const auto &file: wav_files) {
         WavFileModel(file);
     }
