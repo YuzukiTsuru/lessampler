@@ -17,7 +17,9 @@
   - Support timbre gender change
 - Multiple Interactive Interfaces
   - UTAU Interface
-- Nerual Network Vocoder for better output
+- Nerual Network Vocoder
+  - Voice Conversion and Audio Style Transfer
+  - Noise reduction enhanced MOS
 
 ## Special Thanks
 [@shine5402](https://github.com/shine5402)  
