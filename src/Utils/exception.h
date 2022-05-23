@@ -31,17 +31,23 @@ public:
 
 class header_check_error : public std::runtime_error {
 public:
-    header_check_error(const std::string &what, const std::string &expect) : std::runtime_error("Header: " + what + " is not same as " + expect + ".") {};
+    header_check_error(const std::string &what, const std::string &expect) : std::runtime_error(
+            "Header: " + what + " is not same as " + expect + ".") {};
 };
 
 class parameter_error : public std::runtime_error {
 public:
-    explicit parameter_error(const std::string &what) : std::runtime_error("Parameter error: " + what + ".") {};
+    explicit parameter_error(const std::string &what) : std::runtime_error("Parameter Error: " + what + ".") {};
 };
 
 class type_error : public std::runtime_error {
 public:
-    explicit type_error(const std::string &what) : std::runtime_error("Type error: " + what + ".") {};
+    explicit type_error(const std::string &what) : std::runtime_error("Type Error: " + what + ".") {};
+};
+
+class audio_file_error : public std::runtime_error {
+public:
+    explicit audio_file_error(const std::string &what) : std::runtime_error("Audio File Error: " + what + ".") {};
 };
 
 #endif //LESSAMPLER_EXCEPTION_H
