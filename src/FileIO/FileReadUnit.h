@@ -5,12 +5,23 @@
 #define LESSAMPLER_FILEREADUNIT_H
 
 #include <iostream>
+#include <filesystem>
+
 
 extern "C" {
 #include <sndfile.h>
 }
 
 #define ENABLE_SNDFILE_WINDOWS_PROTOTYPES 1
+
+class AudioFile {
+public:
+    std::filesystem::path audio_file_path;
+    size_t x_length;
+    double *x;
+    int fs;
+    int nbit;
+};
 
 class FileReadUnit {
 public:
