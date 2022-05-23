@@ -18,5 +18,8 @@ target_link_libraries(AudioModelBinTest FileIO AudioModel world::tool)
 add_executable(WorldAnalysisTest WorldAnalysisTest.cpp)
 target_link_libraries(WorldAnalysisTest world::tool world::core)
 
+add_executable(GenerateAudioModelTest GenerateAudioModelTest.cpp ../src/GenerateAudioModel.cpp)
+target_link_libraries(GenerateAudioModelTest FileIO sndfile)
+
 add_executable(AudioProcessTest AudioProcessTest.cpp)
 target_link_libraries(AudioProcessTest AudioProcess AudioModel UTAU world::tool)
