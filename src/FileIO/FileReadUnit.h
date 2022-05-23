@@ -20,7 +20,6 @@ public:
     size_t x_length;
     double *x;
     int fs;
-    int nbit;
 };
 
 class FileReadUnit {
