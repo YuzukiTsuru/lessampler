@@ -12,7 +12,7 @@ if (MSVC)
 endif ()
 
 add_executable(lessampler ${lessampler_source})
-target_link_libraries(lessampler AudioModel Dialogs UTAU ConfigUnit)
+target_link_libraries(lessampler AudioModel FileIO Dialogs UTAU ConfigUnit)
 
 if (MSVC)
     target_compile_options(lessampler PUBLIC "/utf-8")
