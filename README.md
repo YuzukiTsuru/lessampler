@@ -6,8 +6,18 @@
 
 [![CMake](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake.yml)
 
-## Features
-
+## Feature
+- Multiple models
+  - World
+  - llsm
+- Global Transform Control
+  - Precise Pitch Shift and Time Stretch
+  - FFT Size, Samples Number, Estimation Floor and so on
+  - Support breath sound generation
+  - Support timbre gender change
+- Multiple Interactive Interfaces
+  - UTAU Interface
+- Nerual Network Vocoder for better output
 
 ## Special Thanks
 [@shine5402](https://github.com/shine5402)  
