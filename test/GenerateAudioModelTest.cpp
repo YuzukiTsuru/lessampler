@@ -16,30 +16,21 @@
 // Created by gloom on 2022/5/23.
 //
 
-#ifndef LESSAMPLER_GENERATEAUDIOMODEL_H
-#define LESSAMPLER_GENERATEAUDIOMODEL_H
+#include <GenerateAudioModel.h>
+#include <utility>
+#include <Utils/LOG.h>
 
-#include <filesystem>
-#include <vector>
 
-class GenerateAudioModel {
+class GenerateAudioModelTest : GenerateAudioModel {
 public:
-    explicit GenerateAudioModel(std::filesystem::path path);
-
-    void PrintWavFiles();
-
-private:
-    std::filesystem::path target_voice_path;
-    std::vector<std::filesystem::path> wav_files;
-
-private:
-    void GetWavFileLists();
-
-protected:
-    static void ReadWavFile(const std::filesystem::path& wav_path);
-
-    static void GenerateModelFromFile();
+    explicit GenerateAudioModelTest(const std::filesystem::path &path, const std::filesystem::path &audio_path) : GenerateAudioModel(path) {
+        GenerateAudioModel::ReadWavFile(audio_path);
+    };
 };
 
-
-#endif //LESSAMPLER_GENERATEAUDIOMODEL_H
+int main(int argc, char *argv[]) {
+    YALL_INFO_ << "Test Audio Read";
+    std::filesystem::path audio_dir("../../test");
+    std::filesystem::path audio_path("../../test/vaiueo2d.wav");
+    GenerateAudioModelTest test(audio_dir, audio_path);
+}

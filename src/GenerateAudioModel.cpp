@@ -46,7 +46,7 @@ void GenerateAudioModel::GetWavFileLists() {
     }
 }
 
-void GenerateAudioModel::ReadWavFile(std::filesystem::path wav_path) {
+void GenerateAudioModel::ReadWavFile(const std::filesystem::path& wav_path) {
     auto x_length = FileReadUnit::GetAudioLength(wav_path.string().c_str());
     auto x = new double[x_length];
     auto fs = FileReadUnit::WavRead(wav_path.string().c_str(), x);
