@@ -12,13 +12,13 @@
 #include <cstring>
 #include "AudioModel/lessAudioModel.h"
 
-class AduioModelIO {
+class AudioModelIO {
 public:
-    AduioModelIO(const std::string &Path, lessAudioModel audioModel);
+    AudioModelIO(const std::string &Path, lessAudioModel audioModel);
 
-    explicit AduioModelIO(const std::string &Path);
+    explicit AudioModelIO(const std::string &Path);
 
-    ~AduioModelIO();
+    ~AudioModelIO();
 
     [[maybe_unused]] void SetFilePath(const std::string &Path);
 

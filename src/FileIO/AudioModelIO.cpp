@@ -21,15 +21,15 @@
 #include "Utils/LOG.h"
 #include "Utils/exception.h"
 
-AduioModelIO::AduioModelIO(const std::string &FilePath, lessAudioModel audioModel) : RootFilePath(FilePath), _audioModel(audioModel) {
+AudioModelIO::AudioModelIO(const std::string &FilePath, lessAudioModel audioModel) : RootFilePath(FilePath), _audioModel(audioModel) {
     GenerateFilePath();
 }
 
-AduioModelIO::AduioModelIO(const std::string &FilePath) : RootFilePath(FilePath) {
+AudioModelIO::AudioModelIO(const std::string &FilePath) : RootFilePath(FilePath) {
     GenerateFilePath();
 }
 
-AduioModelIO::~AduioModelIO() {
+AudioModelIO::~AudioModelIO() {
     delete[] _audioModel.time_axis;
     delete[] _audioModel.f0;
     for (int i = 0; i < _audioModel.f0_length; ++i) {
@@ -40,52 +40,52 @@ AduioModelIO::~AduioModelIO() {
     delete[] _audioModel.aperiodicity;
 }
 
-[[maybe_unused]] void AduioModelIO::SetFilePath(const std::string &Path) {
+[[maybe_unused]] void AudioModelIO::SetFilePath(const std::string &Path) {
     RootFilePath = Path;
     GenerateFilePath();
 }
 
-[[maybe_unused]] void AduioModelIO::SetAudioModel(lessAudioModel audioModel) {
+[[maybe_unused]] void AudioModelIO::SetAudioModel(lessAudioModel audioModel) {
     _audioModel = audioModel;
 }
 
-[[maybe_unused]] lessAudioModel AduioModelIO::GetAudioModel() {
+[[maybe_unused]] lessAudioModel AudioModelIO::GetAudioModel() {
     return _audioModel;
 }
 
-[[maybe_unused]] std::string AduioModelIO::GetFilePath() {
+[[maybe_unused]] std::string AudioModelIO::GetFilePath() {
     return RootFilePath.string();
 }
 
-void AduioModelIO::GenerateFilePath() {
+void AudioModelIO::GenerateFilePath() {
     F0FilePath = RootFilePath.replace_extension(F0FileExt);
     SPFilePath = RootFilePath.replace_extension(SPFileExt);
     APFilePath = RootFilePath.replace_extension(APFileExt);
 }
 
-void AduioModelIO::SaveAudioModel() {
+void AudioModelIO::SaveAudioModel() {
     // TODO: impl LZ4Stream to compress files
     WriteAudioContent();
 }
 
-lessAudioModel AduioModelIO::ReadAudioModel() {
+lessAudioModel AudioModelIO::ReadAudioModel() {
     ReadAudioContent();
     return _audioModel;
 }
 
-void AduioModelIO::WriteAudioContent() {
+void AudioModelIO::WriteAudioContent() {
     WriteF0();
     WriteSP();
     WriteAP();
 }
 
-void AduioModelIO::ReadAudioContent() {
+void AudioModelIO::ReadAudioContent() {
     ReadF0();
     ReadSP();
     ReadAP();
 }
 
-void AduioModelIO::WriteOneParameter(FILE *fp, const char *text, double parameter, int size) {
+void AudioModelIO::WriteOneParameter(FILE *fp, const char *text, double parameter, int size) {
     fwrite(text, 1, 4, fp);
     if (size == 4) {
         int parameter_int = static_cast<int>(parameter);
@@ -95,7 +95,7 @@ void AduioModelIO::WriteOneParameter(FILE *fp, const char *text, double paramete
     }
 }
 
-void AduioModelIO::LoadParameters(FILE *fp, int *f0_length, int *fft_size) {
+void AudioModelIO::LoadParameters(FILE *fp, int *f0_length, int *fft_size) {
     char data_check[12];
     // NOF
     fread(&data_check, 1, 4, fp);
@@ -112,7 +112,7 @@ void AduioModelIO::LoadParameters(FILE *fp, int *f0_length, int *fft_size) {
     fread(&data_check, 1, 8, fp);
 }
 
-int AduioModelIO::CheckHeader(FILE *fp, const char *text) {
+int AudioModelIO::CheckHeader(FILE *fp, const char *text) {
     char data_check[5];
     fread(data_check, 1, 4, fp);
     data_check[4] = '\0';
@@ -123,7 +123,7 @@ int AduioModelIO::CheckHeader(FILE *fp, const char *text) {
     return 0;
 }
 
-void AduioModelIO::WriteF0() {
+void AudioModelIO::WriteF0() {
     FILE *fp = fopen(F0FilePath.string().c_str(), "wb");
     if (nullptr == fp)
         throw file_open_error(F0FilePath.string());
@@ -140,7 +140,7 @@ void AduioModelIO::WriteF0() {
     fclose(fp);
 }
 
-void AduioModelIO::WriteSP() {
+void AudioModelIO::WriteSP() {
     FILE *fp = fopen(SPFilePath.string().c_str(), "wb");
     if (nullptr == fp)
         throw file_open_error(SPFilePath.string());
@@ -159,7 +159,7 @@ void AduioModelIO::WriteSP() {
     fclose(fp);
 }
 
-void AduioModelIO::WriteAP() {
+void AudioModelIO::WriteAP() {
     FILE *fp = fopen(APFilePath.string().c_str(), "wb");
     if (nullptr == fp)
         throw file_open_error(APFilePath.string());
@@ -179,7 +179,7 @@ void AduioModelIO::WriteAP() {
     fclose(fp);
 }
 
-void AduioModelIO::ReadF0() {
+void AudioModelIO::ReadF0() {
     FILE *fp = fopen(F0FilePath.string().c_str(), "rb");
     if (nullptr == fp)
         throw file_open_error(F0FilePath.string());
@@ -210,7 +210,7 @@ void AduioModelIO::ReadF0() {
         _audioModel.time_axis[i] = i / 1000.0 * _audioModel.frame_period;
 }
 
-void AduioModelIO::ReadSP() {
+void AudioModelIO::ReadSP() {
     FILE *fp = fopen(SPFilePath.string().c_str(), "rb");
     if (nullptr == fp)
         throw file_open_error(SPFilePath.string());
@@ -237,7 +237,7 @@ void AduioModelIO::ReadSP() {
     fclose(fp);
 }
 
-void AduioModelIO::ReadAP() {
+void AudioModelIO::ReadAP() {
     FILE *fp = fopen(APFilePath.string().c_str(), "rb");
     if (nullptr == fp)
         throw file_open_error(APFilePath.string());
