@@ -16,11 +16,12 @@
 // Created by gloom on 2022/5/23.
 //
 
-#include <Utils/LOG.h>
-
 #include <utility>
-
 #include "GenerateAudioModel.h"
+
+#include <Utils/LOG.h>
+#include <AudioModel/lessAudioModel.h>
+#include <FileIO/FileReadUnit.h>
 
 GenerateAudioModel::GenerateAudioModel(std::filesystem::path path) : target_voice_path(std::move(path)) {
     YALL_INFO_ << "Get the audio files in the directory";
@@ -43,5 +44,11 @@ void GenerateAudioModel::GetWavFileLists() {
             wav_files.push_back(entry.path());
         }
     }
+}
+
+void GenerateAudioModel::ReadWavFile(std::filesystem::path wav_path) {
+    auto x_length = FileReadUnit::GetAudioLength(wav_path.string().c_str());
+    auto x = new double[x_length];
+    auto fs = FileReadUnit::WavRead(wav_path.string().c_str(), x);
 }
 

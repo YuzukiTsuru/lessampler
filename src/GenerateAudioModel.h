@@ -21,7 +21,6 @@
 
 #include <filesystem>
 #include <vector>
-#include <AudioModel/lessAudioModel.h>
 
 class GenerateAudioModel {
 public:
@@ -35,6 +34,11 @@ private:
 
 private:
     void GetWavFileLists();
+
+private:
+    static void ReadWavFile(std::filesystem::path wav_path);
+
+    static void GenerateModelFromFile();
 };
 
 
