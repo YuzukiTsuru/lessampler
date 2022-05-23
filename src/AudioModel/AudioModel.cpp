@@ -25,13 +25,13 @@
 #include "AudioModel.h"
 #include "WorldModule/WorldModule.h"
 
-AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure &configure) : configure(configure) {
+AudioModel::AudioModel(double *x, size_t x_length, int fs, const lessConfigure &configure) : configure(configure) {
     _lessAudioModel.x = x;
-    _lessAudioModel.x_length = x_length;
+    _lessAudioModel.x_length = static_cast<int>(x_length);
     _lessAudioModel.fs = fs;
 
     // initialize the audio model from x, x_length, fs using World Vocoder
-    WorldModule model(x, x_length, fs, configure);
+    WorldModule model(_lessAudioModel.x, _lessAudioModel.x_length, _lessAudioModel.fs, configure);
     worldPara = model.GetModule();
     InitAudioModel();
 }
