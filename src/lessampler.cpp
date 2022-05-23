@@ -70,18 +70,3 @@ void lessampler::run() const {
 void lessampler::read_audio_file() {
 
 }
-
-void lessampler::GenerateAudioModel() {
-    // AudioModel audioModel();
-}
-
-void lessampler::GenerateAudioModelDictory() {
-    auto target_voice_folder = std::filesystem::path(argv[1]);
-    YALL_INFO_ << "Working on folder: " + target_voice_folder.string();
-    for (const auto &entry: std::filesystem::directory_iterator(target_voice_folder)) {
-        if (entry.path().extension() == ".wav"){
-
-        }
-    }
-}
-
