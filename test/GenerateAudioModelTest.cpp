@@ -20,17 +20,12 @@
 #include <utility>
 #include <Utils/LOG.h>
 
-
-class GenerateAudioModelTest : GenerateAudioModel {
-public:
-    explicit GenerateAudioModelTest(const std::filesystem::path &path, const std::filesystem::path &audio_path) : GenerateAudioModel(path) {
-        GenerateAudioModel::ReadWavFile(audio_path);
-    };
-};
-
 int main(int argc, char *argv[]) {
+    YALL_DEBUG_.EnableDebug();
     YALL_INFO_ << "Test Audio Read";
     std::filesystem::path audio_dir("../../test");
-    std::filesystem::path audio_path("../../test/vaiueo2d.wav");
-    GenerateAudioModelTest test(audio_dir, audio_path);
+
+    lessConfigure configure;
+
+    GenerateAudioModel test(audio_dir, configure);
 }

@@ -20,35 +20,53 @@
 #include "GenerateAudioModel.h"
 
 #include <Utils/LOG.h>
+#include <AudioModel/AudioModel.h>
 #include <AudioModel/lessAudioModel.h>
+#include <FileIO/AudioModelIO.h>
 #include <FileIO/FileReadUnit.h>
 
-GenerateAudioModel::GenerateAudioModel(std::filesystem::path path) : target_voice_path(std::move(path)) {
+GenerateAudioModel::GenerateAudioModel(std::filesystem::path path, const lessConfigure &configure) : target_voice_path(std::move(path)),
+                                                                                                     configure(configure) {
     YALL_INFO_ << "Get the audio files in the directory";
     GetWavFileLists();
 #ifdef DEBUG_MODE
     PrintWavFiles();
 #endif
+    YALL_INFO_ << "Now Generating the Model";
+    GenerateModelFromFile();
 }
 
 void GenerateAudioModel::PrintWavFiles() {
     for (const auto &file: wav_files) {
-        YALL_DEBUG_ << file.string() + "\n";
+        YALL_DEBUG_ << file.string();
     }
 }
 
 void GenerateAudioModel::GetWavFileLists() {
     YALL_INFO_ << "Working on folder: " + target_voice_path.string();
     for (const auto &entry: std::filesystem::directory_iterator(target_voice_path)) {
-        if (entry.path().extension() == ".wav") {
+        if (entry.path().extension().string() == ".wav") {
             wav_files.push_back(entry.path());
         }
     }
 }
 
-void GenerateAudioModel::ReadWavFile(const std::filesystem::path& wav_path) {
+void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
+    // Read Audio File
     auto x_length = FileReadUnit::GetAudioLength(wav_path.string().c_str());
     auto x = new double[x_length];
     auto fs = FileReadUnit::WavRead(wav_path.string().c_str(), x);
+
+    AudioModel audioModel(x, x_length, fs, configure);
+    auto model = audioModel.GetAudioModel();
+
+    AudioModelIO audioModelIO(wav_path.string(), model);
+    audioModelIO.SaveAudioModel();
+}
+
+void GenerateAudioModel::GenerateModelFromFile() {
+    for (const auto &file: wav_files) {
+        WavFileModel(file);
+    }
 }
 

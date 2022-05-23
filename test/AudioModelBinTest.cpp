@@ -53,12 +53,12 @@ int main(int argc, char *argv[]) {
 
     auto less_i = audioModel.GetAudioModel();
 
-    AduioModelIO WriteBinUnit("a.o", less_i);
+    AudioModelIO WriteBinUnit("a.o", less_i);
     WriteBinUnit.SaveAudioModel();
 
     lessAudioModel less_o{};
 
-    AduioModelIO ReadBinUnit("a.o");
+    AudioModelIO ReadBinUnit("a.o");
     less_o = ReadBinUnit.ReadAudioModel();
 
     size_t error_count = 0;

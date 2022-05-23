@@ -14,6 +14,7 @@
 
 class AudioModelIO {
 public:
+    // TODO Using filesystem instead of string
     AudioModelIO(const std::string &Path, lessAudioModel audioModel);
 
     explicit AudioModelIO(const std::string &Path);
