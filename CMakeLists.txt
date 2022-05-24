@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
+set(PROJECT_VERSION_MAJOR 0)
+set(PROJECT_VERSION_MINOR 0)
+
 # use git version as library version
 find_package(Git QUIET)
 if (Git_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
@@ -22,7 +25,7 @@ else ()
     set(PROJECT_GIT_HASH "")
 endif ()
 
-project(lessampler LANGUAGES C CXX VERSION ${_git_version})
+project(lessampler LANGUAGES C CXX VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${_git_version})
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -42,9 +45,12 @@ configure_file(
         "${PROJECT_SOURCE_DIR}/config.h.in"
         "${PROJECT_BINARY_DIR}/lessconfig.h"
 )
+
 if (MSVC)
-    add_definitions(-DMSVC_MODE)
-    set(RC_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/lessampler.rc")
+    configure_file(
+            "${PROJECT_SOURCE_DIR}/assets/lessampler.rc.in"
+            "${PROJECT_BINARY_DIR}/lessampler.rc"
+    )
 endif ()
 
 set(WORLD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -95,4 +101,3 @@ include_directories(
 
 add_subdirectory(src)
 add_subdirectory(test)
-
