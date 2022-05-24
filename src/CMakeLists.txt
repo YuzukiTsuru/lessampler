@@ -8,10 +8,12 @@ add_subdirectory(AudioProcess)
 file(GLOB lessampler_source *.cpp *.h)
 
 if (MSVC)
-    set(lessampler_source ${lessampler_source} ${RC_ICON})
+    list(APPEND ICON ${PROJECT_BINARY_DIR}/lessampler.rc)
+    add_executable(lessampler ${lessampler_source} ${ICON})
+else()
+    add_executable(lessampler ${lessampler_source})
 endif ()
 
-add_executable(lessampler ${lessampler_source})
 target_link_libraries(lessampler AudioModel FileIO Dialogs UTAU ConfigUnit)
 
 if (MSVC)
