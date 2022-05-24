@@ -224,7 +224,10 @@ void AduioProcess::interp1(const double *x, const double *y, int x_length, const
     auto *h = new double[x_length - 1];
     int *k = new int[xi_length];
 
-    for (int i = 0; i < x_length - 1; ++i) h[i] = x[i + 1] - x[i];
+    for (int i = 0; i < x_length - 1; ++i) {
+        h[i] = x[i + 1] - x[i];
+    }
+
     for (int i = 0; i < xi_length; ++i) {
         k[i] = 0;
     }
