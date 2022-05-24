@@ -30,7 +30,7 @@
 // "../../test/ne.wav" "../../test/ne2.wav" A#3 100 "" 3.0 2100 80.0 66.0 100 0 !120 AA#203#AB#4#AA///+/9/8/7/6/5/4/3/3/4/4/6/7/9//ACAEAHAKAMAOAQAR#2#AQAPAMAKAGAC/+/7/3/0/x/v/t/s/s/t/u/w/y/1/5/9AAAEAIALAOARASAU#2#ATARAOALAIAEAB/9/5/2/z/w/u/t/s/s/t/v/x/0/3/6/+ACAGAJANAPARATAUAUATASAQANAKAHAD///7/4/0/x/v/t/s#2#/u/v/y/1/4/8AAAEAHALAOAQASATAUAUATARAPAMAJAFAB/+/6/2/z/w/u/t/s/s/t/u/w/z/2/6/9ABAFAJAMAOAQARARAQAQAOAMAKAHAFACAA/+/8/6/5/4#3#/5/6/7/8/9/+//AAAAAB#2#AA#2#
 
 int main(int argc, char *argv[]) {
-    //YALL_DEBUG_.EnableDebug();
+    YALL_DEBUG_.EnableDebug();
 
     std::string FileName;
 

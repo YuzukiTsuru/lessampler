@@ -34,7 +34,7 @@ private:
      * RET: bool
      *   true -> success
      *   false -> fail
-     * OUT： double scaleNum
+     * OUT: double scaleNum
      */
     bool ScaleConvertToDouble(std::string scaleName);
 };
