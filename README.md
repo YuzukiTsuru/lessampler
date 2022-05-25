@@ -8,16 +8,20 @@
 
 ## Feature
 - Multiple models
-  - World
-  - llsm
+  - [x] World
+  - [ ] llsm
 - Global Transform Control
-  - Precise Pitch Shift and Time Stretch
-  - FFT Size, Samples Number, Estimation Floor and so on
-  - Support breath sound generation
-  - Support timbre gender change
+  - [x] Precise Pitch Shift and Time Stretch
+  - [ ] FFT Size, Samples Number, Estimation Floor and so on
+  - [ ] Support breath sound generation
+  - [ ] Support timbre gender change
 - Multiple Interactive Interfaces
-  - UTAU Interface
-- Nerual Network Vocoder for better output
+  - [x] [UTAU](http://utau2008.xrea.jp/) Interface
+  - [ ] [OpenUTAU](https://github.com/stakira/OpenUtau) Interface
+  - [ ] Library Interface
+- Nerual Network Vocoder
+  - [ ] Voice Conversion and Audio Style Transfer
+  - [ ] Noise reduction enhanced MOS
 
 ## Special Thanks
 [@shine5402](https://github.com/shine5402)  
