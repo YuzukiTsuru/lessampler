@@ -3,6 +3,9 @@
 <p align="center">
   lessampler is a Singing Voice Synthesizer [WIP]
 </p>
+[![forthebadge](https://forthebadge.com/images/badges/contains-cat-gifs.svg)](https://forthebadge.com)
+
+## Build Status
 
 [![CMake](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake.yml)
 
