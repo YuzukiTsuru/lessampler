@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <streambuf>
 #include <vector>
 
-namespace lz4tream {
+namespace lz4stream {
 /**
  * @brief An output stream that will LZ4 compress the input data.
  *
@@ -74,7 +74,7 @@ namespace lz4tream {
          *
          * @param sink The stream to write compressed data to
          */
-        explicit basic_ostream(std::ostream &sink) : std::ostream(new output_buffer(sink)), buffer_(dynamic_cast<output_buffer *>(rdbuf())) {
+        [[maybe_unused]] explicit basic_ostream(std::ostream &sink) : std::ostream(new output_buffer(sink)), buffer_(dynamic_cast<output_buffer *>(rdbuf())) {
             assert(buffer_);
         }
 
@@ -236,7 +236,7 @@ namespace lz4tream {
          *
          * @param source The stream to read LZ4 compressed data from
          */
-        explicit basic_istream(std::istream &source) : std::istream(new input_buffer(source)), buffer_(dynamic_cast<input_buffer *>(rdbuf())) {
+        [[maybe_unused]] explicit basic_istream(std::istream &source) : std::istream(new input_buffer(source)), buffer_(dynamic_cast<input_buffer *>(rdbuf())) {
             assert(buffer_);
         }
 
@@ -319,7 +319,7 @@ namespace lz4tream {
     };
 
     using ostream = basic_ostream<>;
-    using istream = basic_istream<>;
+    using istream [[maybe_unused]] = basic_istream<>;
 
 }
 #endif // lz4tream
