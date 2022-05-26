@@ -3,12 +3,7 @@
 <p align="center">
   lessampler is a Singing Voice Synthesizer [WIP]
 </p>
-
 [![forthebadge](https://forthebadge.com/images/badges/contains-cat-gifs.svg)](https://forthebadge.com)
-
-## Build Status
-
-[![CMake](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake.yml)
 
 ## Feature
 - Multiple models
@@ -26,6 +21,16 @@
 - Nerual Network Vocoder
   - [ ] Voice Conversion and Audio Style Transfer
   - [ ] Noise reduction enhanced MOS
+
+
+
+## Build Status
+
+| Ubuntu                                                       | Windows                                                      | macOS                                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [![CMake Ubuntu](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-ubuntu.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-ubuntu.yml) | [![CMake Windows](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-windows.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-windows.yml) | [![CMake macOS](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-macos.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-macos.yml) |
+
+
 
 ## Special Thanks
 [@shine5402](https://github.com/shine5402)  
