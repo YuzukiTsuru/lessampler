@@ -41,6 +41,15 @@ private:
     void GenerateModelFromFile();
 
     void WavFileModel(const std::filesystem::path &wav_path);
+
+private:
+    // Baisc Impl of Parallel foreach
+    template<class I, class F>
+    void for_each(size_t thread_count, I begin, I end, F f);
+
+    // Compatible Impl of Parallel foreach
+    template<class I, class F>
+    void for_each(I begin, I end, F f);
 };
 
 

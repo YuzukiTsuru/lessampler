@@ -17,6 +17,8 @@
 //
 
 #include <utility>
+#include <future>
+
 #include "GenerateAudioModel.h"
 
 #include <Utils/LOG.h>
@@ -52,6 +54,7 @@ void GenerateAudioModel::GetWavFileLists() {
 }
 
 void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
+    YALL_INFO_ << "Modeling Audio File: " + wav_path.string();
     // Read Audio File
     auto x_length = FileReadUnit::GetAudioLength(wav_path.string().c_str());
     auto x = new double[x_length];
@@ -65,10 +68,55 @@ void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
 }
 
 void GenerateAudioModel::GenerateModelFromFile() {
-    // TODO: Add mutithread support
-    for (const auto &file: wav_files) {
-        YALL_INFO_ << "Modeling Audio File: " + file.string();
-        WavFileModel(file);
+    YALL_INFO_ << "Modeling with " + std::to_string(std::thread::hardware_concurrency()) + " threads";
+    for_each(wav_files.begin(), wav_files.end(), [&](const std::filesystem::path &wav_path) {
+        WavFileModel(wav_path);
+    });
+}
+
+template<class I, class F>
+void GenerateAudioModel::for_each(size_t thread_count, I begin, I end, F f) {
+    I it = begin;
+
+    if (it == end)
+        return;
+    if (++it == end) {
+        f(*begin);
+        return;
+    }
+
+    // If std::thread::hardware_concurrency() does not get the number of threads, use 1 thread
+    if (thread_count == 0) {
+        thread_count = 1;
+    }
+
+    std::vector<std::thread> threads;
+    threads.reserve(thread_count - 1);
+
+    auto f2 = [&]() {
+        for (;;) {
+            I it;
+            it = begin;
+            if (it == end)
+                break;
+            ++begin;
+            f(*it);
+        }
+    };
+
+    for (unsigned i = 0; i < thread_count - 1; ++i, ++it) {
+        if (it == end)
+            break;
+        threads.emplace_back(std::thread(f2));
+    }
+
+    f2();
+    for (auto &th: threads) {
+        th.join();
     }
 }
 
+template<class I, class F>
+void GenerateAudioModel::for_each(I begin, I end, F f) {
+    for_each(std::thread::hardware_concurrency(), begin, end, f);
+}
