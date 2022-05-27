@@ -17,7 +17,7 @@ endif ()
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
-target_link_libraries(lessampler PRIVATE AudioModel FileIO Dialogs UTAU ConfigUnit Threads::Threads pthread)
+target_link_libraries(lessampler PRIVATE AudioModel FileIO Dialogs UTAU ConfigUnit Threads::Threads)
 
 if (MSVC)
     target_compile_options(lessampler PUBLIC "/utf-8")
