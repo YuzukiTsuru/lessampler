@@ -18,6 +18,7 @@
 
 #include <utility>
 #include <future>
+#include <thread>
 
 #include "GenerateAudioModel.h"
 
