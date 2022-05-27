@@ -14,7 +14,11 @@ else ()
     add_executable(lessampler ${lessampler_source})
 endif ()
 
-target_link_libraries(lessampler AudioModel FileIO Dialogs UTAU ConfigUnit Threads::Threads)
+target_link_libraries(lessampler AudioModel FileIO Dialogs UTAU ConfigUnit PRIVATE Threads::Threads)
+
+if (UNIX)
+    target_link_libraries(lessampler pthread)
+endif ()
 
 if (MSVC)
     target_compile_options(lessampler PUBLIC "/utf-8")
