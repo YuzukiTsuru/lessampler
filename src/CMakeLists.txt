@@ -10,11 +10,11 @@ file(GLOB lessampler_source *.cpp *.h)
 if (MSVC)
     list(APPEND ICON ${PROJECT_BINARY_DIR}/lessampler.rc)
     add_executable(lessampler ${lessampler_source} ${ICON})
-else()
+else ()
     add_executable(lessampler ${lessampler_source})
 endif ()
 
-target_link_libraries(lessampler AudioModel FileIO Dialogs UTAU ConfigUnit)
+target_link_libraries(lessampler AudioModel FileIO Dialogs UTAU ConfigUnit Threads::Threads)
 
 if (MSVC)
     target_compile_options(lessampler PUBLIC "/utf-8")
