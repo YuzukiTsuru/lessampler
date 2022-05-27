@@ -18,6 +18,8 @@
 
 #include "Utils/LOG.h"
 #include "Dialogs/Dialogs.h"
+#include "GenerateAudioModel.h"
+
 #include "lessconfig.h"
 
 #include "lessampler.h"
@@ -40,7 +42,7 @@ void lessampler::show_logo() {
               " Version: "
               << PROJECT_GIT_HASH
               << "       |_|            "
-              << "\nCopyright (c)  2018 - 2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>"
+              << "\n\nCopyright (c)  2018 - 2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>\n"
               << cc::reset
               << std::endl;
 }
@@ -52,11 +54,10 @@ void lessampler::run() const {
     }
 
     // model generation
-    if (argc == 1) {
+    if (argc == 2) {
         show_logo();
         YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
-
-
+        GenerateAudioModel genmodule(argv[1], configure);
     }
 
     if (argc < 2) {

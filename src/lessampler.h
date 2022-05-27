@@ -43,9 +43,6 @@ private:
 private:
     void read_audio_file();
 
-    void GenerateAudioModelDictory();
-
-    void GenerateAudioModel();
 private:
     static void show_logo();
 };
