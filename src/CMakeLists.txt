@@ -14,6 +14,10 @@ else ()
     add_executable(lessampler ${lessampler_source})
 endif ()
 
+if (UNIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif ()
+
 target_link_libraries(lessampler PRIVATE AudioModel FileIO Dialogs UTAU ConfigUnit Threads::Threads)
 
 if (MSVC)
