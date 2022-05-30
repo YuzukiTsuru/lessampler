@@ -22,11 +22,11 @@
 #include <filesystem>
 #include <vector>
 
-#include <ConfigUnit/ConfigUnit.h>
+#include "ConfigUnit/ConfigUnit.h"
 
 class GenerateAudioModel {
 public:
-    GenerateAudioModel(std::filesystem::path path, const lessConfigure &configure);
+    GenerateAudioModel(std::filesystem::path path, lessConfigure configure);
 
     void PrintWavFiles();
 
