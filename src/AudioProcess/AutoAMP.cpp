@@ -22,8 +22,8 @@
 #include "AutoAMP.h"
 #include "Utils/LOG.h"
 
-AutoAMP::AutoAMP(UTAUPara utauPara, UTAUFlags utauFlags, double *x) : utauPara(std::move(utauPara)), utauFlags(utauFlags) {
-    this->x_length = this->utauPara.output_samples;
+AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
+    this->x_length = this->shine.output_samples;
     this->x = x;
     this->x_out = new double[x_length];
 
@@ -67,7 +67,7 @@ void AutoAMP::DiminishedConsonantFricative() {
         if (std::isnan(x[i])) {
             x_out[i] = 0.0;
         } else {
-            x_out[i] = x[i] * 0.5 * utauPara.volumes / MaxAMP;
+            x_out[i] = x[i] * 0.5 * shine.volumes / MaxAMP;
         }
     }
 }
