@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 
     UTAUFlags utauFlags;
 
-    AduioProcess aduioProcess(less_i, utauPara, utauFlags);
+    AudioProcess aduioProcess(less_i, utauPara, utauFlags);
 
     auto less_t = aduioProcess.GetTransAudioModel();
 
