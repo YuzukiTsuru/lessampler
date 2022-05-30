@@ -20,17 +20,16 @@
 #define LESSAMPLER_AUTOAMP_H
 
 #include "AudioModel/lessAudioModel.h"
-#include "libUTAU/libUTAU.h"
+#include "Shine/ShinePara.h"
 
 class AutoAMP {
 public:
-    AutoAMP(UTAUPara utauPara, UTAUFlags utauFlags, double *x);
+    AutoAMP(ShinePara shine, double *x);
 
     double *GetAMP();
 
 private:
-    UTAUPara utauPara{};
-    UTAUFlags utauFlags{};
+    ShinePara shine;
 
     int x_length = 0;
     double *x = nullptr;

@@ -23,10 +23,8 @@
 #include "Utils/exception.h"
 #include "Utils/LOG.h"
 #include "AudioProcess.h"
-#include "libUTAU/PitchBendDecoder.h"
 
-AduioProcess::AduioProcess(lessAudioModel audioModel, UTAUPara utauPara, UTAUFlags flags) : audioModel(audioModel), utauPara(std::move(utauPara)),
-                                                                                            flags(flags) {
+AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(audioModel), shine(std::move(shine)) {
     YALL_DEBUG_ << "Equalizing Picth...";
     PicthEqualizing();
     YALL_DEBUG_ << "Decode Pitch Bend...";
@@ -35,17 +33,17 @@ AduioProcess::AduioProcess(lessAudioModel audioModel, UTAUPara utauPara, UTAUFla
     TimeStretch();
 }
 
-TransAudioModel AduioProcess::GetTransAudioModel() {
+TransAudioModel AudioProcess::GetTransAudioModel() {
     return transAudioModel;
 }
 
-void AduioProcess::PicthEqualizing() {
+void AudioProcess::PicthEqualizing() {
     auto freq_avg = GetAvgFreq();
     YALL_DEBUG_ << "The average frequency is " + std::to_string(freq_avg);
     if (freq_avg == 0.0) {
         for (int i = 0; i < audioModel.f0_length; ++i) {
             if (audioModel.f0[i] != 0.0) {
-                audioModel.f0[i] = utauPara.scaleNum;
+                audioModel.f0[i] = shine.scale_num;
             } else {
                 audioModel.f0[i] = 0;
             }
@@ -53,7 +51,7 @@ void AduioProcess::PicthEqualizing() {
     } else {
         for (int i = 0; i < audioModel.f0_length; ++i) {
             if (audioModel.f0[i] != 0.0) {
-                audioModel.f0[i] = ((audioModel.f0[i] - freq_avg) * utauPara.modulation / 100.0 + freq_avg) * (utauPara.scaleNum / freq_avg);
+                audioModel.f0[i] = ((audioModel.f0[i] - freq_avg) * shine.modulation / 100.0 + freq_avg) * (shine.scale_num / freq_avg);
             } else {
                 audioModel.f0[i] = 0;
             }
@@ -61,37 +59,37 @@ void AduioProcess::PicthEqualizing() {
     }
 }
 
-void AduioProcess::DecodePitchBend() {
-    if (utauPara.tempoNum == 0)
-        utauPara.tempoNum = 120;
+void AudioProcess::DecodePitchBend() {
+    if (shine.tempo_num == 0)
+        shine.tempo_num = 120;
 
-    if (utauPara.isCustomPitch) {
-        pitch_step = static_cast<int>(lround(60.0 / 96.0 / utauPara.tempoNum * audioModel.fs));
-        pitch_length = utauPara.output_samples / pitch_step + 1;
+    if (shine.is_custom_pitch) {
+        pitch_step = static_cast<int>(lround(60.0 / 96.0 / shine.tempo_num * audioModel.fs));
+        pitch_length = shine.output_samples / pitch_step + 1;
 
         YALL_DEBUG_ << "The Pitch Length is: " + std::to_string(pitch_length);
 
-        PitchBendDecoder pitchBendDecoder(utauPara.pitch, pitch_length);
+        PitchBendDecoder pitchBendDecoder(shine.pitch, pitch_length);
 
-        utauPara.pitch_bend = new int[pitch_length + 1];
+        shine.pitch_bend = new int[pitch_length + 1];
         for (int i = 0; i < pitch_length + 1; ++i) {
-            utauPara.pitch_bend[i] = 0;
+            shine.pitch_bend[i] = 0;
         }
 
-        std::memcpy(utauPara.pitch_bend, pitchBendDecoder.getPitchBend(), sizeof(int) * pitch_length);
+        std::memcpy(shine.pitch_bend, pitchBendDecoder.getPitchBend(), sizeof(int) * pitch_length);
     } else {
-        utauPara.pitch_bend = new int[pitch_length + 1];
+        shine.pitch_bend = new int[pitch_length + 1];
         for (int i = 0; i < pitch_length + 1; ++i) {
-            utauPara.pitch_bend[i] = 0;
+            shine.pitch_bend[i] = 0;
         }
     }
 
-    required_frame = static_cast<int>(1000.0 * utauPara.output_samples / audioModel.fs / audioModel.frame_period) + 1;
+    required_frame = static_cast<int>(1000.0 * shine.output_samples / audioModel.fs / audioModel.frame_period) + 1;
     YALL_DEBUG_ << "The required frame is: " + std::to_string(required_frame);
     transAudioModel.t_f0_length = required_frame;
 }
 
-double AduioProcess::GetAvgFreq() const {
+double AudioProcess::GetAvgFreq() const {
     double freq_avg = 0.0, timePercent, r, p[6], q, base_timePercent = 0;
     for (int i = 0; i < audioModel.f0_length; ++i) {
         timePercent = audioModel.f0[i];
@@ -114,7 +112,7 @@ double AduioProcess::GetAvgFreq() const {
     return freq_avg;
 }
 
-void AduioProcess::TimeStretch() {
+void AudioProcess::TimeStretch() {
     YALL_DEBUG_ << "Allocate memory for target audio f0, sp, ap";
 
     if (transAudioModel.t_f0_length == 0)
@@ -144,10 +142,10 @@ void AduioProcess::TimeStretch() {
 
     for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
         _out_sample_index = audioModel.frame_period * i;
-        if (_out_sample_index < utauPara.base_length) {
-            _in_sample_index = utauPara.offset + _out_sample_index * utauPara.velocity;
+        if (_out_sample_index < shine.base_length) {
+            _in_sample_index = shine.offset + _out_sample_index * shine.velocity;
         } else {
-            _in_sample_index = utauPara.offset + utauPara.firstHalfFixedPart + (_out_sample_index - utauPara.base_length) * utauPara.stretch_length;
+            _in_sample_index = shine.offset + shine.first_half_fixed_part + (_out_sample_index - shine.base_length) * shine.stretch_length;
         }
         YALL_DEBUG_ << "_in_sample_index -> " + std::to_string(_in_sample_index);
         YALL_DEBUG_ << "_out_sample_index -> " + std::to_string(_out_sample_index);
@@ -186,13 +184,13 @@ void AduioProcess::TimeStretch() {
         YALL_DEBUG_ << "_sample_ap_trans_index -> " + std::to_string(_ap_trans_index + _sample_ap_trans_index);
 
         YALL_DEBUG_ << "Apply Pitch Shift With Pitch Bend";
-        auto pitch_base = utauPara.scaleNum * pow(2, (utauPara.pitch_bend[_ap_trans_index] * (1.0 - _sample_ap_trans_index) +
-                                                      utauPara.pitch_bend[_ap_trans_index + 1] * _sample_ap_trans_index) / 1200.0);
+        auto pitch_base = shine.scale_num * pow(2, (shine.pitch_bend[_ap_trans_index] * (1.0 - _sample_ap_trans_index) +
+                                                    shine.pitch_bend[_ap_trans_index + 1] * _sample_ap_trans_index) / 1200.0);
 
         YALL_DEBUG_ << "Trans F0 " + std::to_string(transAudioModel.t_f0[i]) + " Add " + std::to_string(pitch_base);
         transAudioModel.t_f0[i] = pitch_base;
 
-        transAudioModel.t_f0[i] = transAudioModel.t_f0[i] * pow(temp_f0 / avg_freq, utauPara.modulation * 0.01);
+        transAudioModel.t_f0[i] = transAudioModel.t_f0[i] * pow(temp_f0 / avg_freq, shine.modulation * 0.01);
 
         YALL_DEBUG_ << "Trans SP ";
         for (int j = 0; j < audioModel.w_length; ++j) {
@@ -220,7 +218,7 @@ void AduioProcess::TimeStretch() {
     }
 }
 
-void AduioProcess::interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi) {
+void AudioProcess::interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi) {
     auto *h = new double[x_length - 1];
     int *k = new int[xi_length];
 
@@ -243,7 +241,7 @@ void AduioProcess::interp1(const double *x, const double *y, int x_length, const
     delete[] h;
 }
 
-void AduioProcess::histc(const double *x, int x_length, const double *edges, int edges_length, int *index) {
+void AudioProcess::histc(const double *x, int x_length, const double *edges, int edges_length, int *index) {
     int count = 1;
 
     int i = 0;
