@@ -22,14 +22,14 @@
 
 #include "GenerateAudioModel.h"
 
-#include <Utils/LOG.h>
-#include <AudioModel/AudioModel.h>
-#include <AudioModel/lessAudioModel.h>
-#include <FileIO/AudioModelIO.h>
-#include <FileIO/FileReadUnit.h>
+#include "Utils/LOG.h"
+#include "AudioModel/AudioModel.h"
+#include "AudioModel/lessAudioModel.h"
+#include "FileIO/AudioModelIO.h"
+#include "FileIO/FileReadUnit.h"
 
-GenerateAudioModel::GenerateAudioModel(std::filesystem::path path, const lessConfigure &configure) : target_voice_path(std::move(path)),
-                                                                                                     configure(configure) {
+GenerateAudioModel::GenerateAudioModel(std::filesystem::path path, lessConfigure configure) : target_voice_path(std::move(path)),
+                                                                                              configure(std::move(configure)) {
     YALL_INFO_ << "Get the audio files in the directory";
     GetWavFileLists();
 #ifdef DEBUG_MODE
