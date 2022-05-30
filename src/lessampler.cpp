@@ -18,7 +18,7 @@
 
 #include "Utils/LOG.h"
 #include "Dialogs/Dialogs.h"
-#include "GenerateAudioModel.h"
+#include "AudioProcess/GenerateAudioModel.h"
 
 #include "lessconfig.h"
 
@@ -53,7 +53,7 @@ void lessampler::run() const {
         YALL_DEBUG_.EnableDebug();
     }
 
-    // model generation
+    // model generation operator
     if (argc == 2) {
         show_logo();
         YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
@@ -65,7 +65,6 @@ void lessampler::run() const {
         Dialogs::notify("lessampler", "lessampler: no input file");
         return;
     }
-
 }
 
 void lessampler::read_audio_file() {
