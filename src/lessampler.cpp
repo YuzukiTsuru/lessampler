@@ -18,7 +18,7 @@
 
 #include "Utils/LOG.h"
 #include "Dialogs/Dialogs.h"
-#include "AudioProcess/GenerateAudioModel.h"
+#include "GenerateAudioModel.h"
 
 #include "lessconfig.h"
 
