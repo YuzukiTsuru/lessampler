@@ -18,7 +18,7 @@
 #define LESSAMPLER_LIBUTAU_H
 
 #include <iostream>
-#include "libUTAU/FlagsDecoder.h"
+#include "FlagsDecoder.h"
 #include "AudioModel/lessAudioModel.h"
 
 class UTAUFlags {

@@ -68,7 +68,8 @@ void ConfigUnit::make_schema() {
     // create project audio model section
     inicpp::section_schema_params section_audio_model_params{};
     section_audio_model_params.name = "audio_model";
-    section_audio_model_params.comment = "Audio Model Settings";
+    section_audio_model_params.comment = "\nAudio Model Settings\n"
+                                         "Note: modifying any of the parameters here will require remodeling the voice db\n";
     section_audio_model_params.requirement = inicpp::item_requirement::mandatory;
     config_schema.add_section(section_audio_model_params);
 
