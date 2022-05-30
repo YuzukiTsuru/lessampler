@@ -16,7 +16,7 @@
 // Created by gloom on 2022/5/23.
 //
 
-#include <GenerateAudioModel.h>
+#include "AudioProcess/GenerateAudioModel.h"
 #include <utility>
 #include <Utils/LOG.h>
 
