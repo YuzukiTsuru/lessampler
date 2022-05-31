@@ -17,3 +17,18 @@
 //
 
 #include "Shine.h"
+
+#include <utility>
+
+Shine::Shine(const UTAUPara& utau_para, UTAUFlags utau_flags) {
+    SetShine(utau_para, utau_flags);
+}
+
+ShinePara Shine::GetShine() {
+    return shine_para;
+}
+
+void Shine::SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags) {
+    shine_para.input_file_name = utau_para.inputFileName;
+}
+

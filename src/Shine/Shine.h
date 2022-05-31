@@ -19,19 +19,23 @@
 #ifndef LESSAMPLER_SHINE_H
 #define LESSAMPLER_SHINE_H
 
+#include "ShinePara.h"
+
 #include "Binding/libUTAU/libUTAU.h"
 
 class Shine {
 public:
-    Shine() = default;
+    Shine(const UTAUPara& utau_para, UTAUFlags utau_flags);
 
     ~Shine() = default;
 
-    void GetShine();
+    [[maybe_unused]] ShinePara GetShine();
 
 private:
-    UTAUPara utauPara;
-    UTAUFlags utauFlags;
+    ShinePara shine_para;
+
+private:
+    void SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags)
 };
 
 
