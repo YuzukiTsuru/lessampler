@@ -29,7 +29,7 @@ public:
     int time_percent = 0;
     double velocity = 0.0;
     double offset = 0.0;
-    double required_lngth = 0.0;
+    double required_length = 0.0;
     double first_half_fixed_part = 0.0;
     double last_unused_part = 0.0;
     double volumes = 0;
