@@ -32,21 +32,21 @@ libUTAU::libUTAU(int argc, char **argv) {
 
 void libUTAU::printUTAUPara() const {
     std::stringstream ss;
-    ss << "\nProgram Name:           " << utauPara.localName;
-    ss << "\nIn File Name:           " << utauPara.inputFileName;
-    ss << "\nOut File Name:          " << utauPara.outputFileName;
-    ss << "\nScale Name:             " << utauPara.scaleName;
-    ss << "\nScale Number:           " << utauPara.scaleNum;
-    ss << "\nTime Percent:           " << utauPara.timePercent;
+    ss << "\nProgram Name:           " << utauPara.local_name;
+    ss << "\nIn File Name:           " << utauPara.input_file_name;
+    ss << "\nOut File Name:          " << utauPara.output_file_name;
+    ss << "\nScale Name:             " << utauPara.scale_name;
+    ss << "\nScale Number:           " << utauPara.scale_num;
+    ss << "\nTime Percent:           " << utauPara.time_percent;
     ss << "\nVelocity:               " << utauPara.velocity;
     ss << "\nFlags:                  " << utauPara.flags;
     ss << "\nOffset:                 " << utauPara.offset;
-    ss << "\nHost Required Length:   " << utauPara.requiredLength;
-    ss << "\nFirst Half Fixed Part:  " << utauPara.firstHalfFixedPart;
-    ss << "\nLast Unused Part:       " << utauPara.lastUnusedPart;
+    ss << "\nHost Required Length:   " << utauPara.required_length;
+    ss << "\nFirst Half Fixed Part:  " << utauPara.first_half_fixed_part;
+    ss << "\nLast Unused Part:       " << utauPara.last_unused_part;
     ss << "\nVolumes:                " << utauPara.volumes;
     ss << "\nTempo:                  " << utauPara.tempo;
-    ss << "\nTempo Number:           " << utauPara.tempoNum;
+    ss << "\nTempo Number:           " << utauPara.tempo_num;
     ss << "\nPitch String:           " << utauPara.pitch;
     YALL_DEBUG_ << ss.str();
 }
@@ -58,24 +58,24 @@ void libUTAU::printUTAUPara() const {
 void libUTAU::CheckPara(lessAudioModel audioModel) {
     utauPara.wave_length = static_cast<double>(audioModel.x_length) / static_cast<double>(audioModel.fs) * 1000;
     // Check last Unused Part of audio less 0
-    if (utauPara.lastUnusedPart < 0) {
-        utauPara.lastUnusedPart = utauPara.wave_length - utauPara.offset + utauPara.lastUnusedPart;
+    if (utauPara.last_unused_part < 0) {
+        utauPara.last_unused_part = utauPara.wave_length - utauPara.offset + utauPara.last_unused_part;
         // Check again: last Unused Part of audio less 0
-        if (utauPara.lastUnusedPart < 0)
-            utauPara.lastUnusedPart = 0;
+        if (utauPara.last_unused_part < 0)
+            utauPara.last_unused_part = 0;
     }
 
     // Check the required time
-    if (utauPara.offset + utauPara.lastUnusedPart >= utauPara.wave_length)
+    if (utauPara.offset + utauPara.last_unused_part >= utauPara.wave_length)
         throw parameter_error("The audio offset and whitespace are greater than the required audio length");
 
     // Check the fixed length para
-    if (utauPara.offset + utauPara.lastUnusedPart + utauPara.firstHalfFixedPart >= utauPara.wave_length)
-        utauPara.firstHalfFixedPart = utauPara.wave_length - utauPara.offset + utauPara.lastUnusedPart;
+    if (utauPara.offset + utauPara.last_unused_part + utauPara.first_half_fixed_part >= utauPara.wave_length)
+        utauPara.first_half_fixed_part = utauPara.wave_length - utauPara.offset + utauPara.last_unused_part;
 
-    utauPara.pre_cross_length = utauPara.wave_length - utauPara.offset - utauPara.firstHalfFixedPart - utauPara.lastUnusedPart;
-    utauPara.base_length = utauPara.firstHalfFixedPart / utauPara.velocity;
-    utauPara.cross_length = utauPara.requiredLength - utauPara.base_length;
+    utauPara.pre_cross_length = utauPara.wave_length - utauPara.offset - utauPara.first_half_fixed_part - utauPara.last_unused_part;
+    utauPara.base_length = utauPara.first_half_fixed_part / utauPara.velocity;
+    utauPara.cross_length = utauPara.required_length - utauPara.base_length;
 
     if (utauPara.pre_cross_length <= 0 && utauPara.cross_length > 0)
         throw parameter_error("The input audio length does not match the required cross-transformation length, and its reference value is less than 0");
@@ -85,5 +85,5 @@ void libUTAU::CheckPara(lessAudioModel audioModel) {
     if (utauPara.stretch_length > 1.0)
         utauPara.stretch_length = 1.0;
 
-    utauPara.output_samples = static_cast<int>(utauPara.requiredLength * 0.001 * audioModel.fs) + 1;
+    utauPara.output_samples = static_cast<int>(utauPara.required_length * 0.001 * audioModel.fs) + 1;
 }

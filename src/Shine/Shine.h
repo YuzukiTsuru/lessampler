@@ -25,6 +25,8 @@
 
 class Shine {
 public:
+    Shine(ShinePara para);
+
     Shine(const UTAUPara& utau_para, UTAUFlags utau_flags);
 
     ~Shine() = default;

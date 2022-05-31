@@ -27,18 +27,18 @@
 #include "ScaleConvert.h"
 
 UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
-    utauPara.localName = argv[0];
-    utauPara.inputFileName = argv[1];
-    utauPara.outputFileName = argv[2];
-    utauPara.scaleName = argv[3];
-    ScaleConvert scaleConvert(utauPara.scaleName);
-    utauPara.scaleNum = scaleConvert.GetScaleNum();
+    utauPara.local_name = argv[0];
+    utauPara.input_file_name = argv[1];
+    utauPara.output_file_name = argv[2];
+    utauPara.scale_name = argv[3];
+    ScaleConvert scaleConvert(utauPara.scale_name);
+    utauPara.scale_num = scaleConvert.GetScaleNum();
 
     // velocity
     if (argc > 4) {
         std::istringstream sstream(argv[4]);
-        sstream >> utauPara.timePercent;
-        utauPara.velocity = pow(2, utauPara.timePercent / 100.0 - 1.0);
+        sstream >> utauPara.time_percent;
+        utauPara.velocity = pow(2, utauPara.time_percent / 100.0 - 1.0);
         sstream.clear();
     }
 
@@ -58,21 +58,21 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
     // require length
     if (argc > 7) {
         std::istringstream sstream(argv[7]);
-        sstream >> utauPara.requiredLength;
+        sstream >> utauPara.required_length;
         sstream.clear();
     }
 
     // fixed length
     if (argc > 8) {
         std::istringstream sstream(argv[8]);
-        sstream >> utauPara.firstHalfFixedPart;
+        sstream >> utauPara.first_half_fixed_part;
         sstream.clear();
     }
 
     // blank length
     if (argc > 9) {
         std::istringstream sstream(argv[9]);
-        sstream >> utauPara.lastUnusedPart;
+        sstream >> utauPara.last_unused_part;
         sstream.clear();
     }
 
@@ -95,13 +95,13 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
     if (argc > 12) {
         std::istringstream sstream(argv[12]);
         sstream >> utauPara.tempo;
-        utauPara.tempoNum = std::stoi(utauPara.tempo.substr(1, utauPara.tempo.length()));
+        utauPara.tempo_num = std::stoi(utauPara.tempo.substr(1, utauPara.tempo.length()));
         sstream.clear();
     }
 
     // pitchbend
     if (argc > 13) {
-        utauPara.isCustomPitch = true;
+        utauPara.is_custom_pitch = true;
         std::istringstream sstream(argv[13]);
         sstream >> utauPara.pitch;
     }
