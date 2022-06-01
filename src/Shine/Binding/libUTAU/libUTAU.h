@@ -63,7 +63,6 @@ public:
     double cross_length = 0.0;
     double stretch_length = 0.0;
     int output_samples = 0;
-    int *pitch_bend = nullptr;
     double scale_num = 0.0;
     int tempo_num = 0;
     bool is_custom_pitch = false;
