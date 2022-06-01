@@ -19,7 +19,7 @@ add_executable(WorldAnalysisTest WorldAnalysisTest.cpp)
 target_link_libraries(WorldAnalysisTest world::tool world::core)
 
 add_executable(GenerateAudioModelTest GenerateAudioModelTest.cpp)
-target_link_libraries(GenerateAudioModelTest FileIO ConfigUnit Threads::Threads AudioModel sndfile)
+target_link_libraries(GenerateAudioModelTest FileIO ConfigUnit AudioProcess Threads::Threads AudioModel sndfile)
 
 add_executable(AudioProcessTest AudioProcessTest.cpp)
 target_link_libraries(AudioProcessTest AudioProcess AudioModel Shine world::tool)
