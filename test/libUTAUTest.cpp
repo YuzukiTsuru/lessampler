@@ -9,7 +9,7 @@
 int main(int argc, char **argv) {
     try {
         libUTAU libUtau(argc, argv);
-        libUtau.printUTAUPara();
+        libUtau.PrintUTAUPara();
     } catch (const std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
     }

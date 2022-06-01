@@ -30,7 +30,7 @@ libUTAU::libUTAU(int argc, char **argv) {
     utauPara = paser.get_para();
 }
 
-void libUTAU::printUTAUPara() const {
+void libUTAU::PrintUTAUPara() const {
     std::stringstream ss;
     ss << "\nProgram Name:           " << utauPara.local_name;
     ss << "\nIn File Name:           " << utauPara.input_file_name;
@@ -51,8 +51,12 @@ void libUTAU::printUTAUPara() const {
     YALL_DEBUG_ << ss.str();
 }
 
-[[maybe_unused]] UTAUPara libUTAU::getUTAUPara() const {
+[[maybe_unused]] UTAUPara libUTAU::GetUTAUPara() const {
     return utauPara;
+}
+
+UTAUFlags libUTAU::GetUTAUFlags() const {
+    return utauFlags;
 }
 
 void libUTAU::CheckPara(lessAudioModel audioModel) {
@@ -87,3 +91,4 @@ void libUTAU::CheckPara(lessAudioModel audioModel) {
 
     utauPara.output_samples = static_cast<int>(utauPara.required_length * 0.001 * audioModel.fs) + 1;
 }
+

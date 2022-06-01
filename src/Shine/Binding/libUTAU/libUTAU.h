@@ -72,14 +72,17 @@ class libUTAU {
 public:
     libUTAU(int argc, char *argv[]);
 
-    void printUTAUPara() const;
+    void PrintUTAUPara() const;
 
     void CheckPara(lessAudioModel audioModel);
 
-    [[maybe_unused]] [[nodiscard]] UTAUPara getUTAUPara() const;
+    [[maybe_unused]] [[nodiscard]] UTAUPara GetUTAUPara() const;
+
+    [[nodiscard]] UTAUFlags GetUTAUFlags() const;
 
 private:
     UTAUPara utauPara;
+    UTAUFlags utauFlags;
 };
 
 #endif //LESSAMPLER_LIBUTAU_H
