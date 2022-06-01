@@ -30,6 +30,7 @@ public:
     double velocity = 0.0;
     double offset = 0.0;
     double required_length = 0.0;
+    int required_frame = 0;
     double first_half_fixed_part = 0.0;
     double last_unused_part = 0.0;
     double volumes = 0;
@@ -40,9 +41,14 @@ public:
     double cross_length = 0.0;
     double stretch_length = 0.0;
     int output_samples = 0;
-    int *pitch_bend = nullptr;
     double scale_num = 0.0;
     int tempo_num = 0;
+
+public:
+    // Pitch sections
+    int *pitch_bend = nullptr;
+    int pitch_length = 0;
+    int pitch_step = 256;
 
 public:
     // Options
