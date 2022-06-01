@@ -34,14 +34,8 @@ private:
     TransAudioModel transAudioModel{};
     ShinePara shine;
 
-    int pitch_length = 0;
-    int pitch_step = 256;
-    int required_frame = 0;
-
 private:
     void PicthEqualizing();
-
-    void DecodePitchBend();
 
     [[nodiscard]] double GetAvgFreq() const;
 
