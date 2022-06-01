@@ -63,11 +63,9 @@ int main(int argc, char *argv[]) {
 
     auto less_i = audioModel.GetAudioModel();
 
-    Shine shine(argc, argv, less_i, Shine::UTAU);
+    Shine shine(argc, argv, less_i, Shine::SHINE_MODE::UTAU);
 
     auto shine_para = shine.GetShine();
-
-    UTAUFlags utauFlags;
 
     AudioProcess aduioProcess(less_i, shine_para);
 
