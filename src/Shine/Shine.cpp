@@ -16,22 +16,18 @@
 // Created by gloom on 2022/5/30.
 //
 
+#include <utility>
+#include <cstring>
+#include <cmath>
+
 #include "Shine.h"
 
-#include <utility>
+#include "Utils/LOG.h"
+#include "Binding/libUTAU/PitchBendDecoder.h"
 
-Shine::Shine(ShinePara para): shine_para(std::move(para)) {}
+[[maybe_unused]] Shine::Shine(ShinePara para) : shine_para(std::move(para)) {}
 
-Shine::Shine(const UTAUPara &utau_para, UTAUFlags utau_flags) {
-    SetShine(utau_para, utau_flags);
-}
-
-ShinePara Shine::GetShine() {
-    return shine_para;
-}
-
-
-void Shine::SetShine(const UTAUPara &utau_para, UTAUFlags utau_flags) {
+[[maybe_unused]] Shine::Shine(const UTAUPara &utau_para, UTAUFlags utau_flags, lessAudioModel audioModel) {
     shine_para.input_file_name = utau_para.input_file_name;
     shine_para.output_file_name = utau_para.output_file_name;
     shine_para.time_percent = utau_para.time_percent;
@@ -51,6 +47,37 @@ void Shine::SetShine(const UTAUPara &utau_para, UTAUFlags utau_flags) {
     shine_para.scale_num = utau_para.scale_num;
     shine_para.tempo_num = utau_para.tempo_num;
     shine_para.is_custom_pitch = utau_para.is_custom_pitch;
+    DecodePitchBend(audioModel.fs, audioModel.frame_period, utau_para.pitch);
 }
 
+ShinePara Shine::GetShine() {
+    return shine_para;
+}
 
+void Shine::DecodePitchBend(int fs, double frame_period, std::string pitch) {
+    if (shine_para.tempo_num == 0)
+        shine_para.tempo_num = 120;
+
+    if (shine_para.is_custom_pitch) {
+        shine_para.pitch_step = static_cast<int>(lround(60.0 / 96.0 / shine_para.tempo_num * fs));
+        shine_para.pitch_length = shine_para.output_samples / shine_para.pitch_step + 1;
+
+        YALL_DEBUG_ << "The Pitch Length is: " + std::to_string(shine_para.pitch_length);
+
+        PitchBendDecoder pitchBendDecoder(pitch, shine_para.pitch_length);
+
+        shine_para.pitch_bend = new int[shine_para.pitch_length + 1];
+        for (int i = 0; i < shine_para.pitch_length + 1; ++i) {
+            shine_para.pitch_bend[i] = 0;
+        }
+        std::memcpy(shine_para.pitch_bend, pitchBendDecoder.getPitchBend(), sizeof(int) * shine_para.pitch_length);
+    } else {
+        shine_para.pitch_bend = new int[shine_para.pitch_length + 1];
+        for (int i = 0; i < shine_para.pitch_length + 1; ++i) {
+            shine_para.pitch_bend[i] = 0;
+        }
+    }
+
+    shine_para.required_frame = static_cast<int>(1000.0 * shine_para.output_samples / fs / frame_period) + 1;
+    YALL_DEBUG_ << "The required frame is: " + std::to_string(shine_para.required_frame);
+}
