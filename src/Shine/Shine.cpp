@@ -27,6 +27,14 @@
 
 [[maybe_unused]] Shine::Shine(ShinePara para) : shine_para(std::move(para)) {}
 
+Shine::Shine(int argc, char *argv[], lessAudioModel audioModel, SHINE_MODE mode) {
+    if (mode == SHINE_MODE::UTAU) {
+        libUTAU utau(argc, argv);
+        utau.CheckPara(audioModel);
+        Shine(utau.GetUTAUPara(), utau.GetUTAUFlags(), audioModel);
+    }
+}
+
 [[maybe_unused]] Shine::Shine(const UTAUPara &utau_para, UTAUFlags utau_flags, lessAudioModel audioModel) {
     shine_para.input_file_name = utau_para.input_file_name;
     shine_para.output_file_name = utau_para.output_file_name;
@@ -81,3 +89,5 @@ void Shine::DecodePitchBend(int fs, double frame_period, std::string pitch) {
     shine_para.required_frame = static_cast<int>(1000.0 * shine_para.output_samples / fs / frame_period) + 1;
     YALL_DEBUG_ << "The required frame is: " + std::to_string(shine_para.required_frame);
 }
+
+

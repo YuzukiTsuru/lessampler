@@ -21,9 +21,11 @@
 #include "ConfigUnit/lessConfigure.h"
 #include "AudioProcess/AudioProcess.h"
 #include "AudioProcess/AutoAMP.h"
-#include "libUTAU/libUTAU.h"
 #include "Utils/LOG.h"
 #include "world/synthesis.h"
+
+#include "Shine/Shine.h"
+#include "Shine/ShinePara.h"
 
 #include "../lib/World/tools/audioio.h"
 
@@ -61,30 +63,26 @@ int main(int argc, char *argv[]) {
 
     auto less_i = audioModel.GetAudioModel();
 
-    libUTAU utau(argc, argv);
+    Shine shine(argc, argv, less_i, Shine::UTAU);
 
-    utau.CheckPara(less_i);
-
-    utau.printUTAUPara();
-
-    auto utauPara = utau.getUTAUPara();
+    auto shine_para = shine.GetShine();
 
     UTAUFlags utauFlags;
 
-    AudioProcess aduioProcess(less_i, utauPara, utauFlags);
+    AudioProcess aduioProcess(less_i, shine_para);
 
     auto less_t = aduioProcess.GetTransAudioModel();
 
     YALL_DEBUG_ << "Trans Done. Generate File...";
 
-    auto *y = new double[utauPara.output_samples];
-    for (int i = 0; i < utauPara.output_samples; ++i) y[i] = 0.0;
+    auto *y = new double[shine_para.output_samples];
+    for (int i = 0; i < shine_para.output_samples; ++i) y[i] = 0.0;
     Synthesis(less_t.t_f0, less_t.t_f0_length, less_t.t_spectrogram, less_t.t_aperiodicity,
-              less_i.fft_size, less_i.frame_period, less_i.fs, utauPara.output_samples, y);
+              less_i.fft_size, less_i.frame_period, less_i.fs, shine_para.output_samples, y);
 
-    AutoAMP amp(utauPara, utauFlags, y);
+    AutoAMP amp(shine_para, y);
 
     y = amp.GetAMP();
 
-    wavwrite(y, utauPara.output_samples, less_i.fs, nbit, argv[2]);
+    wavwrite(y, shine_para.output_samples, less_i.fs, nbit, argv[2]);
 }
