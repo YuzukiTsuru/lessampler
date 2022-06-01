@@ -22,12 +22,13 @@
 #include "ShinePara.h"
 
 #include "Binding/libUTAU/libUTAU.h"
+#include "AudioModel/lessAudioModel.h"
 
 class Shine {
 public:
-    Shine(ShinePara para);
+    [[maybe_unused]] explicit Shine(ShinePara para);
 
-    Shine(const UTAUPara& utau_para, UTAUFlags utau_flags);
+    [[maybe_unused]] Shine(const UTAUPara &utau_para, UTAUFlags utau_flags, lessAudioModel audioModel);
 
     ~Shine() = default;
 
@@ -37,7 +38,7 @@ private:
     ShinePara shine_para;
 
 private:
-    void SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags)
+    void DecodePitchBend(int fs, double frame_period, std::string pitch);
 };
 
 
