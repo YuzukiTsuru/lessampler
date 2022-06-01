@@ -27,8 +27,6 @@
 AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(audioModel), shine(std::move(shine)) {
     YALL_DEBUG_ << "Equalizing Picth...";
     PicthEqualizing();
-    YALL_DEBUG_ << "Decode Pitch Bend...";
-    DecodePitchBend();
     YALL_DEBUG_ << "Time Stretch...";
     TimeStretch();
 }
@@ -57,36 +55,6 @@ void AudioProcess::PicthEqualizing() {
             }
         }
     }
-}
-
-void AudioProcess::DecodePitchBend() {
-    if (shine.tempo_num == 0)
-        shine.tempo_num = 120;
-
-    if (shine.is_custom_pitch) {
-        pitch_step = static_cast<int>(lround(60.0 / 96.0 / shine.tempo_num * audioModel.fs));
-        pitch_length = shine.output_samples / pitch_step + 1;
-
-        YALL_DEBUG_ << "The Pitch Length is: " + std::to_string(pitch_length);
-
-        PitchBendDecoder pitchBendDecoder(shine.pitch, pitch_length);
-
-        shine.pitch_bend = new int[pitch_length + 1];
-        for (int i = 0; i < pitch_length + 1; ++i) {
-            shine.pitch_bend[i] = 0;
-        }
-
-        std::memcpy(shine.pitch_bend, pitchBendDecoder.getPitchBend(), sizeof(int) * pitch_length);
-    } else {
-        shine.pitch_bend = new int[pitch_length + 1];
-        for (int i = 0; i < pitch_length + 1; ++i) {
-            shine.pitch_bend[i] = 0;
-        }
-    }
-
-    required_frame = static_cast<int>(1000.0 * shine.output_samples / audioModel.fs / audioModel.frame_period) + 1;
-    YALL_DEBUG_ << "The required frame is: " + std::to_string(required_frame);
-    transAudioModel.t_f0_length = required_frame;
 }
 
 double AudioProcess::GetAvgFreq() const {
@@ -171,12 +139,12 @@ void AudioProcess::TimeStretch() {
             }
         }
 
-        _sample_ap_trans_index = _out_sample_index * 0.001 * audioModel.fs / pitch_step;
+        _sample_ap_trans_index = _out_sample_index * 0.001 * audioModel.fs / shine.pitch_step;
         _ap_trans_index = static_cast<int>(floor(_sample_ap_trans_index));
         _sample_ap_trans_index -= _ap_trans_index;
 
-        if (_ap_trans_index >= pitch_length) {
-            _ap_trans_index = pitch_length - 1;
+        if (_ap_trans_index >= shine.pitch_length) {
+            _ap_trans_index = shine.pitch_length - 1;
             _sample_sp_trans_index = 0.0;
         }
 
