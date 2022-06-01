@@ -83,8 +83,10 @@ double AudioProcess::GetAvgFreq() const {
 void AudioProcess::TimeStretch() {
     YALL_DEBUG_ << "Allocate memory for target audio f0, sp, ap";
 
-    if (transAudioModel.t_f0_length == 0)
+    if (shine.required_frame == 0)
         throw parameter_error("The target audio frame length is 0");
+
+    transAudioModel.t_f0_length = shine.required_frame;
 
     transAudioModel.t_f0 = new double[transAudioModel.t_f0_length];
     for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
