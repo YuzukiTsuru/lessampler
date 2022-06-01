@@ -34,7 +34,7 @@ public:
 
     [[maybe_unused]] Shine(int argc, char *argv[], lessAudioModel audioModel, SHINE_MODE mode);
 
-    [[maybe_unused]] Shine(const UTAUPara &utau_para, UTAUFlags utau_flags, lessAudioModel audioModel);
+    [[maybe_unused]] Shine(const UTAUPara& utau_para, UTAUFlags utau_flags, lessAudioModel audioModel);
 
     ~Shine() = default;
 

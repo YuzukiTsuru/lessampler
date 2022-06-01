@@ -22,4 +22,4 @@ add_executable(GenerateAudioModelTest GenerateAudioModelTest.cpp)
 target_link_libraries(GenerateAudioModelTest FileIO Threads::Threads AudioModel sndfile)
 
 add_executable(AudioProcessTest AudioProcessTest.cpp)
-target_link_libraries(AudioProcessTest AudioProcess AudioModel UTAU world::tool)
+target_link_libraries(AudioProcessTest AudioProcess AudioModel Shine world::tool)
