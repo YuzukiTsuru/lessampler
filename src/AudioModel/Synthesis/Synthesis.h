@@ -19,13 +19,33 @@
 #ifndef LESSAMPLER_SYNTHESIS_H
 #define LESSAMPLER_SYNTHESIS_H
 
+#include <iostream>
+
 #include "AudioModel/lessAudioModel.h"
+
+class SynthesisPara {
+public:
+    int fs;
+    int f0_length;
+    double *f0;
+    double **spectrogram;
+    double **aperiodicity;
+};
 
 class Synthesis {
 public:
-    explicit Synthesis(lessAudioModel audioModel);
+    explicit Synthesis(lessAudioModel audioModel, int x_length);
 
-    explicit Synthesis(TransAudioModel transAudioModel);
+private:
+    double *x = nullptr;
+    int x_length = 0;
+
+    lessAudioModel audioModel{};
+
+private:
+    void AllocateMemory();
+
+    void SynthesisWav() const;
 };
 
 
