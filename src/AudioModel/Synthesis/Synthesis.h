@@ -19,9 +19,13 @@
 #ifndef LESSAMPLER_SYNTHESIS_H
 #define LESSAMPLER_SYNTHESIS_H
 
+#include "AudioModel/lessAudioModel.h"
 
 class Synthesis {
+public:
+    explicit Synthesis(lessAudioModel audioModel);
 
+    explicit Synthesis(TransAudioModel transAudioModel);
 };
 
 
