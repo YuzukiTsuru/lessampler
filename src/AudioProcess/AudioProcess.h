@@ -27,11 +27,11 @@ class AudioProcess {
 public:
     AudioProcess(lessAudioModel audioModel, ShinePara shine);
 
-    TransAudioModel GetTransAudioModel();
+    lessAudioModel GetTransAudioModel();
 
 private:
     lessAudioModel audioModel{};
-    TransAudioModel transAudioModel{};
+    lessAudioModel transAudioModel{};
     ShinePara shine;
 
 private:
