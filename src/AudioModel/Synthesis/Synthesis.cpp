@@ -17,3 +17,7 @@
 //
 
 #include "Synthesis.h"
+
+Synthesis::Synthesis(lessAudioModel audioModel) {
+
+}
