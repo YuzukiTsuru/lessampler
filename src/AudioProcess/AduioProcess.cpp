@@ -18,7 +18,6 @@
 //
 #include <cmath>
 #include <utility>
-#include <cstring>
 
 #include "Utils/exception.h"
 #include "Utils/LOG.h"
@@ -31,7 +30,7 @@ AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioMo
     TimeStretch();
 }
 
-TransAudioModel AudioProcess::GetTransAudioModel() {
+lessAudioModel AudioProcess::GetTransAudioModel() {
     return transAudioModel;
 }
 
@@ -86,21 +85,21 @@ void AudioProcess::TimeStretch() {
     if (shine.required_frame == 0)
         throw parameter_error("The target audio frame length is 0");
 
-    transAudioModel.t_f0_length = shine.required_frame;
+    transAudioModel.f0_length = shine.required_frame;
 
-    transAudioModel.t_f0 = new double[transAudioModel.t_f0_length];
-    for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
-        transAudioModel.t_f0[i] = 0.0;
+    transAudioModel.f0 = new double[transAudioModel.f0_length];
+    for (int i = 0; i < transAudioModel.f0_length; ++i) {
+        transAudioModel.f0[i] = 0.0;
     }
 
-    transAudioModel.t_spectrogram = new double *[transAudioModel.t_f0_length];
-    transAudioModel.t_aperiodicity = new double *[transAudioModel.t_f0_length];
-    for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
-        transAudioModel.t_spectrogram[i] = new double[audioModel.w_length];
-        transAudioModel.t_aperiodicity[i] = new double[audioModel.w_length];
+    transAudioModel.spectrogram = new double *[transAudioModel.f0_length];
+    transAudioModel.aperiodicity = new double *[transAudioModel.f0_length];
+    for (int i = 0; i < transAudioModel.f0_length; ++i) {
+        transAudioModel.spectrogram[i] = new double[audioModel.w_length];
+        transAudioModel.aperiodicity[i] = new double[audioModel.w_length];
         for (int j = 0; j < audioModel.w_length; ++j) {
-            transAudioModel.t_spectrogram[i][j] = 0.0;
-            transAudioModel.t_aperiodicity[i][j] = 0.0;
+            transAudioModel.spectrogram[i][j] = 0.0;
+            transAudioModel.aperiodicity[i][j] = 0.0;
         }
     }
 
@@ -110,7 +109,7 @@ void AudioProcess::TimeStretch() {
     double _sample_sp_trans_index, _sample_ap_trans_index, _out_sample_index, _in_sample_index;
     int _sp_trans_index, _ap_trans_index;
 
-    for (int i = 0; i < transAudioModel.t_f0_length; ++i) {
+    for (int i = 0; i < transAudioModel.f0_length; ++i) {
         _out_sample_index = audioModel.frame_period * i;
         if (_out_sample_index < shine.base_length) {
             _in_sample_index = shine.offset + _out_sample_index * shine.velocity;
@@ -157,18 +156,18 @@ void AudioProcess::TimeStretch() {
         auto pitch_base = shine.scale_num * pow(2, (shine.pitch_bend[_ap_trans_index] * (1.0 - _sample_ap_trans_index) +
                                                     shine.pitch_bend[_ap_trans_index + 1] * _sample_ap_trans_index) / 1200.0);
 
-        YALL_DEBUG_ << "Trans F0 " + std::to_string(transAudioModel.t_f0[i]) + " Add " + std::to_string(pitch_base);
-        transAudioModel.t_f0[i] = pitch_base;
+        YALL_DEBUG_ << "Trans F0 " + std::to_string(transAudioModel.f0[i]) + " Add " + std::to_string(pitch_base);
+        transAudioModel.f0[i] = pitch_base;
 
-        transAudioModel.t_f0[i] = transAudioModel.t_f0[i] * pow(temp_f0 / avg_freq, shine.modulation * 0.01);
+        transAudioModel.f0[i] = transAudioModel.f0[i] * pow(temp_f0 / avg_freq, shine.modulation * 0.01);
 
         YALL_DEBUG_ << "Trans SP ";
         for (int j = 0; j < audioModel.w_length; ++j) {
             if (_sp_trans_index < audioModel.f0_length - 1) {
-                transAudioModel.t_spectrogram[i][j] = audioModel.spectrogram[_sp_trans_index][j] * (1.0 - _sample_sp_trans_index) +
+                transAudioModel.spectrogram[i][j] = audioModel.spectrogram[_sp_trans_index][j] * (1.0 - _sample_sp_trans_index) +
                                                       audioModel.spectrogram[_sp_trans_index + 1][j] * _sample_sp_trans_index;
             } else {
-                transAudioModel.t_spectrogram[i][j] = audioModel.spectrogram[audioModel.f0_length - 1][j];
+                transAudioModel.spectrogram[i][j] = audioModel.spectrogram[audioModel.f0_length - 1][j];
             }
         }
 
@@ -180,9 +179,9 @@ void AudioProcess::TimeStretch() {
 
         for (int j = 0; j < audioModel.w_length; ++j) {
             if (_ap_trans_index < audioModel.f0_length) {
-                transAudioModel.t_aperiodicity[i][j] = audioModel.aperiodicity[_ap_trans_index][j];
+                transAudioModel.aperiodicity[i][j] = audioModel.aperiodicity[_ap_trans_index][j];
             } else {
-                transAudioModel.t_aperiodicity[i][j] = audioModel.aperiodicity[audioModel.f0_length - 1][j];
+                transAudioModel.aperiodicity[i][j] = audioModel.aperiodicity[audioModel.f0_length - 1][j];
             }
         }
     }

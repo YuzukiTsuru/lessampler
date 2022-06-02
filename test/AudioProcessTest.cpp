@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
 
     auto *y = new double[shine_para.output_samples];
     for (int i = 0; i < shine_para.output_samples; ++i) y[i] = 0.0;
-    Synthesis(less_t.t_f0, less_t.t_f0_length, less_t.t_spectrogram, less_t.t_aperiodicity,
+    Synthesis(less_t.f0, less_t.f0_length, less_t.spectrogram, less_t.aperiodicity,
               less_i.fft_size, less_i.frame_period, less_i.fs, shine_para.output_samples, y);
 
     AutoAMP amp(shine_para, y);
