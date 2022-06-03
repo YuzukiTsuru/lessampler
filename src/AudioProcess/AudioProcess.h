@@ -21,28 +21,21 @@
 #define LESSAMPLER_AUDIOPROCESS_H
 
 #include "AudioModel/lessAudioModel.h"
-#include "libUTAU/libUTAU.h"
+#include "Shine/ShinePara.h"
 
-class AduioProcess {
+class AudioProcess {
 public:
-    AduioProcess(lessAudioModel audioModel, UTAUPara utauPara, UTAUFlags flags);
+    AudioProcess(lessAudioModel audioModel, ShinePara shine);
 
-    TransAudioModel GetTransAudioModel();
+    lessAudioModel GetTransAudioModel();
 
 private:
     lessAudioModel audioModel{};
-    TransAudioModel transAudioModel{};
-    UTAUPara utauPara{};
-    UTAUFlags flags;
-
-    int pitch_length = 0;
-    int pitch_step = 256;
-    int required_frame = 0;
+    lessAudioModel transAudioModel{};
+    ShinePara shine;
 
 private:
     void PicthEqualizing();
-
-    void DecodePitchBend();
 
     [[nodiscard]] double GetAvgFreq() const;
 
