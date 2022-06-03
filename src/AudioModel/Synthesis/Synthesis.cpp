@@ -34,8 +34,6 @@ void Synthesis::AllocateMemory() {
 }
 
 void Synthesis::SynthesisWav() const {
-    DWORD elapsed_time;
-
     WorldSynthesizer synthesizer = {0};
     int buffer_size = 64;
     InitializeSynthesizer(audioModel.fs, audioModel.frame_period,
