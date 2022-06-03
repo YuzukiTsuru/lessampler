@@ -38,12 +38,4 @@ public:
     int fft_size = 0;
 };
 
-class TransAudioModel {
-public:
-    int t_f0_length;
-    double *t_f0;
-    double **t_spectrogram;
-    double **t_aperiodicity;
-};
-
 #endif //LESSAMPLER_LESSAUDIOMODEL_H

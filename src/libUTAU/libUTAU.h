@@ -39,17 +39,17 @@ public:
 class UTAUPara {
 public:
     // Basic Transformation Parameters
-    std::string localName = {};
-    std::string inputFileName = {};
-    std::string outputFileName = {};
-    std::string scaleName = {};
-    int timePercent = 0;
+    std::string local_name = {};
+    std::string input_file_name = {};
+    std::string output_file_name = {};
+    std::string scale_name = {};
+    int time_percent = 0;
     double velocity = 0.0;
     std::string flags = {};
     double offset = 0.0;
-    double requiredLength = 0.0;
-    double firstHalfFixedPart = 0.0;
-    double lastUnusedPart = 0.0;
+    double required_length = 0.0;
+    double first_half_fixed_part = 0.0;
+    double last_unused_part = 0.0;
     double volumes = 0;
     int modulation = 0;
     std::string tempo = {};
@@ -63,24 +63,26 @@ public:
     double cross_length = 0.0;
     double stretch_length = 0.0;
     int output_samples = 0;
-    int *pitch_bend = nullptr;
-    double scaleNum = 0.0;
-    int tempoNum = 0;
-    bool isCustomPitch = false;
+    double scale_num = 0.0;
+    int tempo_num = 0;
+    bool is_custom_pitch = false;
 };
 
 class libUTAU {
 public:
     libUTAU(int argc, char *argv[]);
 
-    void printUTAUPara() const;
+    void PrintUTAUPara() const;
 
     void CheckPara(lessAudioModel audioModel);
 
-    [[maybe_unused]] [[nodiscard]] UTAUPara getUTAUPara() const;
+    [[maybe_unused]] [[nodiscard]] UTAUPara GetUTAUPara() const;
+
+    [[nodiscard]] UTAUFlags GetUTAUFlags() const;
 
 private:
     UTAUPara utauPara;
+    UTAUFlags utauFlags;
 };
 
 #endif //LESSAMPLER_LIBUTAU_H

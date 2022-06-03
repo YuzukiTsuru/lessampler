@@ -13,44 +13,39 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 //
-// Created by gloom on 2022/5/21.
+// Created by gloom on 2022/5/30.
 //
 
-#ifndef LESSAMPLER_AUTOAMP_H
-#define LESSAMPLER_AUTOAMP_H
+#ifndef LESSAMPLER_SHINE_H
+#define LESSAMPLER_SHINE_H
 
+#include "ShinePara.h"
+
+#include "Binding/libUTAU/libUTAU.h"
 #include "AudioModel/lessAudioModel.h"
-#include "Shine/ShinePara.h"
 
-class AutoAMP {
+class Shine {
 public:
-    AutoAMP(ShinePara shine, double *x);
+    enum SHINE_MODE{
+        UTAU,
+    };
+public:
+    [[maybe_unused]] explicit Shine(ShinePara para);
 
-    double *GetAMP();
+    [[maybe_unused]] Shine(int argc, char *argv[], lessAudioModel audioModel, SHINE_MODE mode);
 
-private:
-    ShinePara shine;
+    ~Shine() = default;
 
-    int x_length = 0;
-    double *x = nullptr;
-    double *x_out = nullptr;
-
-    const double default_sample_value = 0.86;
-    const double MaxValue = 1.0;
-    const double MinValue = -1.0;
-
-    double sample_value = 0.0;
-    double MaxAMP = 0.0;
+    [[maybe_unused]] ShinePara GetShine();
 
 private:
-    void GetMaxAMP();
+    ShinePara shine_para;
 
-    void SetDefaultValue();
+private:
+    void SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, lessAudioModel audioModel);
 
-    void DiminishedConsonantFricative();
-
-    void LimitMaximumAmplitude();
+    void DecodePitchBend(int fs, double frame_period, std::string pitch);
 };
 
 
-#endif //LESSAMPLER_AUTOAMP_H
+#endif //LESSAMPLER_SHINE_H

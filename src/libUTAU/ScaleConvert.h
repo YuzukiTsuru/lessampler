@@ -30,11 +30,11 @@ private:
     double scaleNum = 0.0;
     /*
      * Scale Name Convert to number than double
-     * IN: std::string scaleName
+     * IN: std::string scale_name
      * RET: bool
      *   true -> success
      *   false -> fail
-     * OUT: double scaleNum
+     * OUT: double scale_num
      */
     bool ScaleConvertToDouble(std::string scaleName);
 };

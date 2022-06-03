@@ -18,7 +18,7 @@ if (UNIX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif ()
 
-target_link_libraries(lessampler PRIVATE AudioModel FileIO Dialogs UTAU ConfigUnit Threads::Threads)
+target_link_libraries(lessampler PRIVATE AudioModel AudioProcess FileIO Dialogs UTAU ConfigUnit Threads::Threads)
 
 if (MSVC)
     target_compile_options(lessampler PUBLIC "/utf-8")
