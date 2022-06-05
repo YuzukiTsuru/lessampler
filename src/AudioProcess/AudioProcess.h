@@ -31,6 +31,8 @@ private:
     ShinePara shine;
 
 private:
+    void InitTransAudioModel();
+
     void PicthEqualizing();
 
     [[nodiscard]] double GetAvgFreq() const;

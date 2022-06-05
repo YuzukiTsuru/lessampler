@@ -19,10 +19,19 @@
 #include "Utils/LOG.h"
 #include "world/synthesisrealtime.h"
 
-Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : x_length(x_length) {
+Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(audioModel), x_length(x_length) {
     YALL_DEBUG_ << "Allocate Memory for output wav, length: " + std::to_string(x_length);
     AllocateMemory();
+    YALL_DEBUG_ << "Synthesis Wav...";
+    SynthesisWav();
+}
 
+Synthesis::~Synthesis() {
+    delete x;
+}
+
+double *Synthesis::GetWavData() {
+    return x;
 }
 
 void Synthesis::AllocateMemory() {
@@ -61,3 +70,4 @@ void Synthesis::SynthesisWav() const {
     }
     DestroySynthesizer(&synthesizer);
 }
+

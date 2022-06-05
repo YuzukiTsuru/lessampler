@@ -20,6 +20,8 @@
 #include "AudioProcess.h"
 
 AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(audioModel), shine(std::move(shine)) {
+    YALL_DEBUG_ << "Init TransAudioModel default data...";
+    InitTransAudioModel();
     YALL_DEBUG_ << "Equalizing Picth...";
     PicthEqualizing();
     YALL_DEBUG_ << "Time Stretch...";
@@ -28,6 +30,10 @@ AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioMo
 
 lessAudioModel AudioProcess::GetTransAudioModel() {
     return transAudioModel;
+}
+
+void AudioProcess::InitTransAudioModel() {
+    transAudioModel = audioModel;
 }
 
 void AudioProcess::PicthEqualizing() {
@@ -225,4 +231,5 @@ void AudioProcess::histc(const double *x, int x_length, const double *edges, int
     count--;
     for (i++; i < edges_length; ++i) index[i] = count;
 }
+
 
