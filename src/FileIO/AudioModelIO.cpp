@@ -10,16 +10,17 @@
 
 #include <iostream>
 #include <fstream>
+#include <utility>
 
 #include "AudioModelIO.h"
 #include "Utils/LOG.h"
 #include "Utils/exception.h"
 
-AudioModelIO::AudioModelIO(const std::string &FilePath, lessAudioModel audioModel) : RootFilePath(FilePath), _audioModel(audioModel) {
+AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel) : RootFilePath(std::move(Path)), _audioModel(audioModel) {
     GenerateFilePath();
 }
 
-AudioModelIO::AudioModelIO(const std::string &FilePath) : RootFilePath(FilePath) {
+AudioModelIO::AudioModelIO(std::filesystem::path Path) : RootFilePath(std::move(Path)) {
     GenerateFilePath();
 }
 
@@ -34,7 +35,7 @@ AudioModelIO::~AudioModelIO() {
     delete[] _audioModel.aperiodicity;
 }
 
-[[maybe_unused]] void AudioModelIO::SetFilePath(const std::string &Path) {
+[[maybe_unused]] void AudioModelIO::SetFilePath(const std::filesystem::path &Path) {
     RootFilePath = Path;
     GenerateFilePath();
 }
@@ -47,8 +48,8 @@ AudioModelIO::~AudioModelIO() {
     return _audioModel;
 }
 
-[[maybe_unused]] std::string AudioModelIO::GetFilePath() {
-    return RootFilePath.string();
+[[maybe_unused]] std::filesystem::path AudioModelIO::GetFilePath() {
+    return RootFilePath;
 }
 
 void AudioModelIO::GenerateFilePath() {
