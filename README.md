@@ -12,7 +12,7 @@
   - [ ] llsm
 - Global Transform Control
   - [x] Precise Pitch Shift and Time Stretch
-  - [ ] FFT Size, Samples Number, Estimation Floor and so on
+  - [x] FFT Size, Samples Number, Estimation Floor and so on
   - [ ] Support breath sound generation
   - [ ] Support timbre gender change
 - Multiple Interactive Interfaces
