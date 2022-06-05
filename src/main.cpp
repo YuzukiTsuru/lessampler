@@ -12,5 +12,9 @@
 
 int main(int argc, char *argv[]) {
     lessampler lessampler(argc, argv);
-    lessampler.run();
+    try {
+        lessampler.run();
+    } catch (const std::runtime_error &error) {
+        YALL_ERROR_ << error.what();
+    }
 }
