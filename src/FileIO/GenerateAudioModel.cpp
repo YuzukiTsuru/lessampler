@@ -35,6 +35,11 @@ GenerateAudioModel::GenerateAudioModel(std::filesystem::path path, lessConfigure
     GenerateModelFromFile();
 }
 
+GenerateAudioModel::GenerateAudioModel(char *path, lessConfigure configure) : configure(std::move(configure)) {
+    auto file_path = std::string(path);
+    WavFileModel(file_path);
+}
+
 void GenerateAudioModel::PrintWavFiles() {
     for (const auto &file: wav_files) {
         YALL_DEBUG_ << file.string();
@@ -117,3 +122,4 @@ template<class I, class F>
 void GenerateAudioModel::for_each(I begin, I end, F f) {
     for_each(std::thread::hardware_concurrency(), begin, end, f);
 }
+
