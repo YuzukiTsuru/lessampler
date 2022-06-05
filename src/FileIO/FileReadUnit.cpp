@@ -12,9 +12,10 @@
 // @Author Ghost Gloomy on 2020/1/26.
 //
 
+#include <iostream>
 #include "FileReadUnit.h"
 
-#include <iostream>
+#include "Utils/LOG.h"
 
 #if (defined (__WIN32__) || defined (_WIN32)) && !defined (__MINGW32__)
 #pragma warning(disable : 4996)
@@ -26,7 +27,7 @@ size_t FileReadUnit::GetAudioLength(const char *filename) {
     info.format = 0;
     sf = sf_open(filename, SFM_READ, &info);
     if (sf == nullptr) {
-        std::cerr << "Failed to open the file." << std::endl;
+        YALL_ERROR_ << "Failed to open the file.";
         exit(-1);
     }
     size_t len = info.frames;
@@ -39,18 +40,18 @@ int FileReadUnit::WavRead(const char *FilePath, double *output) {
     info.format = 0;
     sf = sf_open(FilePath, SFM_READ, &info);
     if (sf == nullptr) {
-        std::cerr << "Failed to open the file." << std::endl;
+        YALL_ERROR_ << "Failed to open the file.";
         exit(-1);
     }
     sf_count_t f = info.frames;
     int c = info.channels;
     if (c > 1) {
-        std::cerr << "Can't read stereo file for lessampler." << std::endl;
-        exit(-1);
+        YALL_WARN_<< "Can't read stereo file for lessampler. handle it as mono.";
+        // TODO: add mono handeler
     }
     auto num_items = f * c;
     auto buf = new double[num_items];
-    sf_count_t num = sf_read_double(sf, buf, num_items);
+    auto num = sf_read_double(sf, buf, num_items);
     sf_close(sf);
     for (int i = 0; i < num; i += c) {
         for (int j = 0; j < c; ++j) {
