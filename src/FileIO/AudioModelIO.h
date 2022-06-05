@@ -45,7 +45,7 @@ public:
     lessAudioModel ReadAudioModel();
 
 public:
-    static bool CheckAudioModelFile(const std::filesystem::path& path);
+    static bool CheckAudioModelFile(const std::filesystem::path &path);
 
 private:
     lessAudioModel _audioModel{};
@@ -61,6 +61,7 @@ protected:
     const char F0LengthHeader[5] = {'F', '0', 'L', ' ', '\0'};            // number of samples (int)
     const char FramePeridoHeader[5] = {'F', 'P', ' ', ' ', '\0'};         // frame perido (double)
     const char FFTSizeHeader[5] = {'F', 'F', 'T', ' ', '\0'};             // FFT size (int)
+    const char XLHeader[5] = {'X', 'L', ' ', ' ', '\0'};                  // x_length (int)
     const char FSHeader[5] = {'F', 'S', ' ', ' ', '\0'};                  // frame per sample (int)
     const char F0Header[5] = {'5', '4', '0', '0', '\0'};                  // F0
     const char SPHeader[5] = {'5', '4', '0', '1', '\0'};                  // SP
@@ -88,9 +89,11 @@ private: // Reader
     void ReadAP();
 
 private:
-    static void WriteOneParameter(FILE *fp, const char *text, double parameter, int size);
+    static void WriteOneParameter(FILE *fp, const char *text, int parameter);
 
-    static void LoadParameters(FILE *fp, int *f0_length, int *fft_size);
+    static void WriteOneParameter(FILE *fp, const char *text, double parameter);
+
+    static void LoadParameters(FILE *fp, int *f0_length, int *fft_size, double *frame_peroid, int *fs);
 
     static int CheckHeader(FILE *fp, const char *text);
 };
