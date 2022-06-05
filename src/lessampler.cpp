@@ -12,19 +12,23 @@
 
 #include "Utils/LOG.h"
 #include "Dialogs/Dialogs.h"
+#include "Shine/Shine.h"
+#include "AudioProcess/AudioProcess.h"
+#include "AudioProcess/AutoAMP.h"
+#include "AudioModel/Synthesis/Synthesis.h"
 #include "FileIO/GenerateAudioModel.h"
 
 #include "lessconfig.h"
-
+#include "StaticCast.h"
 #include "lessampler.h"
 
 lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
     // Get the executable file path
-    this->exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
+    exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
     YALL_DEBUG_ << "exec path: " + this->exec_path.string();
     // Setting the configure file and get config
-    ConfigUnit configUnit((this->exec_path / "less.cfg").string());
-    this->configure = configUnit.get_config();
+    ConfigUnit configUnit((this->exec_path / CONFIGFILENAME).string());
+    configure = configUnit.get_config();
 }
 
 void lessampler::show_logo() {
@@ -41,26 +45,71 @@ void lessampler::show_logo() {
               << std::endl;
 }
 
-void lessampler::run() const {
+void lessampler::run() {
     // Read configure
     if (this->configure.debug_mode) {
         YALL_DEBUG_.EnableDebug();
     }
 
+    // Parse CommandLine Args
+    if (ParseArgs()) {
+        AudioModelIO audio_model_io(in_file_path);
+
+        // Check if an audio model exists。 If it does not exist, turn on multi-threaded generation
+        if (!audio_model_io.CheckAudioModel()) {
+            YALL_INFO_ << "Audio model not found, generating...";
+            GenerateAudioModel genmodule(std::filesystem::weakly_canonical(std::filesystem::path(argv[1])).parent_path(), configure);
+        }
+
+        // Read audio model
+        auto origin_audio_model = audio_model_io.GetAudioModel();
+
+        // Generate Shine with audio model and parameters
+        Shine shine(argc, argv, origin_audio_model, Shine::SHINE_MODE::UTAU);
+        auto shine_para = shine.GetShine();
+
+        // Audio transform
+        AudioProcess aduioProcess(origin_audio_model, shine_para);
+        auto trans_audio_model = aduioProcess.GetTransAudioModel();
+
+        // Synthesize audio from a model
+        Synthesis synthesis(trans_audio_model, shine_para.output_samples);
+        auto out_wav_data = synthesis.GetWavData();
+
+        // Perform automatic amplification
+        AutoAMP amp(shine_para, out_wav_data);
+        out_wav_data = amp.GetAMP();
+
+        
+    }
+}
+
+bool lessampler::ParseArgs() {
+    // Basic Open
+    if (argc < 2) {
+        show_logo();
+        Dialogs::notify("lessampler", "lessampler: Configure");
+        // ADD Qt/TUI
+        return false;
+    }
+
     // model generation operator
     if (argc == 2) {
         show_logo();
+        Dialogs::notify("lessampler", "Start modeling against the audio files");
         YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
         GenerateAudioModel genmodule(argv[1], configure);
+        return false;
     }
 
-    if (argc < 2) {
-        show_logo();
-        Dialogs::notify("lessampler", "lessampler: no input file");
-        return;
+    // lessampler resampler
+    if (argc > 3) {
+        in_file_path = std::filesystem::path(argv[1]);
+        return true;
     }
+
+    // default
+    return false;
 }
 
-void lessampler::read_audio_file() {
 
-}
