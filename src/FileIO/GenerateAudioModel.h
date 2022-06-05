@@ -23,6 +23,7 @@
 class GenerateAudioModel {
 public:
     GenerateAudioModel(std::filesystem::path path, lessConfigure configure);
+    GenerateAudioModel(char *path, lessConfigure configure);
 
     void PrintWavFiles();
 
