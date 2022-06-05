@@ -43,6 +43,9 @@ public:
 
     lessAudioModel ReadAudioModel();
 
+public:
+    static bool CheckAudioModelFile(const std::filesystem::path& path);
+
 private:
     lessAudioModel _audioModel{};
     std::filesystem::path RootFilePath{};
