@@ -20,7 +20,7 @@
 #include "world/synthesisrealtime.h"
 
 Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(audioModel), x_length(x_length) {
-    YALL_DEBUG_ << "Allocate Memory for output wav, length: " + std::to_string(x_length);
+    YALL_DEBUG_ << "Allocate Out Memory, Length: " + std::to_string(x_length);
     AllocateMemory();
     YALL_DEBUG_ << "Synthesis Wav...";
     SynthesisWav();
