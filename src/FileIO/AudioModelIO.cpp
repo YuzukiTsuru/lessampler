@@ -80,31 +80,34 @@ void AudioModelIO::ReadAudioContent() {
     ReadAP();
 }
 
-void AudioModelIO::WriteOneParameter(FILE *fp, const char *text, double parameter, int size) {
+void AudioModelIO::WriteOneParameter(FILE *fp, const char *text, int parameter) {
     fwrite(text, 1, 4, fp);
-    if (size == 4) {
-        int parameter_int = static_cast<int>(parameter);
-        fwrite(&parameter_int, 4, 1, fp);
-    } else {
-        fwrite(&parameter, 8, 1, fp);
-    }
+    fwrite(&parameter, 4, 1, fp);
 }
 
-void AudioModelIO::LoadParameters(FILE *fp, int *f0_length, int *fft_size) {
-    char data_check[12];
+void AudioModelIO::WriteOneParameter(FILE *fp, const char *text, double parameter) {
+    fwrite(text, 1, 4, fp);
+    fwrite(&parameter, sizeof(double), 1, fp);
+}
+
+void AudioModelIO::LoadParameters(FILE *fp, int *f0_length, int *fft_size, double *frame_peroid, int *fs) {
+    char data_check[5];
     // NOF
     fread(&data_check, 1, 4, fp);
     fread(f0_length, 4, 1, fp);
 
-    // FP (may skipped)
-    fread(&data_check, 1, 12, fp);
+    // FP
+    fread(&data_check, 1, 4, fp);
+    *frame_peroid = 0.0;
+    fread(frame_peroid, sizeof(double), 1, fp);
 
     // FFT
     fread(&data_check, 1, 4, fp);
     fread(fft_size, 4, 1, fp);
 
-    // FS (may skipped)
-    fread(&data_check, 1, 8, fp);
+    // FS
+    fread(&data_check, 1, 4, fp);
+    fread(fs, 4, 1, fp);
 }
 
 int AudioModelIO::CheckHeader(FILE *fp, const char *text) {
@@ -127,8 +130,9 @@ void AudioModelIO::WriteF0() {
     fwrite(F0Header, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length, 4);
-    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period, 8);
+    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length);
+    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period);
+    WriteOneParameter(fp, XLHeader, _audioModel.x_length);
 
     // Data
     fwrite(_audioModel.f0, 8, _audioModel.f0_length, fp);
@@ -143,10 +147,10 @@ void AudioModelIO::WriteSP() {
     fwrite(SPHeader, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length, 4);
-    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period, 8);
-    WriteOneParameter(fp, FFTSizeHeader, _audioModel.fft_size, 4);
-    WriteOneParameter(fp, FSHeader, _audioModel.fs, 4);
+    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length);
+    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period);
+    WriteOneParameter(fp, FFTSizeHeader, _audioModel.fft_size);
+    WriteOneParameter(fp, FSHeader, _audioModel.fs);
 
     // Data
     for (int i = 0; i < _audioModel.f0_length; ++i)
@@ -163,10 +167,10 @@ void AudioModelIO::WriteAP() {
     fwrite(APHeader, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length, 4);
-    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period, 8);
-    WriteOneParameter(fp, FFTSizeHeader, _audioModel.fft_size, 4);
-    WriteOneParameter(fp, FSHeader, _audioModel.fs, 4);
+    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length);
+    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period);
+    WriteOneParameter(fp, FFTSizeHeader, _audioModel.fft_size);
+    WriteOneParameter(fp, FSHeader, _audioModel.fs);
 
     // Data
     for (int i = 0; i < _audioModel.f0_length; ++i)
@@ -190,9 +194,14 @@ void AudioModelIO::ReadF0() {
     // "NOF "
     fread(data_check, 1, 4, fp);
     fread(&_audioModel.f0_length, 4, 1, fp);
+
     // "FP  "
     fread(data_check, 1, 4, fp);
     fread(&_audioModel.frame_period, 8, 1, fp);
+
+    // "XL  "
+    fread(data_check, 1, 4, fp);
+    fread(&_audioModel.x_length, 4, 1, fp);
 
     // Data
     _audioModel.f0 = new double[_audioModel.f0_length];
@@ -218,7 +227,7 @@ void AudioModelIO::ReadSP() {
     }
 
     // Parameters
-    LoadParameters(fp, &_audioModel.f0_length, &_audioModel.fft_size);
+    LoadParameters(fp, &_audioModel.f0_length, &_audioModel.fft_size, &_audioModel.frame_period, &_audioModel.fs);
 
     _audioModel.w_length = _audioModel.fft_size / 2 + 1;
 
@@ -245,8 +254,10 @@ void AudioModelIO::ReadAP() {
     }
 
     // Parameters
-    int f0_length, fft_size;
-    LoadParameters(fp, &f0_length, &fft_size);
+    int f0_length, fft_size, fs;
+    double frame_peroid;
+    LoadParameters(fp, &f0_length, &fft_size, &frame_peroid, &fs);
+
     if (f0_length != _audioModel.f0_length) {
         throw parameter_error("SP AP File diff F0 LENGTH OR FFT Size, Broken Modeling");
     }
@@ -261,14 +272,17 @@ void AudioModelIO::ReadAP() {
     fclose(fp);
 }
 
-bool AudioModelIO::CheckAudioModelFile(const std::filesystem::path& path) {
+bool AudioModelIO::CheckAudioModelFile(const std::filesystem::path &path) {
     return std::filesystem::exists(path);
 }
 
 bool AudioModelIO::CheckAudioModel() {
-    YALL_DEBUG_ << "Check AudioModel File";
-    if (!CheckAudioModelFile(F0FilePath) || !CheckAudioModelFile(SPFilePath) || !CheckAudioModelFile(APFilePath))
+    YALL_DEBUG_ << "Check AudioModel File...";
+    if (!CheckAudioModelFile(F0FilePath) || !CheckAudioModelFile(SPFilePath) || !CheckAudioModelFile(APFilePath)) {
+        YALL_DEBUG_ << "Audio Model NOT Exist.";
         return false;
-    else
+    } else {
+        YALL_DEBUG_ << "Audio Model Exist.";
         return true;
+    }
 }
