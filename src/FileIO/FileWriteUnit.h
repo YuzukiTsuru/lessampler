@@ -15,9 +15,16 @@
 #ifndef LESSAMPLER_FILEWRITEUNIT_H
 #define LESSAMPLER_FILEWRITEUNIT_H
 
+#include <iostream>
+#include <filesystem>
+
+extern "C" {
+#include <sndfile.h>
+}
 
 class FileWriteUnit {
-
+public:
+    static void WriteWav(const std::filesystem::path& path, double *x, long long x_length, int fs);
 };
 
 
