@@ -49,23 +49,24 @@ public:
 
 private:
     lessAudioModel _audioModel{};
-    std::filesystem::path RootFilePath{};
-    std::filesystem::path F0FilePath{};
-    std::filesystem::path SPFilePath{};
-    std::filesystem::path APFilePath{};
+    std::filesystem::path root_file_path{};
+    std::filesystem::path in_file_path{};
+    std::filesystem::path f0_file_path{};
+    std::filesystem::path sp_file_path{};
+    std::filesystem::path ap_file_path{};
 
 protected:
-    const std::string F0FileExt = "lessaudiof0";
-    const std::string SPFileExt = "lessaudiosp";
-    const std::string APFileExt = "lessaudioap";
-    const char F0LengthHeader[5] = {'F', '0', 'L', ' ', '\0'};            // number of samples (int)
-    const char FramePeridoHeader[5] = {'F', 'P', ' ', ' ', '\0'};         // frame perido (double)
-    const char FFTSizeHeader[5] = {'F', 'F', 'T', ' ', '\0'};             // FFT size (int)
-    const char XLHeader[5] = {'X', 'L', ' ', ' ', '\0'};                  // x_length (int)
-    const char FSHeader[5] = {'F', 'S', ' ', ' ', '\0'};                  // frame per sample (int)
-    const char F0Header[5] = {'5', '4', '0', '0', '\0'};                  // F0
-    const char SPHeader[5] = {'5', '4', '0', '1', '\0'};                  // SP
-    const char APHeader[5] = {'5', '4', '0', '2', '\0'};                  // AP
+    const std::string f0_file_ext = "lessaudiof0";
+    const std::string sp_file_ext = "lessaudiosp";
+    const std::string ap_file_ext = "lessaudioap";
+    const char f0_length_header[5] = {'F', '0', 'L', ' ', '\0'};            // number of samples (int)
+    const char frame_period_header[5] = {'F', 'P', ' ', ' ', '\0'};         // frame perido (double)
+    const char fft_size_header[5] = {'F', 'F', 'T', ' ', '\0'};             // FFT size (int)
+    const char x_length_header[5] = {'X', 'L', ' ', ' ', '\0'};             // x_length (int)
+    const char fs_header[5] = {'F', 'S', ' ', ' ', '\0'};                   // frame per sample (int)
+    const char f0_header[5] = {'5', '4', '0', '0', '\0'};                   // F0
+    const char sp_header[5] = {'5', '4', '0', '1', '\0'};                   // SP
+    const char ap_header[5] = {'5', '4', '0', '2', '\0'};                   // AP
 
 private:
     void WriteAudioContent();

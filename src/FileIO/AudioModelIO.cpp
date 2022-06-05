@@ -16,11 +16,13 @@
 #include "Utils/LOG.h"
 #include "Utils/exception.h"
 
-AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel) : RootFilePath(std::move(Path)), _audioModel(audioModel) {
+AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel) : in_file_path(std::move(Path)), _audioModel(audioModel) {
+    root_file_path = in_file_path;
     GenerateFilePath();
 }
 
-AudioModelIO::AudioModelIO(std::filesystem::path Path) : RootFilePath(std::move(Path)) {
+AudioModelIO::AudioModelIO(std::filesystem::path Path) : in_file_path(std::move(Path)) {
+    root_file_path = in_file_path;
     GenerateFilePath();
 }
 
@@ -36,7 +38,7 @@ AudioModelIO::~AudioModelIO() {
 }
 
 [[maybe_unused]] void AudioModelIO::SetFilePath(const std::filesystem::path &Path) {
-    RootFilePath = Path;
+    root_file_path = Path;
     GenerateFilePath();
 }
 
@@ -49,13 +51,13 @@ AudioModelIO::~AudioModelIO() {
 }
 
 [[maybe_unused]] std::filesystem::path AudioModelIO::GetFilePath() {
-    return RootFilePath;
+    return root_file_path;
 }
 
 void AudioModelIO::GenerateFilePath() {
-    F0FilePath = RootFilePath.replace_extension(F0FileExt);
-    SPFilePath = RootFilePath.replace_extension(SPFileExt);
-    APFilePath = RootFilePath.replace_extension(APFileExt);
+    f0_file_path = root_file_path.replace_extension(f0_file_ext);
+    sp_file_path = root_file_path.replace_extension(sp_file_ext);
+    ap_file_path = root_file_path.replace_extension(ap_file_ext);
 }
 
 void AudioModelIO::SaveAudioModel() {
@@ -122,17 +124,17 @@ int AudioModelIO::CheckHeader(FILE *fp, const char *text) {
 }
 
 void AudioModelIO::WriteF0() {
-    FILE *fp = fopen(F0FilePath.string().c_str(), "wb");
+    FILE *fp = fopen(f0_file_path.string().c_str(), "wb");
     if (nullptr == fp)
-        throw file_open_error(F0FilePath.string());
+        throw file_open_error(f0_file_path.string());
 
     // Header
-    fwrite(F0Header, 1, 4, fp);
+    fwrite(f0_header, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length);
-    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period);
-    WriteOneParameter(fp, XLHeader, _audioModel.x_length);
+    WriteOneParameter(fp, f0_length_header, _audioModel.f0_length);
+    WriteOneParameter(fp, frame_period_header, _audioModel.frame_period);
+    WriteOneParameter(fp, x_length_header, _audioModel.x_length);
 
     // Data
     fwrite(_audioModel.f0, 8, _audioModel.f0_length, fp);
@@ -140,17 +142,17 @@ void AudioModelIO::WriteF0() {
 }
 
 void AudioModelIO::WriteSP() {
-    FILE *fp = fopen(SPFilePath.string().c_str(), "wb");
+    FILE *fp = fopen(sp_file_path.string().c_str(), "wb");
     if (nullptr == fp)
-        throw file_open_error(SPFilePath.string());
+        throw file_open_error(sp_file_path.string());
     // Header
-    fwrite(SPHeader, 1, 4, fp);
+    fwrite(sp_header, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length);
-    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period);
-    WriteOneParameter(fp, FFTSizeHeader, _audioModel.fft_size);
-    WriteOneParameter(fp, FSHeader, _audioModel.fs);
+    WriteOneParameter(fp, f0_length_header, _audioModel.f0_length);
+    WriteOneParameter(fp, frame_period_header, _audioModel.frame_period);
+    WriteOneParameter(fp, fft_size_header, _audioModel.fft_size);
+    WriteOneParameter(fp, fs_header, _audioModel.fs);
 
     // Data
     for (int i = 0; i < _audioModel.f0_length; ++i)
@@ -159,18 +161,18 @@ void AudioModelIO::WriteSP() {
 }
 
 void AudioModelIO::WriteAP() {
-    FILE *fp = fopen(APFilePath.string().c_str(), "wb");
+    FILE *fp = fopen(ap_file_path.string().c_str(), "wb");
     if (nullptr == fp)
-        throw file_open_error(APFilePath.string());
+        throw file_open_error(ap_file_path.string());
 
     // Header
-    fwrite(APHeader, 1, 4, fp);
+    fwrite(ap_header, 1, 4, fp);
 
     // Parameters
-    WriteOneParameter(fp, F0LengthHeader, _audioModel.f0_length);
-    WriteOneParameter(fp, FramePeridoHeader, _audioModel.frame_period);
-    WriteOneParameter(fp, FFTSizeHeader, _audioModel.fft_size);
-    WriteOneParameter(fp, FSHeader, _audioModel.fs);
+    WriteOneParameter(fp, f0_length_header, _audioModel.f0_length);
+    WriteOneParameter(fp, frame_period_header, _audioModel.frame_period);
+    WriteOneParameter(fp, fft_size_header, _audioModel.fft_size);
+    WriteOneParameter(fp, fs_header, _audioModel.fs);
 
     // Data
     for (int i = 0; i < _audioModel.f0_length; ++i)
@@ -179,12 +181,12 @@ void AudioModelIO::WriteAP() {
 }
 
 void AudioModelIO::ReadF0() {
-    FILE *fp = fopen(F0FilePath.string().c_str(), "rb");
+    FILE *fp = fopen(f0_file_path.string().c_str(), "rb");
     if (nullptr == fp)
-        throw file_open_error(F0FilePath.string());
+        throw file_open_error(f0_file_path.string());
     // Header
     try {
-        CheckHeader(fp, F0Header);
+        CheckHeader(fp, f0_header);
     } catch (header_check_error &error) {
         YALL_ERROR_ << error.what();
     }
@@ -215,13 +217,13 @@ void AudioModelIO::ReadF0() {
 }
 
 void AudioModelIO::ReadSP() {
-    FILE *fp = fopen(SPFilePath.string().c_str(), "rb");
+    FILE *fp = fopen(sp_file_path.string().c_str(), "rb");
     if (nullptr == fp)
-        throw file_open_error(SPFilePath.string());
+        throw file_open_error(sp_file_path.string());
 
     // Header
     try {
-        CheckHeader(fp, SPHeader);
+        CheckHeader(fp, sp_header);
     } catch (header_check_error &error) {
         YALL_ERROR_ << error.what();
     }
@@ -242,13 +244,13 @@ void AudioModelIO::ReadSP() {
 }
 
 void AudioModelIO::ReadAP() {
-    FILE *fp = fopen(APFilePath.string().c_str(), "rb");
+    FILE *fp = fopen(ap_file_path.string().c_str(), "rb");
     if (nullptr == fp)
-        throw file_open_error(APFilePath.string());
+        throw file_open_error(ap_file_path.string());
 
     // Header
     try {
-        CheckHeader(fp, APHeader);
+        CheckHeader(fp, ap_header);
     } catch (header_check_error &error) {
         YALL_ERROR_ << error.what();
     }
@@ -277,8 +279,14 @@ bool AudioModelIO::CheckAudioModelFile(const std::filesystem::path &path) {
 }
 
 bool AudioModelIO::CheckAudioModel() {
-    YALL_DEBUG_ << "Check AudioModel File...";
-    if (!CheckAudioModelFile(F0FilePath) || !CheckAudioModelFile(SPFilePath) || !CheckAudioModelFile(APFilePath)) {
+    YALL_DEBUG_ << "Check AudioModel File: " + in_file_path.string();
+
+    // x.wav handler
+    if (in_file_path.stem() == std::filesystem::path("x")){
+        return true;
+    }
+
+    if (!CheckAudioModelFile(f0_file_path) || !CheckAudioModelFile(sp_file_path) || !CheckAudioModelFile(ap_file_path)) {
         YALL_DEBUG_ << "Audio Model NOT Exist.";
         return false;
     } else {
