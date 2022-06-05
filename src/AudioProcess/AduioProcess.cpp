@@ -19,6 +19,10 @@
 #include "Utils/LOG.h"
 #include "AudioProcess.h"
 
+#ifdef DEBUG_MODE
+#include <fstream>
+#endif
+
 AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(audioModel), shine(std::move(shine)) {
     YALL_DEBUG_ << "Init TransAudioModel default data...";
     InitTransAudioModel();
@@ -167,7 +171,7 @@ void AudioProcess::TimeStretch() {
         for (int j = 0; j < audioModel.w_length; ++j) {
             if (_sp_trans_index < audioModel.f0_length - 1) {
                 transAudioModel.spectrogram[i][j] = audioModel.spectrogram[_sp_trans_index][j] * (1.0 - _sample_sp_trans_index) +
-                                                      audioModel.spectrogram[_sp_trans_index + 1][j] * _sample_sp_trans_index;
+                                                    audioModel.spectrogram[_sp_trans_index + 1][j] * _sample_sp_trans_index;
             } else {
                 transAudioModel.spectrogram[i][j] = audioModel.spectrogram[audioModel.f0_length - 1][j];
             }
@@ -187,6 +191,25 @@ void AudioProcess::TimeStretch() {
             }
         }
     }
+
+#ifdef DEBUG_MODE
+    std::ofstream of(shine.output_file_name + ".log", std::ios::out | std::ios::app);
+
+    of << "AVG FREQ: " << avg_freq << "\n"
+       << "Trans F0 Length: " << transAudioModel.f0_length << "\n";
+    of << "Original F0: \n";
+    for (int j = 0; j < audioModel.f0_length; ++j) {
+        of << audioModel.f0[j] << " ";
+    }
+
+    of << "\nTransd F0: \n";
+    for (int j = 0; j < transAudioModel.f0_length; ++j) {
+        of << transAudioModel.f0[j] << " ";
+    }
+    of << "\n";
+
+    of.close();
+#endif
 }
 
 void AudioProcess::interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi) {
