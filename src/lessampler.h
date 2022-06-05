@@ -26,16 +26,17 @@ class lessampler {
 public:
     lessampler(int argc, char **argv);
 
-    void run() const;
+    void run();
 
 private:
     int argc;
     char **argv;
     std::filesystem::path exec_path;
+    std::filesystem::path in_file_path;
     lessConfigure configure;
 
 private:
-    void read_audio_file();
+    [[nodiscard]] bool ParseArgs();
 
 private:
     static void show_logo();

@@ -30,4 +30,6 @@
 #define _SQRT_1_2                0.70710678118655               // 1/sqrt(2)
 #define _SQRT_3                  1.73205077648163               // sqrt(3)
 
+#define CONFIGFILENAME           "lessampler.fex"
+
 #endif //LESSAMPLER_STATICCAST_H
