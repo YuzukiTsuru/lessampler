@@ -24,18 +24,17 @@
 
 class AudioModelIO {
 public:
-    // TODO Using filesystem instead of string
-    AudioModelIO(const std::string &Path, lessAudioModel audioModel);
+    AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel);
 
-    explicit AudioModelIO(const std::string &Path);
+    explicit AudioModelIO(std::filesystem::path Path);
 
     ~AudioModelIO();
 
-    [[maybe_unused]] void SetFilePath(const std::string &Path);
+    [[maybe_unused]] void SetFilePath(const std::filesystem::path &Path);
 
     [[maybe_unused]] void SetAudioModel(lessAudioModel audioModel);
 
-    [[maybe_unused]] std::string GetFilePath();
+    [[maybe_unused]] std::filesystem::path GetFilePath();
 
     [[maybe_unused]] lessAudioModel GetAudioModel();
 
