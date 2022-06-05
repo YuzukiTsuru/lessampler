@@ -13,3 +13,28 @@
 //
 
 #include "FileWriteUnit.h"
+
+#include <Utils/LOG.h>
+
+#if (defined (__WIN32__) || defined (_WIN32)) && !defined (__MINGW32__)
+#pragma warning(disable : 4996)
+#endif
+
+void FileWriteUnit::WriteWav(const std::filesystem::path &path, double *x, long long x_length, int fs) {
+    SNDFILE *sf;
+    SF_INFO info;
+    info.channels = 1;
+    info.samplerate = fs;
+    info.frames = x_length;
+    info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+
+    sf = sf_open(path.string().c_str(), SFM_WRITE, &info);
+    if (sf == nullptr) {
+        YALL_ERROR_ << "Failed to open the file.";
+        exit(-1);
+    }
+
+    sf_write_double(sf, x, x_length);
+
+    sf_close(sf);
+}
