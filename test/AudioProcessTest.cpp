@@ -71,7 +71,9 @@ int main(int argc, char *argv[]) {
 
     Synthesis synthesis(less_t, shine_para.output_samples);
 
-    auto y = synthesis.GetWavData();
+    // Probably not necessary but try a deep copy
+    auto y = new double[shine_para.output_samples];
+    std::copy(synthesis.GetWavData(), synthesis.GetWavData() + shine_para.output_samples, y);
 
     AutoAMP amp(shine_para, y);
 
