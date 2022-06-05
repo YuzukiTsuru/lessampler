@@ -17,6 +17,7 @@
 #include "AudioProcess/AutoAMP.h"
 #include "AudioModel/Synthesis/Synthesis.h"
 #include "FileIO/GenerateAudioModel.h"
+#include "FileIO/FileWriteUnit.h"
 
 #include "lessconfig.h"
 #include "StaticCast.h"
@@ -62,6 +63,7 @@ void lessampler::run() {
         }
 
         // Read audio model
+        audio_model_io.ReadAudioModel();
         auto origin_audio_model = audio_model_io.GetAudioModel();
 
         // Generate Shine with audio model and parameters
@@ -80,7 +82,8 @@ void lessampler::run() {
         AutoAMP amp(shine_para, out_wav_data);
         out_wav_data = amp.GetAMP();
 
-
+        // Save to target wav file
+        FileWriteUnit::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);
     }
 }
 
