@@ -281,12 +281,6 @@ bool AudioModelIO::CheckAudioModelFile(const std::filesystem::path &path) {
 bool AudioModelIO::CheckAudioModel() {
     YALL_DEBUG_ << "Check AudioModel File: " + in_file_path.string();
 
-    // In some projects, the creator will use x.wav, z.wav or other non-existing audio to force truncation of audio
-    // here is a basic handle to reduce errors
-    if (!std::filesystem::exists(in_file_path)){
-        return true;
-    }
-
     if (!CheckAudioModelFile(f0_file_path) || !CheckAudioModelFile(sp_file_path) || !CheckAudioModelFile(ap_file_path)) {
         YALL_DEBUG_ << "Audio Model NOT Exist.";
         return false;
