@@ -18,7 +18,7 @@
 #include "AudioProcess/AudioProcess.h"
 #include "AudioProcess/AutoAMP.h"
 #include "Utils/LOG.h"
-#include "world/synthesis.h"
+#include "AudioModel/Synthesis/Synthesis.h"
 
 #include "Shine/Shine.h"
 #include "Shine/ShinePara.h"
@@ -69,10 +69,9 @@ int main(int argc, char *argv[]) {
 
     YALL_DEBUG_ << "Trans Done. Generate File...";
 
-    auto *y = new double[shine_para.output_samples];
-    for (int i = 0; i < shine_para.output_samples; ++i) y[i] = 0.0;
-    Synthesis(less_t.f0, less_t.f0_length, less_t.spectrogram, less_t.aperiodicity,
-              less_i.fft_size, less_i.frame_period, less_i.fs, shine_para.output_samples, y);
+    Synthesis synthesis(less_t, shine_para.output_samples);
+
+    auto y = synthesis.GetWavData();
 
     AutoAMP amp(shine_para, y);
 
