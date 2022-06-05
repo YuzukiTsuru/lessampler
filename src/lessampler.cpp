@@ -56,6 +56,12 @@ void lessampler::run() {
     if (ParseArgs()) {
         AudioModelIO audio_model_io(in_file_path);
 
+        // In some projects, the creator will use x.wav, z.wav or other non-existing audio to force truncation of audio
+        // here is a basic handle。
+        if (!std::filesystem::exists(in_file_path)){
+            return;
+        }
+
         // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
         if (!audio_model_io.CheckAudioModel()) {
             YALL_INFO_ << "Audio model: " + in_file_path.string() + " not found, generating...";
