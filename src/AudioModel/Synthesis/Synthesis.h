@@ -19,18 +19,13 @@
 
 #include "AudioModel/lessAudioModel.h"
 
-class SynthesisPara {
-public:
-    int fs;
-    int f0_length;
-    double *f0;
-    double **spectrogram;
-    double **aperiodicity;
-};
-
 class Synthesis {
 public:
     explicit Synthesis(lessAudioModel audioModel, int x_length);
+
+    ~Synthesis();
+
+    double *GetWavData();
 
 private:
     double *x = nullptr;
