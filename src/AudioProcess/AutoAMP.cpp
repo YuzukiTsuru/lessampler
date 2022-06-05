@@ -50,6 +50,9 @@ void AutoAMP::GetMaxAMP() {
             }
         }
     }
+    if (MaxAMP == 0.0){
+        YALL_WARN_ << "Max AMP is Zero.";
+    }
 }
 
 void AutoAMP::SetDefaultValue() {
