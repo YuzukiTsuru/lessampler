@@ -259,3 +259,7 @@ void AudioModelIO::ReadAP() {
 
     fclose(fp);
 }
+
+bool AudioModelIO::CheckAudioModelFile(const std::filesystem::path& path) {
+    return std::filesystem::exists(path);
+}
