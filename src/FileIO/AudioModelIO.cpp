@@ -263,3 +263,11 @@ void AudioModelIO::ReadAP() {
 bool AudioModelIO::CheckAudioModelFile(const std::filesystem::path& path) {
     return std::filesystem::exists(path);
 }
+
+bool AudioModelIO::CheckAudioModel() {
+    YALL_DEBUG_ << "Check AudioModel File";
+    if (!CheckAudioModelFile(F0FilePath) || !CheckAudioModelFile(SPFilePath) || !CheckAudioModelFile(APFilePath))
+        return false;
+    else
+        return true;
+}

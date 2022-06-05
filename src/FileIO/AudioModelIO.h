@@ -39,6 +39,8 @@ public:
 
     [[maybe_unused]] lessAudioModel GetAudioModel();
 
+    bool CheckAudioModel();
+
     void SaveAudioModel();
 
     lessAudioModel ReadAudioModel();
