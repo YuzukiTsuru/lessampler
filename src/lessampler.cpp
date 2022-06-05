@@ -55,7 +55,7 @@ void lessampler::run() {
     if (ParseArgs()) {
         AudioModelIO audio_model_io(in_file_path);
 
-        // Check if an audio model exists。 If it does not exist, turn on multi-threaded generation
+        // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
         if (!audio_model_io.CheckAudioModel()) {
             YALL_INFO_ << "Audio model not found, generating...";
             GenerateAudioModel genmodule(std::filesystem::weakly_canonical(std::filesystem::path(argv[1])).parent_path(), configure);
@@ -80,7 +80,7 @@ void lessampler::run() {
         AutoAMP amp(shine_para, out_wav_data);
         out_wav_data = amp.GetAMP();
 
-        
+
     }
 }
 
