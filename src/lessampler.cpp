@@ -124,4 +124,9 @@ bool lessampler::ParseArgs() {
     return false;
 }
 
+void lessampler::ShowAudioInfo(lessAudioModel audioModel) {
+    YALL_INFO_ << "Audio Sample Rate: " + std::to_string(audioModel.fs);
+    YALL_INFO_ << "Model Sample Rate: " + std::to_string(audioModel.frame_period);
+}
+
 
