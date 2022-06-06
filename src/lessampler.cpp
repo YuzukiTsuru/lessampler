@@ -65,8 +65,10 @@ void lessampler::run() {
 
         // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
         if (!audio_model_io.CheckAudioModel()) {
-            YALL_INFO_ << "Audio model: " + in_file_path.string() + " not found, generating...";
+            YALL_INFO_ << "Audio Model: " + in_file_path.string() + " not found, generating...";
             GenerateAudioModel genmodule(argv[1], configure);
+        } else {
+            YALL_INFO_ << "Found Audio Model.";
         }
 
         // Read audio model
