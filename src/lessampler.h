@@ -39,6 +39,8 @@ private:
     [[nodiscard]] bool ParseArgs();
 
 private:
+    static void ShowAudioInfo(lessAudioModel audioModel);
+
     static void show_logo();
 };
 
