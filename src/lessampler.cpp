@@ -75,6 +75,8 @@ void lessampler::run() {
         audio_model_io.ReadAudioModel();
         auto origin_audio_model = audio_model_io.GetAudioModel();
 
+        ShowAudioInfo(origin_audio_model);
+
         // Generate Shine with audio model and parameters
         Shine shine(argc, argv, origin_audio_model, Shine::SHINE_MODE::UTAU);
         auto shine_para = shine.GetShine();
