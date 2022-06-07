@@ -7,6 +7,7 @@
 [![forthebadge](https://forthebadge.com/images/badges/contains-cat-gifs.svg)](https://forthebadge.com)
 
 ## Download
+***Currently lesssampler is still very unstable, there are many bugs that need to be fixed, but you are very welcome to participate in the test***
 
 You can find the beta version at Release
 
