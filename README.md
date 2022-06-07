@@ -9,7 +9,7 @@
 ## Download
 ***Currently lesssampler is still very unstable, there are many bugs that need to be fixed, but you are very welcome to participate in the test***
 
-You can find the beta version at Release
+You can find the beta version at [Release](https://github.com/YuzukiTsuru/lessampler/releases)
 
 ## Feature
 - Multiple models
