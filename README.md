@@ -6,6 +6,10 @@
 
 [![forthebadge](https://forthebadge.com/images/badges/contains-cat-gifs.svg)](https://forthebadge.com)
 
+## Download
+
+You can find the beta version at Release
+
 ## Feature
 - Multiple models
   - [x] World
