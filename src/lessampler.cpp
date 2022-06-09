@@ -54,7 +54,7 @@ void lessampler::run() {
 
     // Parse CommandLine Args
     if (ParseArgs()) {
-        YALL_INFO_ << "lessampler Copyright (c)  2018 - 2022, YuzukiTsuru \n version:" + std::string(PROJECT_GIT_HASH);
+        YALL_INFO_ << "lessampler Copyright (c)  2018 - 2022, YuzukiTsuru Version: " + std::string(PROJECT_GIT_HASH);
         AudioModelIO audio_model_io(in_file_path);
 
         // In some projects, the creator will use x.wav, z.wav or other non-existing audio to force truncation of audio
