@@ -16,7 +16,8 @@
 #include "Utils/LOG.h"
 #include "Utils/exception.h"
 
-AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel) : in_file_path(std::move(Path)), _audioModel(audioModel) {
+AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel) :
+        in_file_path(std::move(Path)), _audioModel(std::move(audioModel)) {
     root_file_path = in_file_path;
     GenerateFilePath();
 }
@@ -26,16 +27,7 @@ AudioModelIO::AudioModelIO(std::filesystem::path Path) : in_file_path(std::move(
     GenerateFilePath();
 }
 
-AudioModelIO::~AudioModelIO() {
-    delete[] _audioModel.time_axis;
-    delete[] _audioModel.f0;
-    for (int i = 0; i < _audioModel.f0_length; ++i) {
-        delete[] _audioModel.spectrogram[i];
-        delete[] _audioModel.aperiodicity[i];
-    }
-    delete[] _audioModel.spectrogram;
-    delete[] _audioModel.aperiodicity;
-}
+AudioModelIO::~AudioModelIO() = default;
 
 [[maybe_unused]] void AudioModelIO::SetFilePath(const std::filesystem::path &Path) {
     root_file_path = Path;
@@ -43,7 +35,7 @@ AudioModelIO::~AudioModelIO() {
 }
 
 [[maybe_unused]] void AudioModelIO::SetAudioModel(lessAudioModel audioModel) {
-    _audioModel = audioModel;
+    _audioModel = std::move(audioModel);
 }
 
 [[maybe_unused]] lessAudioModel AudioModelIO::GetAudioModel() {
@@ -137,7 +129,7 @@ void AudioModelIO::WriteF0() {
     WriteOneParameter(fp, x_length_header, _audioModel.x_length);
 
     // Data
-    fwrite(_audioModel.f0, 8, _audioModel.f0_length, fp);
+    fwrite(_audioModel.f0.data(), 8, _audioModel.f0_length, fp);
     fclose(fp);
 }
 
@@ -156,7 +148,7 @@ void AudioModelIO::WriteSP() {
 
     // Data
     for (int i = 0; i < _audioModel.f0_length; ++i)
-        fwrite(_audioModel.spectrogram[i], 8, _audioModel.w_length, fp);
+        fwrite(_audioModel.spectrogram[i].data(), 8, _audioModel.w_length, fp);
     fclose(fp);
 }
 
@@ -176,7 +168,7 @@ void AudioModelIO::WriteAP() {
 
     // Data
     for (int i = 0; i < _audioModel.f0_length; ++i)
-        fwrite(_audioModel.aperiodicity[i], 8, _audioModel.w_length, fp);
+        fwrite(_audioModel.aperiodicity[i].data(), 8, _audioModel.w_length, fp);
     fclose(fp);
 }
 
@@ -206,7 +198,7 @@ void AudioModelIO::ReadF0() {
     fread(&_audioModel.x_length, 4, 1, fp);
 
     // Data
-    _audioModel.f0 = new double[_audioModel.f0_length];
+    _audioModel.f0.reserve(_audioModel.f0_length);
     fread(_audioModel.f0, 8, _audioModel.f0_length, fp);
 
     fclose(fp);
