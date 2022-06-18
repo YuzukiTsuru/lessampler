@@ -23,7 +23,7 @@
 #include <fstream>
 #endif
 
-AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(audioModel), shine(std::move(shine)) {
+AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(std::move(audioModel)), shine(std::move(shine)) {
     YALL_DEBUG_ << "Init TransAudioModel default data...";
     InitTransAudioModel();
     YALL_DEBUG_ << "Equalizing Picth...";
@@ -92,11 +92,7 @@ void AudioProcess::TimeStretch() {
         throw parameter_error("The target audio frame length is 0");
 
     transAudioModel.f0_length = shine.required_frame;
-
-    transAudioModel.f0 = new double[transAudioModel.f0_length];
-    for (int i = 0; i < transAudioModel.f0_length; ++i) {
-        transAudioModel.f0[i] = 0.0;
-    }
+    transAudioModel.f0.reserve(shine.required_frame);
 
     transAudioModel.spectrogram = new double *[transAudioModel.f0_length];
     transAudioModel.aperiodicity = new double *[transAudioModel.f0_length];
