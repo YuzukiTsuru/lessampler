@@ -19,7 +19,7 @@
 
 class lessAudioModel {
 public:
-    size_t x_length = 0;
+    int x_length = 0;
     double frame_period = 0.0;
     int fs = 0;
 
