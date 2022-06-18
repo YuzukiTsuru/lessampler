@@ -16,8 +16,6 @@
 #include "FileIO/AudioModelIO.h"
 #include "FileIO/JSONFileIO.h"
 
-#include "Utils/VectorWrapper.h"
-
 #include "AudioModel.h"
 #include "WorldModule/WorldModule.h"
 
