@@ -94,15 +94,11 @@ void AudioProcess::TimeStretch() {
     transAudioModel.f0_length = shine.required_frame;
     transAudioModel.f0.reserve(shine.required_frame);
 
-    transAudioModel.spectrogram = new double *[transAudioModel.f0_length];
-    transAudioModel.aperiodicity = new double *[transAudioModel.f0_length];
+    transAudioModel.spectrogram.reserve(transAudioModel.f0_length);
+    transAudioModel.aperiodicity.reserve(transAudioModel.f0_length);
     for (int i = 0; i < transAudioModel.f0_length; ++i) {
-        transAudioModel.spectrogram[i] = new double[audioModel.w_length];
-        transAudioModel.aperiodicity[i] = new double[audioModel.w_length];
-        for (int j = 0; j < audioModel.w_length; ++j) {
-            transAudioModel.spectrogram[i][j] = 0.0;
-            transAudioModel.aperiodicity[i][j] = 0.0;
-        }
+        transAudioModel.spectrogram[i].reserve(transAudioModel.w_length);
+        transAudioModel.spectrogram[i].reserve(transAudioModel.w_length);
     }
 
     YALL_DEBUG_ << "Get Stretch Paras";
