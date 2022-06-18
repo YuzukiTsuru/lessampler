@@ -22,7 +22,7 @@ AudioModel::AudioModel(double *x, size_t x_length, int fs, const lessConfigure &
     _lessAudioModel.fs = fs;
 
     // initialize the audio model from x, x_length, fs using World Vocoder
-    WorldModule model(_lessAudioModel.x, _lessAudioModel.fs, configure);
+    WorldModule model(x, x_length, _lessAudioModel.fs, configure);
     worldPara = model.GetModule();
     InitAudioModel();
 }
