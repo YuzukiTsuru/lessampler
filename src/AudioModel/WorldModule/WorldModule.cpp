@@ -22,16 +22,24 @@
 #include <world/harvest.h>
 #include <world/d4c.h>
 
-WorldModule::WorldModule(double *x, int x_length, int fs, const lessConfigure &configure) : x(x), x_length(x_length), configure(configure) {
+#include <utility>
+
+WorldModule::WorldModule(std::vector<double> x_vector, int fs, const lessConfigure &configure) : configure(configure) {
+    // Set the para
     this->worldPara.fs = fs;
     this->worldPara.frame_period = configure.audio_model_frame_period;
+
+    // Copy
+    x_length = static_cast<int>(x_vector.size());
+    std::copy(x_vector.begin(), x_vector.end(), x);
+
     YALL_DEBUG_ << "Generate F0 from PCM file.";
     if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO) {
         F0EstimationDio();
     } else if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST) {
         F0EstimationHarvest();
     } else {
-        YALL_ERROR_ << "F0 Estimation Mode Error.";
+        throw std::runtime_error("F0 Estimation Mode Error.");
     }
     YALL_DEBUG_ << "Generate Envelope from PCM file and F0.";
     SpectralEnvelopeEstimation();

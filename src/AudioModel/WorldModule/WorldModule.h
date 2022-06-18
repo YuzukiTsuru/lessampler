@@ -15,12 +15,16 @@
 #ifndef LESSAMPLER_WORLDMODULE_H
 #define LESSAMPLER_WORLDMODULE_H
 
+#include <iostream>
+#include <vector>
+
 #include "WorldPara.h"
 #include "ConfigUnit/lessConfigure.h"
 
+
 class WorldModule {
 public:
-    WorldModule(double *x, int x_length, int fs, const lessConfigure &configure);
+    WorldModule(std::vector<double> x_vector, int fs, const lessConfigure &configure);
 
     ~WorldModule();
 
