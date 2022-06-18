@@ -14,7 +14,7 @@
 #include "AudioModel.h"
 #include "WorldModule/WorldModule.h"
 
-AudioModel::AudioModel(double *x, size_t x_length, int fs, const lessConfigure &configure) : configure(configure) {
+AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure &configure) : configure(configure) {
     _lessAudioModel.x.reserve(x_length);
     _lessAudioModel.x.insert(_lessAudioModel.x.end(), x, x + x_length);
 
