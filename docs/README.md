@@ -37,4 +37,25 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
 
 # Contributing to lessampler
 
+This section contains articles that are relevant to anyone who wants to contribute to lessampler and help improve the project.
+
+It provides an introduction to contributing, along with a few ideas for how you can help.
+
 ## lessaudio file format
+
+lessaudio is the audio source model format file used by lessampler, which contains the audio f0, spectrogram, aperiodicity and some basic parameters corresponding to them. The following table lists the index order and its function.
+
+> ! Note: the current version of lessaudio only saves the data of lessaudiomodel, if there is any modification in the future, it will be explained here
+
+| index | data | data size |
+| ----- | ---- | --------- |
+| 1     |      |           |
+| 2     |      |           |
+| 3     |      |           |
+| 4     |      |           |
+| 5     |      |           |
+| 6     |      |           |
+| 7     |      |           |
+| 8     |      |           |
+| 9     |      |           |
+
