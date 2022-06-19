@@ -29,7 +29,7 @@ public:
     /*
      * Get Audio Length
      */
-    static size_t GetAudioLength(const char *filename);
+    static int GetAudioLength(const char *filename);
 
     /*
      * Read Audio
