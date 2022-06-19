@@ -51,14 +51,10 @@ private:
     lessAudioModel _audioModel{};
     std::filesystem::path root_file_path{};
     std::filesystem::path in_file_path{};
-    std::filesystem::path f0_file_path{};
-    std::filesystem::path sp_file_path{};
-    std::filesystem::path ap_file_path{};
+    std::filesystem::path audio_model_file_path{};
 
 protected:
-    const std::string f0_file_ext = "lessaudiof0";
-    const std::string sp_file_ext = "lessaudiosp";
-    const std::string ap_file_ext = "lessaudioap";
+    const std::string audio_model_file_ext = "lessaudio";
     const char f0_length_header[5] = {'F', '0', 'L', ' ', '\0'};            // number of samples (int)
     const char frame_period_header[5] = {'F', 'P', ' ', ' ', '\0'};         // frame perido (double)
     const char fft_size_header[5] = {'F', 'F', 'T', ' ', '\0'};             // FFT size (int)
@@ -74,29 +70,6 @@ private:
     void ReadAudioContent();
 
     void GenerateFilePath();
-
-private: // Writer
-    void WriteF0();
-
-    void WriteSP();
-
-    void WriteAP();
-
-private: // Reader
-    void ReadF0();
-
-    void ReadSP();
-
-    void ReadAP();
-
-private:
-    static void WriteOneParameter(FILE *fp, const char *text, int parameter);
-
-    static void WriteOneParameter(FILE *fp, const char *text, double parameter);
-
-    static void LoadParameters(FILE *fp, int *f0_length, int *fft_size, double *frame_peroid, int *fs);
-
-    static int CheckHeader(FILE *fp, const char *text);
 };
 
 
