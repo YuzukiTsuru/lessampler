@@ -34,3 +34,7 @@ lessampler is a Singing Voice Synthesizer. It provides complete pitch shifting, 
 ***Currently lesssampler is still very unstable, there are many bugs that need to be fixed, but you are very welcome to participate in the test.***
 
 You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessampler/releases)
+
+# Contributing to lessampler
+
+## lessaudio file format
