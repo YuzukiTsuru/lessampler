@@ -20,7 +20,9 @@
 #include "AudioProcess.h"
 
 #ifdef DEBUG_MODE
+
 #include <fstream>
+
 #endif
 
 AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(std::move(audioModel)), shine(std::move(shine)) {
@@ -192,6 +194,22 @@ void AudioProcess::TimeStretch() {
     of << "\nTransd F0: \n";
     for (int j = 0; j < transAudioModel.f0_length; ++j) {
         of << transAudioModel.f0[j] << " ";
+    }
+    of << "\n";
+
+    of << "\nTransd SP: \n";
+    for (int j = 0; j < transAudioModel.f0_length; ++j) {
+        for (int i = 0; i < transAudioModel.w_length; ++i) {
+            of << transAudioModel.spectrogram[j][i] << " ";
+        }
+    }
+    of << "\n";
+
+    of << "\nTransd AP: \n";
+    for (int j = 0; j < transAudioModel.f0_length; ++j) {
+        for (int i = 0; i < transAudioModel.w_length; ++i) {
+            of << transAudioModel.aperiodicity[j][i] << " ";
+        }
     }
     of << "\n";
 
