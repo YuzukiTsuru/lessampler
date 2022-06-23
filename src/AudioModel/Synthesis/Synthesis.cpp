@@ -62,8 +62,6 @@ void Synthesis::SynthesisWav() const {
         std::copy(audioModel.aperiodicity[i].begin(), audioModel.aperiodicity[i].end(), aperiodicity[i]);
     }
 
-
-
     int offset = 0;
     int index;
     for (int i = 0; i < audioModel.f0_length;) {

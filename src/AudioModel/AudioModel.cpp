@@ -46,15 +46,11 @@ void AudioModel::InitAudioModel() {
 
     _lessAudioModel.spectrogram.resize(worldPara.f0_length, std::vector<double>(_lessAudioModel.w_length));
     for (int i = 0; i < worldPara.f0_length; ++i) {
-        for (int j = 0; j < _lessAudioModel.w_length; ++j) {
-            _lessAudioModel.spectrogram[i][j] = (worldPara.spectrogram[i][j]);
-        }
+        _lessAudioModel.spectrogram[i].assign(&(worldPara.spectrogram[i][0]), &(worldPara.spectrogram[i][_lessAudioModel.w_length]));
     }
 
     _lessAudioModel.aperiodicity.resize(worldPara.f0_length, std::vector<double>(_lessAudioModel.w_length));
     for (int i = 0; i < worldPara.f0_length; ++i) {
-        for (int j = 0; j < _lessAudioModel.w_length; ++j) {
-            _lessAudioModel.aperiodicity[i][j] = (worldPara.aperiodicity[i][j]);
-        }
+        _lessAudioModel.aperiodicity[i].assign(&(worldPara.aperiodicity[i][0]), &(worldPara.aperiodicity[i][_lessAudioModel.w_length]));
     }
 }
