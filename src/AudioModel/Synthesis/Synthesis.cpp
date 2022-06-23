@@ -19,13 +19,21 @@
 #include <utility>
 
 #include "Utils/LOG.h"
+#include "Utils/Timer.h"
 #include "world/synthesisrealtime.h"
 
 Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(std::move(audioModel)), x_length(x_length) {
     YALL_DEBUG_ << "Allocate Out Memory, Length: " + std::to_string(x_length);
     AllocateMemory();
     YALL_DEBUG_ << "Synthesis Wav...";
+    uint64_t tmsStart = get_perf_count();
+
     SynthesisWav();
+
+    uint64_t tmsEnd = get_perf_count();
+    uint64_t usVal = (tmsEnd - tmsStart) / 10000;
+
+    YALL_INFO_ << "Synthesis Wav: " + std::to_string(usVal) + " ms";
 }
 
 Synthesis::~Synthesis() {
@@ -48,7 +56,6 @@ void Synthesis::SynthesisWav() const {
 
     auto f0 = new double[audioModel.f0.size()];
     std::copy(audioModel.f0.begin(), audioModel.f0.end(), f0);
-
     auto spectrogram = new double *[audioModel.f0_length];
     auto aperiodicity = new double *[audioModel.f0_length];
     for (int i = 0; i < audioModel.f0_length; ++i) {

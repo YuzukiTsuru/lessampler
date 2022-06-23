@@ -69,10 +69,6 @@ int main(int argc, char *argv[]) {
 
     YALL_DEBUG_ << "Trans Done. Generate File...";
 
-    for (int i = 0; i < less_t.f0_length; ++i) {
-        std::cout << less_t.f0[i] << " ";
-    }
-
     Synthesis synthesis(less_t, shine_para.output_samples);
 
     // Probably not necessary but try a deep copy
