@@ -92,7 +92,7 @@ void AudioProcess::TimeStretch() {
         throw parameter_error("The target audio frame length is 0");
 
     transAudioModel.f0_length = shine.required_frame;
-    transAudioModel.f0.reserve(shine.required_frame);
+    transAudioModel.f0.resize(shine.required_frame);
     transAudioModel.spectrogram.resize(transAudioModel.f0_length, std::vector<double>(audioModel.w_length));
     transAudioModel.aperiodicity.resize(transAudioModel.f0_length, std::vector<double>(audioModel.w_length));
 
@@ -154,9 +154,6 @@ void AudioProcess::TimeStretch() {
 
         transAudioModel.f0[i] = transAudioModel.f0[i] * pow(temp_f0 / avg_freq, shine.modulation * 0.01);
 
-        // 正确的
-        std::cout << transAudioModel.f0[i] << " ";
-
         YALL_DEBUG_ << "Trans SP ";
         for (int j = 0; j < audioModel.w_length; ++j) {
             if (_sp_trans_index < audioModel.f0_length - 1) {
@@ -180,11 +177,6 @@ void AudioProcess::TimeStretch() {
                 transAudioModel.aperiodicity[i][j] = audioModel.aperiodicity[audioModel.f0_length - 1][j];
             }
         }
-    }
-
-    // 错误了
-    for (int i = 0; i < transAudioModel.f0_length; ++i) {
-        std::cout << transAudioModel.f0[i] << " ";
     }
 
 #ifdef DEBUG_MODE
