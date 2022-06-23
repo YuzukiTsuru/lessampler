@@ -154,6 +154,9 @@ void AudioProcess::TimeStretch() {
 
         transAudioModel.f0[i] = transAudioModel.f0[i] * pow(temp_f0 / avg_freq, shine.modulation * 0.01);
 
+        // 正确的
+        std::cout << transAudioModel.f0[i] << " ";
+
         YALL_DEBUG_ << "Trans SP ";
         for (int j = 0; j < audioModel.w_length; ++j) {
             if (_sp_trans_index < audioModel.f0_length - 1) {
@@ -177,6 +180,11 @@ void AudioProcess::TimeStretch() {
                 transAudioModel.aperiodicity[i][j] = audioModel.aperiodicity[audioModel.f0_length - 1][j];
             }
         }
+    }
+
+    // 错误了
+    for (int i = 0; i < transAudioModel.f0_length; ++i) {
+        std::cout << transAudioModel.f0[i] << " ";
     }
 
 #ifdef DEBUG_MODE
