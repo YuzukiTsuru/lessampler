@@ -73,8 +73,14 @@ bool AudioModelIO::CheckAudioModel() {
 }
 
 void AudioModelIO::WriteAudioContent() {
-    std::ofstream audio_out_model(audio_model_file_path, std::ios::binary);
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0), std::streamsize(_audioModel.f0_length * sizeof(double)));
+    std::ofstream audio_out_model(audio_model_file_path, std::ios::out | std::ios::binary);
+
+    // Write fs
+    audio_out_model.write(reinterpret_cast<const char *>(_audioModel.fs), sizeof(_audioModel.fs));
+
+    // Write frame_period
+    audio_out_model.write(reinterpret_cast<const char *>(_audioModel.frame_period), sizeof(_audioModel.frame_period));
+
 }
 
 void AudioModelIO::ReadAudioContent() {
