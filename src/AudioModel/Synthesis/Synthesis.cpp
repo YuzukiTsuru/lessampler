@@ -49,6 +49,10 @@ void Synthesis::SynthesisWav() const {
     auto f0 = new double[audioModel.f0_length];
     std::copy(audioModel.f0.begin(), audioModel.f0.end(), f0);
 
+    for (int i = 0; i < audioModel.f0_length; ++i) {
+        std::cout << f0[i] << " ";
+    }
+
     auto spectrogram = new double *[audioModel.f0.size()];
     auto aperiodicity = new double *[audioModel.f0.size()];
     for (int i; i < audioModel.f0.size(); ++i) {
@@ -57,6 +61,8 @@ void Synthesis::SynthesisWav() const {
         std::copy(audioModel.spectrogram[i].begin(), audioModel.spectrogram[i].end(), spectrogram[i]);
         std::copy(audioModel.aperiodicity[i].begin(), audioModel.aperiodicity[i].end(), aperiodicity[i]);
     }
+
+
 
     int offset = 0;
     int index;
