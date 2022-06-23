@@ -44,17 +44,17 @@ void AudioModel::InitAudioModel() {
 
     _lessAudioModel.w_length = worldPara.fft_size / 2 + 1;
 
-    _lessAudioModel.spectrogram.reserve(worldPara.f0_length);
+    _lessAudioModel.spectrogram.resize(worldPara.f0_length, std::vector<double>(_lessAudioModel.w_length));
     for (int i = 0; i < worldPara.f0_length; ++i) {
-        _lessAudioModel.spectrogram[i].reserve(_lessAudioModel.w_length);
-        _lessAudioModel.spectrogram[i].insert(_lessAudioModel.spectrogram[i].end(), worldPara.spectrogram[i],
-                                              worldPara.spectrogram[i] + _lessAudioModel.w_length);
+        for (int j = 0; j < _lessAudioModel.w_length; ++j) {
+            _lessAudioModel.spectrogram[i][j] = (worldPara.spectrogram[i][j]);
+        }
     }
 
-    _lessAudioModel.aperiodicity.reserve(worldPara.f0_length);
+    _lessAudioModel.aperiodicity.resize(worldPara.f0_length, std::vector<double>(_lessAudioModel.w_length));
     for (int i = 0; i < worldPara.f0_length; ++i) {
-        _lessAudioModel.aperiodicity[i].reserve(_lessAudioModel.w_length);
-        _lessAudioModel.aperiodicity[i].insert(_lessAudioModel.aperiodicity[i].end(), worldPara.aperiodicity[i],
-                                               worldPara.aperiodicity[i] + _lessAudioModel.w_length);
+        for (int j = 0; j < _lessAudioModel.w_length; ++j) {
+            _lessAudioModel.aperiodicity[i][j] = (worldPara.aperiodicity[i][j]);
+        }
     }
 }
