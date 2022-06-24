@@ -14,26 +14,22 @@
 
 #include "Synthesis.h"
 
-#include <world/synthesis.h>
-
 #include <utility>
 
 #include "Utils/LOG.h"
 #include "Utils/Timer.h"
-#include "world/synthesisrealtime.h"
+
+#include <world/synthesisrealtime.h>
 
 Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(std::move(audioModel)), x_length(x_length) {
     YALL_DEBUG_ << "Allocate Out Memory, Length: " + std::to_string(x_length);
     AllocateMemory();
-    YALL_DEBUG_ << "Synthesis Wav...";
+    YALL_DEBUG_ << "Synthesis Audio...";
     uint64_t tmsStart = get_perf_count();
-
     SynthesisWav();
-
     uint64_t tmsEnd = get_perf_count();
     uint64_t usVal = (tmsEnd - tmsStart) / 10000;
-
-    YALL_INFO_ << "Synthesis Wav: " + std::to_string(usVal) + " ms";
+    YALL_INFO_ << "Synthesis Audio: " + std::to_string(usVal) + " ms";
 }
 
 Synthesis::~Synthesis() {
@@ -61,10 +57,8 @@ void Synthesis::SynthesisWav() const {
     for (int i = 0; i < audioModel.f0_length; ++i) {
         spectrogram[i] = new double[audioModel.w_length];
         aperiodicity[i] = new double[audioModel.w_length];
-        for (int j = 0; j < audioModel.w_length; ++j) {
-            spectrogram[i][j] = audioModel.spectrogram[i][j];
-            aperiodicity[i][j] = audioModel.aperiodicity[i][j];
-        }
+        std::copy(audioModel.spectrogram[i].begin(), audioModel.spectrogram[i].end(), spectrogram[i]);
+        std::copy(audioModel.aperiodicity[i].begin(), audioModel.aperiodicity[i].end(), aperiodicity[i]);
     }
 
     int offset = 0;
