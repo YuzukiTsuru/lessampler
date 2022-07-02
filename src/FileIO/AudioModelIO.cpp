@@ -81,6 +81,9 @@ void AudioModelIO::WriteAudioContent() {
     // Write frame_period
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.frame_period), sizeof(_audioModel.frame_period));
 
+    // Write f0 length
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0_length), sizeof(_audioModel.f0_length));
+
 }
 
 void AudioModelIO::ReadAudioContent() {
