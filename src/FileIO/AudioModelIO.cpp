@@ -80,6 +80,11 @@ void AudioModelIO::WriteAudioContent() {
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.frame_period), sizeof(_audioModel.frame_period));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0_length), sizeof(_audioModel.f0_length));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.w_length), sizeof(_audioModel.w_length));
+
+    // Write model data
+    auto f0_size = _audioModel.f0.size();
+    audio_out_model.write(reinterpret_cast<const char *>(&f0_size), sizeof(f0_size));
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0[0]), std::streamsize(f0_size * sizeof(double)));
 }
 
 void AudioModelIO::ReadAudioContent() {
