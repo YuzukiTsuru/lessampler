@@ -102,11 +102,11 @@ void AudioModelIO::WriteAudioContent() {
     auto ap_size = _audioModel.aperiodicity.size();
     audio_out_model.write(reinterpret_cast<const char *>(&ap_size), sizeof(ap_size));
     for (auto &item: _audioModel.aperiodicity) {
-        // Store sp size
+        // Store ap size
         auto size = item.size();
         audio_out_model.write(reinterpret_cast<const char *>(&size), sizeof(size));
 
-        // Store sp contents
+        // Store ap contents
         audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.aperiodicity[0]), std::streamsize(item.size() * sizeof(double)));
     }
 
