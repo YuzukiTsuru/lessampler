@@ -12,6 +12,8 @@ target_link_libraries(ConfigUnitTest ConfigUnit)
 
 add_executable(LOGTest LOGTest.cpp)
 
+add_executable(VecbinTest VecbinTest.cpp)
+
 add_executable(AudioModelBinTest AudioModelBinTest.cpp)
 target_link_libraries(AudioModelBinTest FileIO AudioModel world::tool)
 
