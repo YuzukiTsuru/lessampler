@@ -86,7 +86,7 @@ int main() {
     for (std::streamsize n = 0; n < inVector2DSize; ++n) {
         // 获取内层大小
         std::streamsize inVector2DInnerSize = 0;
-        ifstream.read(reinterpret_cast<char *>(&inVector2DInnerSize), sizeof(inVector2DInnerSize));
+        ifstream.read(reinterpret_cast<char *>(&inVector2DInnerSize), sizeof(std::streamsize));
 
         // resize vector
         inVector2D.resize(inVector2DSize, std::vector<double>(inVector2DInnerSize));
