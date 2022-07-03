@@ -133,6 +133,11 @@ void AudioModelIO::ReadAudioContent() {
         throw header_check_error(header, lessaudio_header);
     }
 
+    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.x_length), sizeof(int));
+    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.fs), sizeof(int));
+    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.frame_period), sizeof(double));
+    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.f0_length), sizeof(int));
+    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.w_length), sizeof(int));
     // Read basic data
     getchar();
 }
