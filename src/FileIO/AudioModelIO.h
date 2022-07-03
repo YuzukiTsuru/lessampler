@@ -54,18 +54,11 @@ private:
     std::filesystem::path audio_model_file_path{};
 
 protected:
-    const std::string audio_model_file_ext = "lessaudio";
-    const char f0_length_header[5] = {'F', '0', 'L', ' ', '\0'};            // number of samples (int)
-    const char frame_period_header[5] = {'F', 'P', ' ', ' ', '\0'};         // frame perido (double)
-    const char fft_size_header[5] = {'F', 'F', 'T', ' ', '\0'};             // FFT size (int)
-    const char x_length_header[5] = {'X', 'L', ' ', ' ', '\0'};             // x_length (int)
-    const char fs_header[5] = {'F', 'S', ' ', ' ', '\0'};                   // frame per sample (int)
-    const char f0_header[5] = {'5', '4', '0', '0', '\0'};                   // F0
-    const char sp_header[5] = {'5', '4', '0', '1', '\0'};                   // SP
-    const char ap_header[5] = {'5', '4', '0', '2', '\0'};                   // AP
+    const std::string audio_model_file_ext = "lessaudio";                                     // lessaudio model file extition
+    const char lessaudio_header[5] = {'5', '4', '0', '2', '\0'};            // lessaudio model file header
 
 private:
-    void WriteAudioContent();
+    std::ofstream WriteAudioContent();
 
     void ReadAudioContent();
 

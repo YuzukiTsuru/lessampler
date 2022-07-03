@@ -48,7 +48,8 @@ AudioModelIO::~AudioModelIO() = default;
 
 void AudioModelIO::SaveAudioModel() {
     // TODO: impl LZ4Stream to compress files
-    WriteAudioContent();
+    auto audio_out_model = WriteAudioContent();
+    audio_out_model.close();
 }
 
 lessAudioModel AudioModelIO::ReadAudioModel() {
@@ -72,8 +73,11 @@ bool AudioModelIO::CheckAudioModel() {
     }
 }
 
-void AudioModelIO::WriteAudioContent() {
+std::ofstream AudioModelIO::WriteAudioContent() {
     std::ofstream audio_out_model(audio_model_file_path, std::ios::out | std::ios::binary);
+
+    // Write Header
+    audio_out_model.write(reinterpret_cast<const char *>(&lessaudio_header), sizeof(lessaudio_header));
 
     // Write model basic data
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.x_length), sizeof(_audioModel.x_length));
@@ -111,12 +115,11 @@ void AudioModelIO::WriteAudioContent() {
         audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.aperiodicity[0]), std::streamsize(item.size() * sizeof(double)));
     }
 
-    // close audio out model file
-    audio_out_model.close();
+    return audio_out_model;
 }
 
 void AudioModelIO::ReadAudioContent() {
-    std::ofstream audio_in_model(audio_model_file_path, std::ios::out | std::ios::binary);
+    std::ofstream audio_in_model(audio_model_file_path, std::ios::in | std::ios::binary);
 }
 
 void AudioModelIO::GenerateFilePath() {
