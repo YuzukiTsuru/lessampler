@@ -54,8 +54,8 @@ private:
     std::filesystem::path audio_model_file_path{};
 
 protected:
-    const std::string audio_model_file_ext = "lessaudio";                                     // lessaudio model file extition
-    const char lessaudio_header[5] = {'5', '4', '0', '2', '\0'};            // lessaudio model file header
+    const std::string audio_model_file_ext = "lessaudio"; // lessaudio model file extition
+    const std::string lessaudio_header= "5402";           // lessaudio model file header
 
 private:
     std::ofstream WriteAudioContent();

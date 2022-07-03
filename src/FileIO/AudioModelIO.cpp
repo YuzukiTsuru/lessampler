@@ -77,7 +77,9 @@ std::ofstream AudioModelIO::WriteAudioContent() {
     std::ofstream audio_out_model(audio_model_file_path, std::ios::out | std::ios::binary);
 
     // Write Header
-    audio_out_model.write(reinterpret_cast<const char *>(&lessaudio_header), sizeof(char));
+    std::streamsize header_size = lessaudio_header.size();
+    audio_out_model.write(reinterpret_cast<const char *>(&header_size), sizeof(std::streamsize));
+    audio_out_model.write(lessaudio_header.c_str(), std::streamsize(lessaudio_header.size() * sizeof(char)));
 
     // Write model basic data
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.x_length), sizeof(int));
@@ -119,7 +121,20 @@ std::ofstream AudioModelIO::WriteAudioContent() {
 }
 
 void AudioModelIO::ReadAudioContent() {
-    std::ofstream audio_in_model(audio_model_file_path, std::ios::in | std::ios::binary);
+    std::ifstream audio_in_model(audio_model_file_path, std::ios::in | std::ios::binary);
+
+    // Check Header
+    std::streamsize in_header_size = 0;
+    audio_in_model.read(reinterpret_cast<char *>(&in_header_size), sizeof(std::streamsize));
+    std::vector<char> temp(in_header_size);
+    audio_in_model.read(reinterpret_cast<char *>(&temp[0]), std::streamsize(in_header_size * sizeof(char)));
+    std::string header(temp.begin(), temp.end());
+    if (lessaudio_header != header) {
+        throw header_check_error(header, lessaudio_header);
+    }
+
+    // Read basic data
+    getchar();
 }
 
 void AudioModelIO::GenerateFilePath() {
