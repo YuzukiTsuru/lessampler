@@ -87,6 +87,7 @@ std::ofstream AudioModelIO::WriteAudioContent() {
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.frame_period), sizeof(double));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0_length), sizeof(int));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.w_length), sizeof(int));
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.fft_size), sizeof(int));
 
     // Write model data
     // Store f0 size
@@ -139,15 +140,31 @@ void AudioModelIO::ReadAudioContent() {
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.frame_period), sizeof(double));
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.f0_length), sizeof(int));
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.w_length), sizeof(int));
+    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.fft_size), sizeof(int));
 
     // Read f0 data
-    std::streamsize f0_length_size;
+    std::streamsize f0_length_size = 0;
     audio_in_model.read(reinterpret_cast<char *>(&f0_length_size), sizeof(std::streamsize));
     _audioModel.f0.resize(f0_length_size);
-    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.f0[0]), std::streamsize(_audioModel.f0_length * sizeof(double)));
+    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.f0[0]), std::streamsize(f0_length_size * sizeof(double)));
 
+    std::streamsize sp_length_size = 0;
+    audio_in_model.read(reinterpret_cast<char *>(&sp_length_size), sizeof(std::streamsize));
+    for (std::streamsize n = 0; n < sp_length_size; ++n) {
+        std::streamsize sp_inner_length_size = 0;
+        audio_in_model.read(reinterpret_cast<char *>(&sp_inner_length_size), sizeof(std::streamsize));
+        _audioModel.spectrogram.resize(sp_length_size, std::vector<double>(sp_inner_length_size));
+        audio_in_model.read(reinterpret_cast<char *>(&_audioModel.spectrogram[n][0]), std::streamsize(sp_inner_length_size * sizeof(double)));
+    }
 
-    getchar();
+    std::streamsize ap_length_size = 0;
+    audio_in_model.read(reinterpret_cast<char *>(&ap_length_size), sizeof(std::streamsize));
+    for (std::streamsize n = 0; n < ap_length_size; ++n) {
+        std::streamsize ap_inner_length_size = 0;
+        audio_in_model.read(reinterpret_cast<char *>(&ap_inner_length_size), sizeof(std::streamsize));
+        _audioModel.aperiodicity.resize(ap_length_size, std::vector<double>(ap_inner_length_size));
+        audio_in_model.read(reinterpret_cast<char *>(&_audioModel.aperiodicity[n][0]), std::streamsize(ap_inner_length_size * sizeof(double)));
+    }
 }
 
 void AudioModelIO::GenerateFilePath() {
