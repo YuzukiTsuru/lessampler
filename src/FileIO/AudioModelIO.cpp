@@ -77,42 +77,42 @@ std::ofstream AudioModelIO::WriteAudioContent() {
     std::ofstream audio_out_model(audio_model_file_path, std::ios::out | std::ios::binary);
 
     // Write Header
-    audio_out_model.write(reinterpret_cast<const char *>(&lessaudio_header), sizeof(lessaudio_header));
+    audio_out_model.write(reinterpret_cast<const char *>(&lessaudio_header), sizeof(char));
 
     // Write model basic data
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.x_length), sizeof(_audioModel.x_length));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.fs), sizeof(_audioModel.fs));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.frame_period), sizeof(_audioModel.frame_period));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0_length), sizeof(_audioModel.f0_length));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.w_length), sizeof(_audioModel.w_length));
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.x_length), sizeof(int));
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.fs), sizeof(int));
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.frame_period), sizeof(double));
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0_length), sizeof(int));
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.w_length), sizeof(int));
 
     // Write model data
     // Store f0 size
-    auto f0_size = _audioModel.f0.size();
-    audio_out_model.write(reinterpret_cast<const char *>(&f0_size), sizeof(f0_size));
+    std::streamsize f0_size = _audioModel.f0.size();
+    audio_out_model.write(reinterpret_cast<const char *>(&f0_size), sizeof(std::streamsize));
     // Store f0 contents
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0[0]), std::streamsize(f0_size * sizeof(double)));
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0[0]), f0_size * sizeof(double));
 
-    auto sp_size = _audioModel.spectrogram.size();
-    audio_out_model.write(reinterpret_cast<const char *>(&sp_size), sizeof(sp_size));
+    std::streamsize sp_size = _audioModel.spectrogram.size();
+    audio_out_model.write(reinterpret_cast<const char *>(&sp_size), sizeof(std::streamsize));
     for (auto &item: _audioModel.spectrogram) {
         // Store sp size
-        auto size = item.size();
-        audio_out_model.write(reinterpret_cast<const char *>(&size), sizeof(size));
+        std::streamsize size = item.size();
+        audio_out_model.write(reinterpret_cast<const char *>(&size), sizeof(std::streamsize));
 
         // Store sp contents
-        audio_out_model.write(reinterpret_cast<const char *>(&item[0]), std::streamsize(item.size() * sizeof(double)));
+        audio_out_model.write(reinterpret_cast<const char *>(&item[0]), item.size() * sizeof(double));
     }
 
-    auto ap_size = _audioModel.aperiodicity.size();
-    audio_out_model.write(reinterpret_cast<const char *>(&ap_size), sizeof(ap_size));
+    std::streamsize ap_size = _audioModel.aperiodicity.size();
+    audio_out_model.write(reinterpret_cast<const char *>(&ap_size), sizeof(std::streamsize));
     for (auto &item: _audioModel.aperiodicity) {
         // Store ap size
         auto size = item.size();
-        audio_out_model.write(reinterpret_cast<const char *>(&size), sizeof(size));
+        audio_out_model.write(reinterpret_cast<const char *>(&size), sizeof(std::streamsize));
 
         // Store ap contents
-        audio_out_model.write(reinterpret_cast<const char *>(&item[0]), std::streamsize(item.size() * sizeof(double)));
+        audio_out_model.write(reinterpret_cast<const char *>(&item[0]), item.size() * sizeof(double));
     }
 
     return audio_out_model;
