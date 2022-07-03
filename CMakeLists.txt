@@ -87,7 +87,6 @@ add_subdirectory(lib/dialog EXCLUDE_FROM_ALL)
 add_subdirectory(lib/inicpp EXCLUDE_FROM_ALL)
 add_subdirectory(lib/ftxui EXCLUDE_FROM_ALL)
 add_subdirectory(lib/rapidjson EXCLUDE_FROM_ALL)
-add_subdirectory(lib/lz4/build/cmake EXCLUDE_FROM_ALL)
 add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
 
 # include header files
@@ -101,7 +100,6 @@ include_directories(
         lib/inicpp/include
         lib/rapidjson/include
         lib/sndfile/include
-        lib/lz4/lib
         ${PROJECT_BINARY_DIR}
         ${PROJECT_BINARY_DIR}/lib/sndfile/include
 )
