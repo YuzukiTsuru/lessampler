@@ -76,6 +76,7 @@ void AudioModelIO::WriteAudioContent() {
     std::ofstream audio_out_model(audio_model_file_path, std::ios::out | std::ios::binary);
 
     // Write model basic data
+    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.x_length), sizeof(_audioModel.x_length));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.fs), sizeof(_audioModel.fs));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.frame_period), sizeof(_audioModel.frame_period));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0_length), sizeof(_audioModel.f0_length));
@@ -115,7 +116,7 @@ void AudioModelIO::WriteAudioContent() {
 }
 
 void AudioModelIO::ReadAudioContent() {
-
+    std::ofstream audio_in_model(audio_model_file_path, std::ios::out | std::ios::binary);
 }
 
 void AudioModelIO::GenerateFilePath() {
