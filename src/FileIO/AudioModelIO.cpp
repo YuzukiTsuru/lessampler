@@ -139,7 +139,14 @@ void AudioModelIO::ReadAudioContent() {
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.frame_period), sizeof(double));
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.f0_length), sizeof(int));
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.w_length), sizeof(int));
-    // Read basic data
+
+    // Read f0 data
+    std::streamsize f0_length_size;
+    audio_in_model.read(reinterpret_cast<char *>(&f0_length_size), sizeof(std::streamsize));
+    _audioModel.f0.resize(f0_length_size);
+    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.f0[0]), std::streamsize(_audioModel.f0_length * sizeof(double)));
+
+
     getchar();
 }
 
