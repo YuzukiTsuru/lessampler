@@ -47,15 +47,16 @@ lessaudio is the audio source model format file used by lessampler, which contai
 
 > ! Note: the current version of lessaudio only saves the data of lessaudiomodel, if there is any modification in the future, it will be explained here
 
-| index | data | data size |
-| ----- | ---- | --------- |
-| 1     |      |           |
-| 2     |      |           |
-| 3     |      |           |
-| 4     |      |           |
-| 5     |      |           |
-| 6     |      |           |
-| 7     |      |           |
-| 8     |      |           |
-| 9     |      |           |
+| index | data name          | data                      | data type     | data size                 |
+| ----- | ------------------ | ------------------------- | ------------- | ------------------------- |
+| 1     | `lessaudio_header` | `5402`                    | `std::string` | `sizeof(std::streamsize)` |
+| 2     | `x_length`         | `audioModel.x_length`     | `int`         | `sizeof(int)`             |
+| 3     | `fs`               | `audioModel.fs`           | `int`         | `sizeof(int)`             |
+| 4     | `frame_period`     | `audioModel.frame_period` | `double`      | `sizeof(double)`          |
+| 5     | `f0_length`        | `audioModel.f0_length`    | `int`         | `sizeof(int)`             |
+| 6     | `w_length`         | `audioModel.w_length`     | `int`         | `sizeof(int)`             |
+| 7     | `fft_size`         | `audioModel.fft_size`     | `int`         | `sizeof(int)`             |
+| 8     | `f0`               | `audioModel.f0`           | `vector<double>`              | `audioModel.f0.size() * sizeof(double)` |
+| 9     | `spectrogram`      | `audioModel.spectrogram` |  `vector<vector<double>>`             | `audioModel.f0.size() * audioModel.w_length * sizeof(double)` |
+| 10    | `aperiodicity`     | `audioModel.aperiodicity` |   `vector<vector<double>>`            | `audioModel.f0.size() * audioModel.w_length * sizeof(double)` |
 
