@@ -15,20 +15,28 @@
 #ifndef LESSAMPLER_LESSAUDIOMODEL_H
 #define LESSAMPLER_LESSAUDIOMODEL_H
 
+#include <vector>
+
 class lessAudioModel {
 public:
     int x_length = 0;
     double frame_period = 0.0;
     int fs = 0;
 
-    double *x = nullptr;
-    double *f0 = nullptr;
-    double *time_axis = nullptr;
+    std::vector<double> x;
+    //double *x = nullptr;
+    std::vector<double> f0;
+    //double *f0 = nullptr;
+    std::vector<double> time_axis;
+    //double *time_axis = nullptr;
     int f0_length = 0;
     int w_length = 0;
 
-    double **spectrogram = nullptr;
-    double **aperiodicity = nullptr;
+
+    std::vector<std::vector<double>> spectrogram;
+    // double **spectrogram = nullptr;
+    std::vector<std::vector<double>> aperiodicity;
+    // double **aperiodicity = nullptr;
     int fft_size = 0;
 };
 

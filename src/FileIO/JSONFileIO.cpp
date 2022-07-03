@@ -48,6 +48,8 @@ void JSONFileIO::SaveJsonModel() {
     writer.Int(_audioModel.fft_size);
     writer.Key("F0LEN");
     writer.Int(_audioModel.f0_length);
+    writer.Key("WLEN");
+    writer.Int(_audioModel.fft_size / 2 + 1);
     writer.Key("SEQ");
     writer.StartArray();
     for (int i = 0; i < _audioModel.f0_length; ++i) {

@@ -20,10 +20,12 @@
 #include "AudioProcess.h"
 
 #ifdef DEBUG_MODE
+
 #include <fstream>
+
 #endif
 
-AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(audioModel), shine(std::move(shine)) {
+AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(std::move(audioModel)), shine(std::move(shine)) {
     YALL_DEBUG_ << "Init TransAudioModel default data...";
     InitTransAudioModel();
     YALL_DEBUG_ << "Equalizing Picth...";
@@ -92,22 +94,9 @@ void AudioProcess::TimeStretch() {
         throw parameter_error("The target audio frame length is 0");
 
     transAudioModel.f0_length = shine.required_frame;
-
-    transAudioModel.f0 = new double[transAudioModel.f0_length];
-    for (int i = 0; i < transAudioModel.f0_length; ++i) {
-        transAudioModel.f0[i] = 0.0;
-    }
-
-    transAudioModel.spectrogram = new double *[transAudioModel.f0_length];
-    transAudioModel.aperiodicity = new double *[transAudioModel.f0_length];
-    for (int i = 0; i < transAudioModel.f0_length; ++i) {
-        transAudioModel.spectrogram[i] = new double[audioModel.w_length];
-        transAudioModel.aperiodicity[i] = new double[audioModel.w_length];
-        for (int j = 0; j < audioModel.w_length; ++j) {
-            transAudioModel.spectrogram[i][j] = 0.0;
-            transAudioModel.aperiodicity[i][j] = 0.0;
-        }
-    }
+    transAudioModel.f0.resize(shine.required_frame);
+    transAudioModel.spectrogram.resize(transAudioModel.f0_length, std::vector<double>(audioModel.w_length));
+    transAudioModel.aperiodicity.resize(transAudioModel.f0_length, std::vector<double>(audioModel.w_length));
 
     YALL_DEBUG_ << "Get Stretch Paras";
     auto avg_freq = GetAvgFreq();
@@ -205,6 +194,22 @@ void AudioProcess::TimeStretch() {
     of << "\nTransd F0: \n";
     for (int j = 0; j < transAudioModel.f0_length; ++j) {
         of << transAudioModel.f0[j] << " ";
+    }
+    of << "\n";
+
+    of << "\nTransd SP: \n";
+    for (int j = 0; j < transAudioModel.f0_length; ++j) {
+        for (int i = 0; i < transAudioModel.w_length; ++i) {
+            of << transAudioModel.spectrogram[j][i] << " ";
+        }
+    }
+    of << "\n";
+
+    of << "\nTransd AP: \n";
+    for (int j = 0; j < transAudioModel.f0_length; ++j) {
+        for (int i = 0; i < transAudioModel.w_length; ++i) {
+            of << transAudioModel.aperiodicity[j][i] << " ";
+        }
     }
     of << "\n";
 
