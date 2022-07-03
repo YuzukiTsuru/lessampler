@@ -19,6 +19,3 @@
 [submodule "lib/sndfile"]
 	path = lib/sndfile
 	url = https://github.com/libsndfile/libsndfile
-[submodule "lib/lz4"]
-	path = lib/lz4
-	url = https://github.com/lz4/lz4
