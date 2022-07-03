@@ -21,7 +21,7 @@
 #pragma warning(disable : 4996)
 #endif
 
-size_t FileReadUnit::GetAudioLength(const char *filename) {
+int FileReadUnit::GetAudioLength(const char *filename) {
     SNDFILE *sf;
     SF_INFO info;
     info.format = 0;
@@ -31,7 +31,7 @@ size_t FileReadUnit::GetAudioLength(const char *filename) {
         exit(-1);
     }
     size_t len = info.frames;
-    return len;
+    return static_cast<int>(len);
 }
 
 int FileReadUnit::WavRead(const char *FilePath, double *output) {
@@ -46,8 +46,8 @@ int FileReadUnit::WavRead(const char *FilePath, double *output) {
     sf_count_t f = info.frames;
     int c = info.channels;
     if (c > 1) {
-        YALL_WARN_<< "Can't read stereo file for lessampler. handle it as mono.";
-        // TODO: add mono handeler
+        YALL_WARN_ << "Can't read stereo file for lessampler. handle it as mono.";
+        // TODO: add the mono handeler
     }
     auto num_items = f * c;
     auto buf = new double[num_items];

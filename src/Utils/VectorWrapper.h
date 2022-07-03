@@ -9,32 +9,22 @@
  */
 
 //
-// @Author Ghost Gloomy on 2020/1/26.
+// Created by gloom on 2022/6/18.
 //
-#ifndef LESSAMPLER_FILEREADUNIT_H
-#define LESSAMPLER_FILEREADUNIT_H
+
+#ifndef LESSAMPLER_VECTORWRAPPER_H
+#define LESSAMPLER_VECTORWRAPPER_H
 
 #include <iostream>
-#include <filesystem>
+#include <vector>
 
+template<typename T, int N>
+struct VectorWrapper {
+    explicit VectorWrapper(T (&D)[N]) {
+        std::copy(D, D + N, std::back_inserter(v));
+    }
 
-extern "C" {
-#include <sndfile.h>
-}
-
-#define ENABLE_SNDFILE_WINDOWS_PROTOTYPES 1
-
-class FileReadUnit {
-public:
-    /*
-     * Get Audio Length
-     */
-    static int GetAudioLength(const char *filename);
-
-    /*
-     * Read Audio
-     */
-    static int WavRead(const char *FilePath, double *output);
+    std::vector<T> v;
 };
 
-#endif //LESSAMPLER_FILEREADUNIT_H
+#endif //LESSAMPLER_VECTORWRAPPER_H

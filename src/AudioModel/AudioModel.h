@@ -22,7 +22,7 @@
 
 class AudioModel {
 public:
-    AudioModel(double *x, size_t x_length, int fs, const lessConfigure &configure);
+    AudioModel(double *x, int x_length, int fs, const lessConfigure &configure);
 
     lessAudioModel GetAudioModel();
 

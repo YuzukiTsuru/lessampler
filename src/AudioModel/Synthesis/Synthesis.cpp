@@ -14,16 +14,22 @@
 
 #include "Synthesis.h"
 
-#include <world/synthesis.h>
+#include <utility>
 
 #include "Utils/LOG.h"
-#include "world/synthesisrealtime.h"
+#include "Utils/Timer.h"
 
-Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(audioModel), x_length(x_length) {
+#include <world/synthesisrealtime.h>
+
+Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(std::move(audioModel)), x_length(x_length) {
     YALL_DEBUG_ << "Allocate Out Memory, Length: " + std::to_string(x_length);
     AllocateMemory();
-    YALL_DEBUG_ << "Synthesis Wav...";
+    YALL_DEBUG_ << "Synthesis Audio...";
+    uint64_t tmsStart = get_perf_count();
     SynthesisWav();
+    uint64_t tmsEnd = get_perf_count();
+    uint64_t usVal = (tmsEnd - tmsStart) / 10000;
+    YALL_INFO_ << "Synthesis Audio: " + std::to_string(usVal) + " ms";
 }
 
 Synthesis::~Synthesis() {
@@ -44,11 +50,22 @@ void Synthesis::SynthesisWav() const {
     InitializeSynthesizer(audioModel.fs, audioModel.frame_period,
                           audioModel.fft_size, buffer_size, 100, &synthesizer);
 
+    auto f0 = new double[audioModel.f0.size()];
+    std::copy(audioModel.f0.begin(), audioModel.f0.end(), f0);
+    auto spectrogram = new double *[audioModel.f0_length];
+    auto aperiodicity = new double *[audioModel.f0_length];
+    for (int i = 0; i < audioModel.f0_length; ++i) {
+        spectrogram[i] = new double[audioModel.w_length];
+        aperiodicity[i] = new double[audioModel.w_length];
+        std::copy(audioModel.spectrogram[i].begin(), audioModel.spectrogram[i].end(), spectrogram[i]);
+        std::copy(audioModel.aperiodicity[i].begin(), audioModel.aperiodicity[i].end(), aperiodicity[i]);
+    }
+
     int offset = 0;
-    int index = 0;
+    int index;
     for (int i = 0; i < audioModel.f0_length;) {
         // Add one frame ('i' shows the frame index that should be added)
-        if (AddParameters(&audioModel.f0[i], 1, &audioModel.spectrogram[i], &audioModel.aperiodicity[i], &synthesizer) == 1) {
+        if (AddParameters(&f0[i], 1, &spectrogram[i], &aperiodicity[i], &synthesizer) == 1) {
             ++i;
         }
 
