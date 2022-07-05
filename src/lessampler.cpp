@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "Utils/LOG.h"
+#include "Utils/Timer.h"
 #include "Dialogs/Dialogs.h"
 #include "Shine/Shine.h"
 #include "AudioProcess/AudioProcess.h"
@@ -52,6 +53,9 @@ void lessampler::run() {
         YALL_DEBUG_.EnableDebug();
     }
 
+    // Enable Timer
+    Timer timer;
+
     // Parse CommandLine Args
     if (ParseArgs()) {
         YALL_INFO_ << "lessampler Copyright (c)  2018 - 2022, YuzukiTsuru, Version: " + std::string(PROJECT_GIT_HASH);
@@ -66,14 +70,19 @@ void lessampler::run() {
         // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
         if (!audio_model_io.CheckAudioModel()) {
             YALL_INFO_ << "Audio Model: " + in_file_path.string() + " not found, generating...";
+            timer.SetTimer();
             GenerateAudioModel genmodule(argv[1], configure);
+            YALL_INFO_ << timer.GetTimer("Generate Audio Model: ");
         } else {
-            YALL_INFO_ << "Found Audio Model.";
+            YALL_INFO_ << "Found Audio Model, Processing...";
         }
 
         // Read audio model
+        timer.SetTimer();
         audio_model_io.ReadAudioModel();
         auto origin_audio_model = audio_model_io.GetAudioModel();
+        YALL_INFO_ << timer.GetTimer("Read Audio Model: ");
+
 
         ShowAudioInfo(origin_audio_model);
 
@@ -82,16 +91,22 @@ void lessampler::run() {
         auto shine_para = shine.GetShine();
 
         // Audio transform
+        timer.SetTimer();
         AudioProcess aduioProcess(origin_audio_model, shine_para);
         auto trans_audio_model = aduioProcess.GetTransAudioModel();
+        YALL_INFO_ << timer.GetTimer("Processing Model: ");
 
         // Synthesize audio from a model
+        timer.SetTimer();
         Synthesis synthesis(trans_audio_model, shine_para.output_samples);
         auto out_wav_data = synthesis.GetWavData();
+        YALL_INFO_ << timer.GetTimer("Synthesis Audio: ");
 
         // Perform automatic amplification
+        timer.SetTimer();
         AutoAMP amp(shine_para, out_wav_data);
         out_wav_data = amp.GetAMP();
+        YALL_INFO_ << timer.GetTimer("Auto AMP Audio: ");
 
         // Save to target wav file
         FileWriteUnit::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);

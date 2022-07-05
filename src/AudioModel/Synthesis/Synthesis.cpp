@@ -17,7 +17,6 @@
 #include <utility>
 
 #include "Utils/LOG.h"
-#include "Utils/Timer.h"
 
 #include <world/synthesisrealtime.h>
 
@@ -25,9 +24,7 @@ Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(std::
     YALL_DEBUG_ << "Allocate Out Memory, Length: " + std::to_string(x_length);
     AllocateMemory();
     YALL_DEBUG_ << "Synthesis Audio...";
-    Timer timer;
     SynthesisWav();
-    YALL_INFO_ << timer.GetTimer("Synthesis Audio: ");
 }
 
 Synthesis::~Synthesis() {
