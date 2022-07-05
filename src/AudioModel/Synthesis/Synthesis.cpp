@@ -27,7 +27,7 @@ Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(std::
     YALL_DEBUG_ << "Synthesis Audio...";
     Timer timer;
     SynthesisWav();
-    YALL_INFO_ << "Synthesis Audio: " + std::to_string(timer.GetTimer()) + " ms";
+    YALL_INFO_ << timer.GetTimer("Synthesis Audio: ");
 }
 
 Synthesis::~Synthesis() {
