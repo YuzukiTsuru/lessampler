@@ -28,8 +28,20 @@ public:
 
     uint64_t GetTimer() {
         end_time = get_perf_count();
-        return (end_time - start_time) / 10000;
+        return end_time - start_time;
     }
+
+    std::string GetTimer(const std::string &info) {
+        end_time = get_perf_count();
+        return [&]() -> std::string {
+            auto time = end_time - start_time;
+            if (time / 10000 == 0)
+                return info + std::to_string((end_time - start_time) / 10) + "us";
+            else
+                return info + std::to_string((end_time - start_time) / 10000) + "ms";
+        }();
+    }
+
 
 protected:
     uint64_t start_time = 0;
