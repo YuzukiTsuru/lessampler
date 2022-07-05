@@ -25,11 +25,9 @@ Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(std::
     YALL_DEBUG_ << "Allocate Out Memory, Length: " + std::to_string(x_length);
     AllocateMemory();
     YALL_DEBUG_ << "Synthesis Audio...";
-    uint64_t tmsStart = get_perf_count();
+    Timer timer;
     SynthesisWav();
-    uint64_t tmsEnd = get_perf_count();
-    uint64_t usVal = (tmsEnd - tmsStart) / 10000;
-    YALL_INFO_ << "Synthesis Audio: " + std::to_string(usVal) + " ms";
+    YALL_INFO_ << "Synthesis Audio: " + std::to_string(timer.GetTimer()) + " ms";
 }
 
 Synthesis::~Synthesis() {
