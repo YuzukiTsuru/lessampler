@@ -26,6 +26,11 @@ public:
         start_time = get_perf_count();
     };
 
+    void SetTimer(){
+        end_time = 0;
+        start_time = get_perf_count();
+    }
+
     uint64_t GetTimer() {
         end_time = get_perf_count();
         return end_time - start_time;

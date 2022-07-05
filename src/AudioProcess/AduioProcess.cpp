@@ -17,7 +17,6 @@
 
 #include "Utils/exception.h"
 #include "Utils/LOG.h"
-#include "Utils/Timer.h"
 #include "AudioProcess.h"
 
 #ifdef DEBUG_MODE
@@ -32,9 +31,7 @@ AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioMo
     YALL_DEBUG_ << "Equalizing Picth...";
     PicthEqualizing();
     YALL_DEBUG_ << "Time Stretch...";
-    Timer timer;
     TimeStretch();
-    YALL_INFO_ << timer.GetTimer("Audio Processing: ");
 }
 
 lessAudioModel AudioProcess::GetTransAudioModel() {

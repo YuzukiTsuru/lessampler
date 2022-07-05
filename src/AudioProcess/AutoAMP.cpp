@@ -17,7 +17,6 @@
 
 #include "AutoAMP.h"
 #include "Utils/LOG.h"
-#include "Utils/Timer.h"
 
 AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
     this->x_length = this->shine.output_samples;
@@ -25,7 +24,6 @@ AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
     this->x_out = new double[x_length];
 
     YALL_DEBUG_ << "The X_LENGTH is: " + std::to_string(x_length);
-    Timer timer;
 
     GetMaxAMP();
     YALL_DEBUG_ << "Get Max AMP is: " + std::to_string(MaxAMP);
@@ -39,7 +37,6 @@ AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
     YALL_DEBUG_ << "Limit maximum amplitude";
     LimitMaximumAmplitude();
 
-    YALL_INFO_ << timer.GetTimer("AutoAMP: ");
 }
 
 double *AutoAMP::GetAMP() {
