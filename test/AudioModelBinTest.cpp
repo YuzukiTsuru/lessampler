@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 
     size_t error_count = 0;
 
-    for (int i = 0; i < less_i.f0_length; ++i) {
+    for (int i = 0; i < less_i.f0.size(); ++i) {
         if (less_i.f0[i] != less_o.f0[i]) {
             std::cout << " ERROR: " << i << less_i.f0[i] << "->" << less_o.f0[i] << std::endl;
             error_count++;
