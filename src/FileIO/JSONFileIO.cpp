@@ -37,24 +37,24 @@ void JSONFileIO::SaveJsonModel() {
     writer.Key("NODE");
     writer.String("LESS_F0_DOUBLE");
     writer.Key("F0LEN");
-    writer.Int(_audioModel.f0_length);
+    writer.Int(_audioModel.f0.size());
     writer.Key("F0");
     writer.StartArray();
-    for (int i = 0; i < _audioModel.f0_length; ++i) {
+    for (int i = 0; i < _audioModel.f0.size(); ++i) {
         writer.Double(_audioModel.f0[i]);
     }
     writer.EndArray();
     writer.Key("FFTSIZE");
     writer.Int(_audioModel.fft_size);
     writer.Key("F0LEN");
-    writer.Int(_audioModel.f0_length);
+    writer.Int(_audioModel.f0.size());
     writer.Key("WLEN");
-    writer.Int(_audioModel.fft_size / 2 + 1);
+    writer.Int(_audioModel.w_length);
     writer.Key("SEQ");
     writer.StartArray();
-    for (int i = 0; i < _audioModel.f0_length; ++i) {
+    for (int i = 0; i < _audioModel.f0.size(); ++i) {
         writer.StartArray();
-        for (int j = 0; j < _audioModel.fft_size / 2 + 1; ++j) {
+        for (int j = 0; j < _audioModel.w_length; ++j) {
             writer.Double(_audioModel.spectrogram[i][j]);
         }
         writer.EndArray();
@@ -62,9 +62,9 @@ void JSONFileIO::SaveJsonModel() {
     writer.EndArray();
     writer.Key("AP");
     writer.StartArray();
-    for (int i = 0; i < _audioModel.f0_length; ++i) {
+    for (int i = 0; i < _audioModel.f0.size(); ++i) {
         writer.StartArray();
-        for (int j = 0; j < _audioModel.fft_size / 2 + 1; ++j) {
+        for (int j = 0; j < _audioModel.w_length; ++j) {
             writer.Double(_audioModel.aperiodicity[i][j]);
         }
         writer.EndArray();
