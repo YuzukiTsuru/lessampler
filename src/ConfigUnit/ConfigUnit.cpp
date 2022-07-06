@@ -88,7 +88,7 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::string_ini_t> f0_mode{};
     f0_mode.name = "f0_mode";
-    f0_mode.default_value = "DIO";
+    f0_mode.default_value = "Harvest";
     f0_mode.comment = "You Can Choose 'DIO' 'Harvest' for f0";
     f0_mode.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_mode);
@@ -101,19 +101,19 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::float_ini_t> f0_dio_floor{};
     f0_dio_floor.name = "f0_dio_floor";
-    f0_dio_floor.default_value = "40.0";
+    f0_dio_floor.default_value = "20.0";
     f0_dio_floor.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_dio_floor);
 
     inicpp::option_schema_params<inicpp::float_ini_t> f0_harvest_floor{};
     f0_harvest_floor.name = "f0_harvest_floor";
-    f0_harvest_floor.default_value = "40.0";
+    f0_harvest_floor.default_value = "20.0";
     f0_harvest_floor.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_harvest_floor);
 
     inicpp::option_schema_params<inicpp::float_ini_t> f0_cheap_trick_floor{};
     f0_cheap_trick_floor.name = "f0_cheap_trick_floor";
-    f0_cheap_trick_floor.default_value = "71.0";
+    f0_cheap_trick_floor.default_value = "41.0";
     f0_cheap_trick_floor.comment =
             "When fft_size changes from default value,\n"
             "a replaced f0_cheap_trick_floor will be used in CheapTrick\n"
@@ -139,7 +139,7 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::float_ini_t> ap_threshold{};
     ap_threshold.name = "ap_threshold";
-    ap_threshold.default_value = "0.85";
+    ap_threshold.default_value = "0.42";
     ap_threshold.type = inicpp::option_item::single;
     config_schema.add_option("ap", ap_threshold);
 }
@@ -198,7 +198,7 @@ void ConfigUnit::parse_config() {
         auto f0_mode = f0_section["f0_mode"].get<inicpp::string_ini_t>();
         if (f0_mode == "DIO")
             return lessConfigure::F0_MODE::F0_MODE_DIO;
-        else if (f0_mode == "HARVEST")
+        else if (f0_mode == "Harvest")
             return lessConfigure::F0_MODE::F0_MODE_HARVEST;
         else
             return lessConfigure::F0_MODE::F0_MODE_UNKNOWN;
