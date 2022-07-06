@@ -17,8 +17,6 @@
 AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure &configure) : configure(configure) {
     _lessAudioModel.x.reserve(x_length);
     _lessAudioModel.x.insert(_lessAudioModel.x.end(), x, x + x_length);
-
-    _lessAudioModel.x_length = x_length;
     _lessAudioModel.fs = fs;
 
     // initialize the audio model from x, x_length, fs using World Vocoder
@@ -34,7 +32,6 @@ lessAudioModel AudioModel::GetAudioModel() {
 void AudioModel::InitAudioModel() {
     _lessAudioModel.fft_size = worldPara.fft_size;
     _lessAudioModel.frame_period = worldPara.frame_period;
-    _lessAudioModel.f0_length = worldPara.f0_length;
 
     _lessAudioModel.f0.reserve(worldPara.f0_length);
     _lessAudioModel.f0.insert(_lessAudioModel.f0.end(), worldPara.f0, worldPara.f0 + worldPara.f0_length);
