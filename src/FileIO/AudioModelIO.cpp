@@ -82,10 +82,10 @@ std::ofstream AudioModelIO::WriteAudioContent() {
     audio_out_model.write(lessaudio_header.c_str(), std::streamsize(lessaudio_header.size() * sizeof(char)));
 
     // Write model basic data
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.x_length), sizeof(int));
+    int x_length = _audioModel.x.size();
+    audio_out_model.write(reinterpret_cast<const char *>(&x_length), sizeof(int));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.fs), sizeof(int));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.frame_period), sizeof(double));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0_length), sizeof(int));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.w_length), sizeof(int));
     audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.fft_size), sizeof(int));
 
@@ -135,12 +135,14 @@ void AudioModelIO::ReadAudioContent() {
     }
 
     // Read basic audio
-    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.x_length), sizeof(int));
+    int x_length;
+    audio_in_model.read(reinterpret_cast<char *>(&x_length), sizeof(int));
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.fs), sizeof(int));
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.frame_period), sizeof(double));
-    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.f0_length), sizeof(int));
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.w_length), sizeof(int));
     audio_in_model.read(reinterpret_cast<char *>(&_audioModel.fft_size), sizeof(int));
+
+    _audioModel.x.resize(x_length);
 
     // Read f0 data
     std::streamsize f0_length_size = 0;
