@@ -47,9 +47,9 @@ void Synthesis::SynthesisWav() const {
 
     auto f0 = new double[audioModel.f0.size()];
     std::copy(audioModel.f0.begin(), audioModel.f0.end(), f0);
-    auto spectrogram = new double *[audioModel.f0_length];
-    auto aperiodicity = new double *[audioModel.f0_length];
-    for (int i = 0; i < audioModel.f0_length; ++i) {
+    auto spectrogram = new double *[audioModel.f0.size()];
+    auto aperiodicity = new double *[audioModel.f0.size()];
+    for (int i = 0; i < audioModel.f0.size(); ++i) {
         spectrogram[i] = new double[audioModel.w_length];
         aperiodicity[i] = new double[audioModel.w_length];
         std::copy(audioModel.spectrogram[i].begin(), audioModel.spectrogram[i].end(), spectrogram[i]);
@@ -58,7 +58,7 @@ void Synthesis::SynthesisWav() const {
 
     int offset = 0;
     int index;
-    for (int i = 0; i < audioModel.f0_length;) {
+    for (int i = 0; i < audioModel.f0.size();) {
         // Add one frame ('i' shows the frame index that should be added)
         if (AddParameters(&f0[i], 1, &spectrogram[i], &aperiodicity[i], &synthesizer) == 1) {
             ++i;
