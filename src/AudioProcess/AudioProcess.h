@@ -40,9 +40,9 @@ private:
     void TimeStretch();
 
 private:
-    static void interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi);
+    [[maybe_unused]] static void interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi);
 
-    static void histc(const double *x, int x_length, const double *edges, int edges_length, int *index);
+    [[maybe_unused]] static void histc(const double *x, int x_length, const double *edges, int edges_length, int *index);
 };
 
 

@@ -46,19 +46,19 @@ void AudioProcess::PicthEqualizing() {
     auto freq_avg = GetAvgFreq();
     YALL_DEBUG_ << "The average frequency is " + std::to_string(freq_avg);
     if (freq_avg == 0.0) {
-        for (int i = 0; i < audioModel.f0_length; ++i) {
-            if (audioModel.f0[i] != 0.0) {
-                audioModel.f0[i] = shine.scale_num;
+        for (double & i : audioModel.f0) {
+            if (i != 0.0) {
+                i = shine.scale_num;
             } else {
-                audioModel.f0[i] = 0;
+                i = 0;
             }
         }
     } else {
-        for (int i = 0; i < audioModel.f0_length; ++i) {
-            if (audioModel.f0[i] != 0.0) {
-                audioModel.f0[i] = ((audioModel.f0[i] - freq_avg) * shine.modulation / 100.0 + freq_avg) * (shine.scale_num / freq_avg);
+        for (double & i : audioModel.f0) {
+            if (i != 0.0) {
+                i = ((i - freq_avg) * shine.modulation / 100.0 + freq_avg) * (shine.scale_num / freq_avg);
             } else {
-                audioModel.f0[i] = 0;
+                i = 0;
             }
         }
     }
@@ -66,7 +66,7 @@ void AudioProcess::PicthEqualizing() {
 
 double AudioProcess::GetAvgFreq() const {
     double freq_avg = 0.0, timePercent, r, p[6], q, base_timePercent = 0;
-    for (int i = 0; i < audioModel.f0_length; ++i) {
+    for (int i = 0; i < audioModel.f0.size(); ++i) {
         timePercent = audioModel.f0[i];
         if (timePercent < 1000.0 && timePercent > 55.0) {
             r = 1.0;
@@ -93,10 +93,9 @@ void AudioProcess::TimeStretch() {
     if (shine.required_frame == 0)
         throw parameter_error("The target audio frame length is 0");
 
-    transAudioModel.f0_length = shine.required_frame;
     transAudioModel.f0.resize(shine.required_frame);
-    transAudioModel.spectrogram.resize(transAudioModel.f0_length, std::vector<double>(audioModel.w_length));
-    transAudioModel.aperiodicity.resize(transAudioModel.f0_length, std::vector<double>(audioModel.w_length));
+    transAudioModel.spectrogram.resize(transAudioModel.f0.size(), std::vector<double>(audioModel.w_length));
+    transAudioModel.aperiodicity.resize(transAudioModel.f0.size(), std::vector<double>(audioModel.w_length));
 
     YALL_DEBUG_ << "Get Stretch Paras";
     auto avg_freq = GetAvgFreq();
@@ -104,7 +103,7 @@ void AudioProcess::TimeStretch() {
     double _sample_sp_trans_index, _sample_ap_trans_index, _out_sample_index, _in_sample_index;
     int _sp_trans_index, _ap_trans_index;
 
-    for (int i = 0; i < transAudioModel.f0_length; ++i) {
+    for (int i = 0; i < transAudioModel.f0.size(); ++i) {
         _out_sample_index = audioModel.frame_period * i;
         if (_out_sample_index < shine.base_length) {
             _in_sample_index = shine.offset + _out_sample_index * shine.velocity;
@@ -122,7 +121,7 @@ void AudioProcess::TimeStretch() {
         YALL_DEBUG_ << "_sample_sp_trans_index -> " + std::to_string(_sp_trans_index + _sample_sp_trans_index);
 
         auto temp_f0 = audioModel.f0[_sp_trans_index];
-        if (_sp_trans_index < audioModel.f0_length - 1) {
+        if (_sp_trans_index < audioModel.f0.size() - 1) {
             auto temp_f0_next = audioModel.f0[_sp_trans_index + 1];
             if (temp_f0 != 0 || temp_f0_next != 0) {
                 if (temp_f0 == 0) {
@@ -158,11 +157,11 @@ void AudioProcess::TimeStretch() {
 
         YALL_DEBUG_ << "Trans SP ";
         for (int j = 0; j < audioModel.w_length; ++j) {
-            if (_sp_trans_index < audioModel.f0_length - 1) {
+            if (_sp_trans_index < audioModel.f0.size() - 1) {
                 transAudioModel.spectrogram[i][j] = audioModel.spectrogram[_sp_trans_index][j] * (1.0 - _sample_sp_trans_index) +
                                                     audioModel.spectrogram[_sp_trans_index + 1][j] * _sample_sp_trans_index;
             } else {
-                transAudioModel.spectrogram[i][j] = audioModel.spectrogram[audioModel.f0_length - 1][j];
+                transAudioModel.spectrogram[i][j] = audioModel.spectrogram[audioModel.f0.size() - 1][j];
             }
         }
 
@@ -173,10 +172,10 @@ void AudioProcess::TimeStretch() {
         }
 
         for (int j = 0; j < audioModel.w_length; ++j) {
-            if (_ap_trans_index < audioModel.f0_length) {
+            if (_ap_trans_index < audioModel.f0.size()) {
                 transAudioModel.aperiodicity[i][j] = audioModel.aperiodicity[_ap_trans_index][j];
             } else {
-                transAudioModel.aperiodicity[i][j] = audioModel.aperiodicity[audioModel.f0_length - 1][j];
+                transAudioModel.aperiodicity[i][j] = audioModel.aperiodicity[audioModel.f0.size() - 1][j];
             }
         }
     }
@@ -185,20 +184,20 @@ void AudioProcess::TimeStretch() {
     std::ofstream of(shine.output_file_name + ".log", std::ios::out | std::ios::app);
 
     of << "AVG FREQ: " << avg_freq << "\n"
-       << "Trans F0 Length: " << transAudioModel.f0_length << "\n";
+       << "Trans F0 Length: " << transAudioModel.f0.size() << "\n";
     of << "Original F0: \n";
-    for (int j = 0; j < audioModel.f0_length; ++j) {
+    for (int j = 0; j < audioModel.f0.size(); ++j) {
         of << audioModel.f0[j] << " ";
     }
 
     of << "\nTransd F0: \n";
-    for (int j = 0; j < transAudioModel.f0_length; ++j) {
+    for (int j = 0; j < transAudioModel.f0.size(); ++j) {
         of << transAudioModel.f0[j] << " ";
     }
     of << "\n";
 
     of << "\nTransd SP: \n";
-    for (int j = 0; j < transAudioModel.f0_length; ++j) {
+    for (int j = 0; j < transAudioModel.f0.size(); ++j) {
         for (int i = 0; i < transAudioModel.w_length; ++i) {
             of << transAudioModel.spectrogram[j][i] << " ";
         }
@@ -206,7 +205,7 @@ void AudioProcess::TimeStretch() {
     of << "\n";
 
     of << "\nTransd AP: \n";
-    for (int j = 0; j < transAudioModel.f0_length; ++j) {
+    for (int j = 0; j < transAudioModel.f0.size(); ++j) {
         for (int i = 0; i < transAudioModel.w_length; ++i) {
             of << transAudioModel.aperiodicity[j][i] << " ";
         }
@@ -217,7 +216,7 @@ void AudioProcess::TimeStretch() {
 #endif
 }
 
-void AudioProcess::interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi) {
+[[maybe_unused]] void AudioProcess::interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi) {
     auto *h = new double[x_length - 1];
     int *k = new int[xi_length];
 
@@ -240,7 +239,7 @@ void AudioProcess::interp1(const double *x, const double *y, int x_length, const
     delete[] h;
 }
 
-void AudioProcess::histc(const double *x, int x_length, const double *edges, int edges_length, int *index) {
+[[maybe_unused]] void AudioProcess::histc(const double *x, int x_length, const double *edges, int edges_length, int *index) {
     int count = 1;
 
     int i = 0;
