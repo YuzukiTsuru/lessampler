@@ -45,10 +45,6 @@ int FileReadUnit::WavRead(const char *FilePath, double *output) {
     }
     sf_count_t f = info.frames;
     int c = info.channels;
-    if (c > 1) {
-        YALL_WARN_ << "Can't read stereo file for lessampler. handle it as mono.";
-        // TODO: add the mono handeler
-    }
     auto num_items = f * c;
     auto buf = new double[num_items];
     auto num = sf_read_double(sf, buf, num_items);
@@ -60,6 +56,23 @@ int FileReadUnit::WavRead(const char *FilePath, double *output) {
             }
         }
     }
+
+    // stereo handler
+    if (c > 1) {
+        YALL_WARN_ << "Can't read stereo file for lessampler. handle it as mono.";
+        auto temp_ = new float[info.frames];
+        for (int i = 0; i < info.frames; i++) {
+            temp_[i] = 0;
+            for (int j = 0; j < info.channels; j++)
+                temp_[i] += output[i * info.channels + j];
+            temp_[i] /= info.channels;
+        }
+
+        for (int i = 0; i < info.frames; ++i) {
+            output[i] = temp_[i];
+        }
+    }
+
     delete[] buf;
     return info.samplerate;
 }
