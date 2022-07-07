@@ -60,15 +60,15 @@ int FileReadUnit::WavRead(const char *FilePath, double *output) {
     // stereo handler
     if (c > 1) {
         YALL_WARN_ << "Can't read stereo file for lessampler. handle it as mono.";
-        auto temp_ = new float[info.frames];
-        for (int i = 0; i < info.frames; i++) {
+        auto temp_ = new double[num];
+        for (int i = 0; i < num; i++) {
             temp_[i] = 0;
             for (int j = 0; j < info.channels; j++)
                 temp_[i] += output[i * info.channels + j];
             temp_[i] /= info.channels;
         }
 
-        for (int i = 0; i < info.frames; ++i) {
+        for (int i = 0; i < num; ++i) {
             output[i] = temp_[i];
         }
     }
