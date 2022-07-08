@@ -116,6 +116,9 @@ std::ofstream AudioModelIO::WriteAudioContent() {
         audio_out_model.write(reinterpret_cast<const char *>(&item[0]), item.size() * sizeof(double));
     }
 
+    // Write Ending
+    audio_out_model.write(lessaudio_ending, sizeof(char) * 5);
+
     return audio_out_model;
 }
 
@@ -161,6 +164,13 @@ void AudioModelIO::ReadAudioContent() {
         audio_in_model.read(reinterpret_cast<char *>(&ap_inner_length_size), sizeof(std::streamsize));
         _audioModel.aperiodicity.resize(ap_length_size, std::vector<double>(ap_inner_length_size));
         audio_in_model.read(reinterpret_cast<char *>(&_audioModel.aperiodicity[n][0]), std::streamsize(ap_inner_length_size * sizeof(double)));
+    }
+
+    // Check end
+    auto end = new char[6];
+    audio_in_model.read(end, sizeof(char) * 6);
+    if (std::string(lessaudio_ending) != std::string(end)) {
+        throw header_check_error(end, lessaudio_ending);
     }
 }
 
