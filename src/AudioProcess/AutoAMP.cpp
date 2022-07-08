@@ -36,7 +36,6 @@ AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
 
     YALL_DEBUG_ << "Limit maximum amplitude";
     LimitMaximumAmplitude();
-
 }
 
 double *AutoAMP::GetAMP() {
