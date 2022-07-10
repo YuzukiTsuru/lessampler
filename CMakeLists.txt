@@ -88,6 +88,7 @@ add_subdirectory(lib/inicpp EXCLUDE_FROM_ALL)
 add_subdirectory(lib/ftxui EXCLUDE_FROM_ALL)
 add_subdirectory(lib/rapidjson EXCLUDE_FROM_ALL)
 add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
+add_subdirectory(lib/zlib EXCLUDE_FROM_ALL)
 
 # include header files
 include_directories(
