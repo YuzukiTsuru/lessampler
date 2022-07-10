@@ -31,7 +31,7 @@ Shine::Shine(int argc, char *argv[], lessAudioModel audioModel, SHINE_MODE mode)
     }
 }
 
-void Shine::SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, lessAudioModel audioModel) {
+void Shine::SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, const lessAudioModel& audioModel) {
     shine_para.input_file_name = utau_para.input_file_name;
     shine_para.output_file_name = utau_para.output_file_name;
     shine_para.time_percent = utau_para.time_percent;
