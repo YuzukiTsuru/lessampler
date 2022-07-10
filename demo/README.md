@@ -1,8 +1,21 @@
+<style>
+    table {
+        margin-left: auto;
+        margin-right: auto;
+        display: table;
+    }
+    audio {
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+	}
+</style>
+
 ## フラジール
 
 ust：八草  
 調声：[shine_5402](https://shine5402.top/)  
-歌：[旭音エマ](https://asneae.jimdofree.com/)   
+歌：[ハトムギ](https://www.youtube.com/watch?v=BZJn2X8ZrSQ&) F4 
 
 | Engine           | Audio                                                        |
 | ---------------- | ------------------------------------------------------------ |
@@ -16,9 +29,6 @@ ust：八草
 | TIPS             | <audio controls><source src="demo/furajiru/TIPS_MP3.mp3" type="audio/mpeg"></audio> |
 | resampler_ug     | <audio controls><source src="demo/furajiru/resampler_ug_MP3.mp3" type="audio/mpeg"></audio> |
 | resampler        | <audio controls><source src="demo/furajiru/resampler_MP3.mp3" type="audio/mpeg"></audio> |
-| phavoco          | <audio controls><source src="demo/furajiru/phavoco_MP3.mp3" type="audio/mpeg"></audio> |
 | lessampler_0.0.1 | <audio controls><source src="demo/furajiru/lessampler_0.0.1_MP3.mp3" type="audio/mpeg"></audio> |
-| lessampler_0.1.0 | <audio controls><source src="demo/furajiru/lessampler_0.1.0_MP3.mp3" type="audio/mpeg"></audio> |
 | lessampler_0.1.2 | <audio controls><source src="demo/furajiru/lessampler_0.1.2_MP3.mp3" type="audio/mpeg"></audio> |
-| lessampler_0.1.3 | <audio controls><source src="demo/furajiru/lessampler_0.1.3_MP3.mp3" type="audio/mpeg"></audio> |
 
