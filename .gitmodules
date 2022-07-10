@@ -19,3 +19,9 @@
 [submodule "lib/sndfile"]
 	path = lib/sndfile
 	url = https://github.com/libsndfile/libsndfile
+[submodule "lib/zstr"]
+	path = lib/zstr
+	url = https://github.com/mateidavid/zstr
+[submodule "lib/zlib"]
+	path = lib/zlib
+	url = https://github.com/madler/zlib
