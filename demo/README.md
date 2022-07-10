@@ -8,7 +8,7 @@ ust：八草
 
 | Engine           | Audio                                                        |
 | ---------------- | ------------------------------------------------------------ |
-| bkh01            | [audio](/lessampler/demo/furajiru/bkh01_MP3.mp3 ':include :type=audio') |
+| bkh01            | <audio controls><source src="demo/furajiru/bkh01_MP3.mp3" type="audio/mpeg"></audio> |
 | EFB-GT           | [audio](/lessampler/demo/furajiru/EFB-GT_MP3.mp3 ':include :type=audio') |
 | fresamp14        | [audio](/lessampler/demo/furajiru/fresamp14_MP3.mp3 ':include :type=audio') |
 | model4           | [audio](/lessampler/demo/furajiru/model4_MP3.mp3 ':include :type=audio') |
