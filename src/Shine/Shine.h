@@ -38,7 +38,7 @@ private:
     ShinePara shine_para;
 
 private:
-    void SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, lessAudioModel audioModel);
+    void SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, const lessAudioModel& audioModel);
 
     void DecodePitchBend(int fs, double frame_period, std::string pitch);
 };
