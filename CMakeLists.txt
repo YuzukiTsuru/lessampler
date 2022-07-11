@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.16)
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 0)
 
+if (POLICY CMP0048)
+    cmake_policy(SET CMP0048 NEW)
+endif (POLICY CMP0048)
+
 # use git version as library version
 find_package(Git QUIET)
 if (Git_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
