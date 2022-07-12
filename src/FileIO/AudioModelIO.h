@@ -26,8 +26,6 @@ class AudioModelIO {
 public:
     AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel);
 
-    AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel, std::string ver_string);
-
     explicit AudioModelIO(std::filesystem::path Path);
 
     ~AudioModelIO();
@@ -54,7 +52,6 @@ private:
     std::filesystem::path root_file_path{};
     std::filesystem::path in_file_path{};
     std::filesystem::path audio_model_file_path{};
-    std::string ver_string = "default ver";
 
 protected:
     const std::string audio_model_file_ext = "lessaudio"; // lessaudio model file extition

@@ -21,12 +21,6 @@ AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel
     GenerateFilePath();
 }
 
-AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel, std::string ver_string) :
-        in_file_path(std::move(Path)), _audioModel(std::move(audioModel)), ver_string(std::move(ver_string)) {
-    root_file_path = in_file_path;
-    GenerateFilePath();
-}
-
 AudioModelIO::AudioModelIO(std::filesystem::path Path) : in_file_path(std::move(Path)) {
     root_file_path = in_file_path;
     GenerateFilePath();
@@ -84,11 +78,6 @@ std::ofstream AudioModelIO::WriteAudioContent() {
     // Write Header
     audio_out_model.write(lessaudio_header, sizeof(char) * 6);
 
-    // Write Version info
-    std::streamsize ver_string_size = ver_string.size();
-    audio_out_model.write(reinterpret_cast<const char *>(&ver_string_size), sizeof(std::streamsize));
-    audio_out_model.write(ver_string.c_str(), std::streamsize(ver_string_size * sizeof(char)));
-
     // Write model basic data
     int x_length = _audioModel.x.size();
     audio_out_model.write(reinterpret_cast<const char *>(&x_length), sizeof(int));
@@ -140,16 +129,6 @@ void AudioModelIO::ReadAudioContent() {
     audio_in_model.read(header, sizeof(char) * 6);
     if (std::string(lessaudio_header) != std::string(header)) {
         throw header_check_error(header, lessaudio_header);
-    }
-
-    std::streamsize in_ver_string_size;
-    audio_in_model.read(reinterpret_cast<char *>(&in_ver_string_size), sizeof(std::streamsize));
-    std::vector<char> _temp(in_ver_string_size);
-    audio_in_model.read(reinterpret_cast<char *>(&_temp[0]), std::streamsize(in_ver_string_size * sizeof(char)));
-    std::string in_ver_string(_temp.begin(), _temp.end());
-
-    if (in_ver_string != ver_string){
-        throw header_check_error("Audio Model Version Error", "Please regenerate the model");
     }
 
     // Read basic audio
