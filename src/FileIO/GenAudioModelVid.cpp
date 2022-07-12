@@ -13,3 +13,13 @@
 //
 
 #include "GenAudioModelVid.h"
+
+#include <utility>
+
+GenAudioModelVid::GenAudioModelVid(lessConfigure configure) : configure_(std::move(configure)) {
+
+}
+
+void GenAudioModelVid::Stringify() {
+
+}
