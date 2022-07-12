@@ -15,6 +15,7 @@
 #include "AudioModelIO.h"
 #include "Utils/LOG.h"
 #include "Utils/exception.h"
+#include "ConfigUnit/ConfigUnit.h"
 
 AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel) :
         in_file_path(std::move(Path)), _audioModel(std::move(audioModel)) {
