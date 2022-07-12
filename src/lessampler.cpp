@@ -31,7 +31,6 @@ lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
     // Setting the configure file and get config
     ConfigUnit configUnit((this->exec_path / CONFIGFILENAME).string());
     configure = configUnit.get_config();
-    ver_string = configUnit.get_version();
 }
 
 void lessampler::show_logo() {
