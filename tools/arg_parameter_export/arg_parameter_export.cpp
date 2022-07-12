@@ -11,3 +11,20 @@
 //
 // Created by gloom on 2022/7/10.
 //
+
+#include <fstream>
+#include <filesystem>
+
+int main(int argc, char *argv[]) {
+    if (argc < 2)
+        return 0;
+    auto file_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0]));
+    std::ofstream file(file_path.replace_extension("log"), std::ios::out | std::ios::app);
+
+    file << "==========================" << std::endl;
+
+    for (int i = 0; i < argc; ++i) {
+        file << argv[i] << std::endl;
+    }
+    file.close();
+}
