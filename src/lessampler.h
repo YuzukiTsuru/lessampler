@@ -34,6 +34,7 @@ private:
     std::filesystem::path exec_path;
     std::filesystem::path in_file_path;
     lessConfigure configure;
+    std::string ver_string;
 
 private:
     [[nodiscard]] bool ParseArgs();
