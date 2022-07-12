@@ -196,6 +196,8 @@ void ConfigUnit::parse_config() {
     auto f0_section = config["f0"];
     configure.f0_mode = [&]() -> lessConfigure::F0_MODE {
         auto f0_mode = f0_section["f0_mode"].get<inicpp::string_ini_t>();
+        // transform to upper cap
+        std::transform(f0_mode.begin(), f0_mode.end(), f0_mode.begin(), ::toupper);
         if (f0_mode == "DIO")
             return lessConfigure::F0_MODE::F0_MODE_DIO;
         else if (f0_mode == "Harvest")
