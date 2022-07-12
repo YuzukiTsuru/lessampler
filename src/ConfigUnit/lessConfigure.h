@@ -20,9 +20,9 @@
 class lessConfigure {
 public:
     enum class F0_MODE {
-        F0_MODE_DIO,
-        F0_MODE_HARVEST,
-        F0_MODE_UNKNOWN,
+        F0_MODE_UNKNOWN = 0,
+        F0_MODE_HARVEST = 1,
+        F0_MODE_DIO = 2,
     };
 
     std::string version;

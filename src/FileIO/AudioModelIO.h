@@ -18,8 +18,8 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <parameterio.h>
 #include <cstring>
+
 #include "AudioModel/lessAudioModel.h"
 
 class AudioModelIO {

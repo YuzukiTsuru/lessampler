@@ -33,6 +33,11 @@ ConfigUnit::ConfigUnit(const std::string &config_file_path) {
     print_config();
 }
 
+std::string ConfigUnit::get_version() {
+    make_ver();
+    return version_data;
+}
+
 ConfigUnit::~ConfigUnit() = default;
 
 void ConfigUnit::make_schema() {
@@ -240,5 +245,24 @@ void ConfigUnit::print_config() const {
 
 lessConfigure ConfigUnit::get_config() {
     return configure;
+}
+
+void ConfigUnit::make_ver() {
+    version_data = configure.version + std::to_string(configure.debug_mode)
+                   + std::to_string(configure.audio_model_frame_period)
+                   + std::to_string(configure.fft_size)
+                   + std::to_string(configure.f0_speed)
+                   + std::to_string(configure.f0_dio_floor)
+                   + std::to_string(configure.f0_harvest_floor)
+                   + std::to_string(configure.f0_cheap_trick_floor)
+                   + std::to_string(configure.f0_allow_range)
+                   + std::to_string(configure.ap_threshold);
+    version_data += [&]() -> std::string {
+        if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO)
+            return "DIO";
+        if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST)
+            return "HARVEST";
+        return "UNKNOWN";
+    }();
 }
 
