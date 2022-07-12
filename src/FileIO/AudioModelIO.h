@@ -66,5 +66,4 @@ private:
     void GenerateFilePath();
 };
 
-
 #endif //LESSAMPLER_AUDIOMODELIO_H
