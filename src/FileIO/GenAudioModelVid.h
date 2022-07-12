@@ -15,9 +15,17 @@
 #ifndef LESSAMPLER_GENAUDIOMODELVID_H
 #define LESSAMPLER_GENAUDIOMODELVID_H
 
+#include "ConfigUnit/lessConfigure.h"
 
 class GenAudioModelVid {
+public:
+    GenAudioModelVid(lessConfigure configure);
 
+private:
+    void Stringify();
+
+private:
+    lessConfigure configure_;
 };
 
 
