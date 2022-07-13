@@ -25,7 +25,11 @@
 
 class ConfigUnit {
 public:
+    explicit ConfigUnit(const std::filesystem::path &config_path);
+
     explicit ConfigUnit(const std::string &config_file_path);
+
+    void set_config(const std::filesystem::path &config_path);
 
     ~ConfigUnit();
 
@@ -44,6 +48,9 @@ private:
     std::string version_data;
 
 private:
+    // init config
+    void init_config();
+
     // get config ver
     void make_ver();
 
