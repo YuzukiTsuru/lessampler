@@ -29,7 +29,7 @@ lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
     exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
     YALL_DEBUG_ << "exec path: " + this->exec_path.string();
     // Setting the configure file and get config
-    ConfigUnit configUnit((this->exec_path / CONFIGFILENAME).string());
+    ConfigUnit configUnit(this->exec_path / CONFIGFILENAME);
     configure = configUnit.get_config();
 }
 
@@ -141,7 +141,7 @@ bool lessampler::ParseArgs() {
     return false;
 }
 
-void lessampler::ShowAudioInfo(const lessAudioModel& audioModel) {
+void lessampler::ShowAudioInfo(const lessAudioModel &audioModel) {
     YALL_INFO_ << "Audio Sample Rate: " + std::to_string(audioModel.fs);
     YALL_INFO_ << "Model Sample Rate: " + std::to_string(audioModel.frame_period);
     YALL_INFO_ << "Model FFT Size: " + std::to_string(audioModel.fft_size);
