@@ -17,8 +17,29 @@
 #include "lessconfig.h"
 #include "ConfigUnit.h"
 
+ConfigUnit::ConfigUnit(const std::filesystem::path &config_path) {
+    this->config_file_path = config_file_path;
+    init_config();
+}
+
 ConfigUnit::ConfigUnit(const std::string &config_file_path) {
     this->config_file_path = config_file_path;
+    init_config();
+}
+
+void ConfigUnit::set_config(const std::filesystem::path &config_path) {
+    this->config_file_path = config_path;
+    init_config();
+}
+
+std::string ConfigUnit::get_version() {
+    make_ver();
+    return version_data;
+}
+
+ConfigUnit::~ConfigUnit() = default;
+
+void ConfigUnit::init_config() {
     make_schema();
     if (std::filesystem::exists(this->config_file_path)) {
         YALL_DEBUG_ << "Config file exists, loading...";
@@ -32,13 +53,6 @@ ConfigUnit::ConfigUnit(const std::string &config_file_path) {
     }
     print_config();
 }
-
-std::string ConfigUnit::get_version() {
-    make_ver();
-    return version_data;
-}
-
-ConfigUnit::~ConfigUnit() = default;
 
 void ConfigUnit::make_schema() {
     // create project info section
