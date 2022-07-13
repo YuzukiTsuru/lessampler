@@ -22,11 +22,6 @@ ConfigUnit::ConfigUnit(const std::filesystem::path &config_path) {
     init_config();
 }
 
-ConfigUnit::ConfigUnit(const std::string &config_file_path) {
-    this->config_file_path = config_file_path;
-    init_config();
-}
-
 void ConfigUnit::set_config(const std::filesystem::path &config_path) {
     this->config_file_path = config_path;
     init_config();
