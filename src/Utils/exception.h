@@ -29,6 +29,11 @@ public:
             "Header: " + what + " is not same as " + expect + ".") {};
 };
 
+class file_version_error : public std::runtime_error {
+public:
+    explicit file_version_error(const std::string &what) : std::runtime_error("Audio Model Version Mismatch: " + what + ".") {};
+};
+
 class parameter_error : public std::runtime_error {
 public:
     explicit parameter_error(const std::string &what) : std::runtime_error("Parameter Error: " + what + ".") {};
