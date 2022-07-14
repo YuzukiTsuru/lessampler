@@ -65,7 +65,7 @@ void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
     AudioModel audioModel(x, x_length, fs, configure);
     auto model = audioModel.GetAudioModel();
 
-    AudioModelIO audioModelIO(wav_path.string(), model);
+    AudioModelIO audioModelIO(wav_path.string(), model, configure);
     audioModelIO.SaveAudioModel();
 }
 
