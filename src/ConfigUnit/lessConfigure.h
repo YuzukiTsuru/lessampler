@@ -19,6 +19,9 @@
 
 class lessConfigure {
 public:
+    std::string get_version();
+
+public:
     enum class F0_MODE {
         F0_MODE_UNKNOWN = 0,
         F0_MODE_HARVEST = 1,
@@ -37,6 +40,13 @@ public:
     double f0_cheap_trick_floor = 71.0;
     double f0_allow_range = 0.1;
     double ap_threshold = 0.85;
+
+private:
+    std::string version_data;
+
+private:
+    // get config ver
+    void make_ver();
 };
 
 #endif //LESSAMPLER_LESSCONFIGURE_H
