@@ -33,8 +33,6 @@ public:
 
     lessConfigure get_config();
 
-    std::string get_version();
-
     void print_config() const;
 
 private:
@@ -43,14 +41,10 @@ private:
     inicpp::config config;
     inicpp::schema config_schema;
     lessConfigure configure;
-    std::string version_data;
 
 private:
     // init config
     void init_config();
-
-    // get config ver
-    void make_ver();
 
     // make configure schema
     void make_schema();
