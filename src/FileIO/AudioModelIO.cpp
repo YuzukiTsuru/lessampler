@@ -143,7 +143,7 @@ void AudioModelIO::ReadAudioContent() {
     audio_in_model.read(reinterpret_cast<char *>(&_temp[0]), std::streamsize(ver_string_size * sizeof(char)));
     std::string ver_string(_temp.begin(), _temp.end());
 
-    if (ver_string == _configure.get_version()){
+    if (ver_string != _configure.get_version()){
         throw file_version_error("Header ERROR");
     }
 
