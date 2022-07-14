@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
     auto less_i = audioModel.GetAudioModel();
 
-    AudioModelIO WriteBinUnit("a.o", less_i);
+    AudioModelIO WriteBinUnit("a.o", less_i, configure);
     WriteBinUnit.SaveAudioModel();
 
     lessAudioModel less_o{};

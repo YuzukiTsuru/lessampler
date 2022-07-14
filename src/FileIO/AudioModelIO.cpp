@@ -15,8 +15,8 @@
 #include "Utils/LOG.h"
 #include "Utils/exception.h"
 
-AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel) :
-        in_file_path(std::move(Path)), _audioModel(std::move(audioModel)) {
+AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel, lessConfigure configure) :
+        in_file_path(std::move(Path)), _audioModel(std::move(audioModel)), _configure(std::move(configure)) {
     root_file_path = in_file_path;
     GenerateFilePath();
 }
@@ -78,6 +78,12 @@ std::ofstream AudioModelIO::WriteAudioContent() {
     // Write Header
     audio_out_model.write(lessaudio_header, sizeof(char) * 6);
 
+    // Write Check
+    std::streamsize ver_string_size = _configure.get_version().size();
+    auto ver_string = _configure.get_version();
+    audio_out_model.write(reinterpret_cast<const char *>(&ver_string_size), sizeof(std::streamsize));
+    audio_out_model.write(ver_string.c_str(), ver_string_size * sizeof(char));
+
     // Write model basic data
     int x_length = _audioModel.x.size();
     audio_out_model.write(reinterpret_cast<const char *>(&x_length), sizeof(int));
@@ -129,6 +135,16 @@ void AudioModelIO::ReadAudioContent() {
     audio_in_model.read(header, sizeof(char) * 6);
     if (std::string(lessaudio_header) != std::string(header)) {
         throw header_check_error(header, lessaudio_header);
+    }
+
+    std::streamsize ver_string_size;
+    audio_in_model.read(reinterpret_cast<char *>(&ver_string_size), sizeof(std::streamsize));
+    std::vector<char> _temp(ver_string_size);
+    audio_in_model.read(reinterpret_cast<char *>(&_temp[0]), std::streamsize(ver_string_size * sizeof(char)));
+    std::string ver_string(_temp.begin(), _temp.end());
+
+    if (ver_string == _configure.get_version()){
+        throw file_version_error("Header ERROR");
     }
 
     // Read basic audio

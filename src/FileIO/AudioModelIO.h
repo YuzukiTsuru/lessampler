@@ -21,10 +21,11 @@
 #include <cstring>
 
 #include "AudioModel/lessAudioModel.h"
+#include "ConfigUnit/lessConfigure.h"
 
 class AudioModelIO {
 public:
-    AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel);
+    AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel, lessConfigure configure);
 
     explicit AudioModelIO(std::filesystem::path Path);
 
@@ -49,6 +50,7 @@ public:
 
 private:
     lessAudioModel _audioModel{};
+    lessConfigure _configure{};
     std::filesystem::path root_file_path{};
     std::filesystem::path in_file_path{};
     std::filesystem::path audio_model_file_path{};

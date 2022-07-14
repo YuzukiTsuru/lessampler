@@ -17,7 +17,7 @@ add_executable(VecbinTest VecbinTest.cpp)
 add_executable(TimerTest TimerTest.cpp)
 
 add_executable(AudioModelBinTest AudioModelBinTest.cpp)
-target_link_libraries(AudioModelBinTest FileIO AudioModel world::tool)
+target_link_libraries(AudioModelBinTest FileIO AudioModel world::tool ConfigUnit)
 
 add_executable(WorldAnalysisTest WorldAnalysisTest.cpp)
 target_link_libraries(WorldAnalysisTest world::tool world::core)
