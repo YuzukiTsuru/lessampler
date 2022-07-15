@@ -43,10 +43,7 @@ public:
 
     void SaveAudioModel();
 
-    lessAudioModel ReadAudioModel();
-
-public:
-    static bool CheckAudioModelFile(const std::filesystem::path &path);
+    lessAudioModel ReadAudioModel(lessConfigure configure);
 
 private:
     lessAudioModel _audioModel{};
@@ -66,6 +63,11 @@ private:
     void ReadAudioContent();
 
     void GenerateFilePath();
+
+    bool CheckAudioModelVersion();
+
+private:
+    static bool CheckAudioModelFile(const std::filesystem::path &path);
 };
 
 #endif //LESSAMPLER_AUDIOMODELIO_H
