@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     lessAudioModel less_o{};
 
     AudioModelIO ReadBinUnit("a.o");
-    less_o = ReadBinUnit.ReadAudioModel();
+    less_o = ReadBinUnit.ReadAudioModel(configure);
 
     size_t error_count = 0;
 
