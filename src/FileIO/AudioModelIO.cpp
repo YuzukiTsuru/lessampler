@@ -51,7 +51,8 @@ void AudioModelIO::SaveAudioModel() {
     audio_out_model.close();
 }
 
-lessAudioModel AudioModelIO::ReadAudioModel() {
+lessAudioModel AudioModelIO::ReadAudioModel(lessConfigure configure) {
+    _configure = std::move(configure);
     ReadAudioContent();
     return _audioModel;
 }
@@ -67,8 +68,12 @@ bool AudioModelIO::CheckAudioModel() {
         YALL_DEBUG_ << "Audio Model NOT Exist.";
         return false;
     } else {
+        if (CheckAudioModelVersion()){
+            YALL_DEBUG_ << "Audio Model Exist, But Version Check Fail. Regenerate...";
+            return true;
+        }
         YALL_DEBUG_ << "Audio Model Exist.";
-        return true;
+        return false;
     }
 }
 
@@ -144,7 +149,7 @@ void AudioModelIO::ReadAudioContent() {
     std::string ver_string(_temp.begin(), _temp.end());
 
     if (ver_string != _configure.get_version()){
-        throw file_version_error("Header ERROR");
+        throw file_version_error("Please Regenerate Audio Model");
     }
 
     // Read basic audio
@@ -191,4 +196,26 @@ void AudioModelIO::ReadAudioContent() {
 
 void AudioModelIO::GenerateFilePath() {
     audio_model_file_path = root_file_path.replace_extension(audio_model_file_ext);
+}
+
+bool AudioModelIO::CheckAudioModelVersion() {
+    std::ifstream audio_in_model(audio_model_file_path, std::ios::in | std::ios::binary);
+
+    // Check Header
+    auto header = new char[6];
+    audio_in_model.read(header, sizeof(char) * 6);
+    if (std::string(lessaudio_header) != std::string(header)) {
+        return false;
+    }
+
+    std::streamsize ver_string_size;
+    audio_in_model.read(reinterpret_cast<char *>(&ver_string_size), sizeof(std::streamsize));
+    std::vector<char> _temp(ver_string_size);
+    audio_in_model.read(reinterpret_cast<char *>(&_temp[0]), std::streamsize(ver_string_size * sizeof(char)));
+    std::string ver_string(_temp.begin(), _temp.end());
+
+    if (ver_string != _configure.get_version()){
+        return false;
+    }
+    return true;
 }
