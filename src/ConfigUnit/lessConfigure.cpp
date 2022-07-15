@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <string>
+#include "SHA1.h"
 #include "lessConfigure.h"
 
 std::string lessConfigure::get_version() {
@@ -22,7 +23,6 @@ std::string lessConfigure::get_version() {
 }
 
 void lessConfigure::make_ver() {
-    // TODO: Ugly, using hash alog impl. geez
     version_data = version + std::to_string(debug_mode)
                    + std::to_string(audio_model_frame_period)
                    + std::to_string(fft_size)
@@ -39,5 +39,8 @@ void lessConfigure::make_ver() {
             return "HARVEST";
         return "UNKNOWN";
     }();
+    SHA1 checksum;
+    checksum.update(version_data);
+    version_data = checksum.final();
 }
 
