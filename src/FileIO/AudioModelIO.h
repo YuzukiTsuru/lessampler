@@ -39,7 +39,7 @@ public:
 
     [[maybe_unused]] lessAudioModel GetAudioModel();
 
-    bool CheckAudioModel();
+    bool CheckAudioModel(lessConfigure configure);
 
     void SaveAudioModel();
 
