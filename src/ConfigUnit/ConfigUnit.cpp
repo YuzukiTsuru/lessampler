@@ -209,7 +209,7 @@ void ConfigUnit::parse_config() {
         std::transform(f0_mode.begin(), f0_mode.end(), f0_mode.begin(), ::toupper);
         if (f0_mode == "DIO")
             return lessConfigure::F0_MODE::F0_MODE_DIO;
-        else if (f0_mode == "Harvest")
+        else if (f0_mode == "HARVEST")
             return lessConfigure::F0_MODE::F0_MODE_HARVEST;
         else
             return lessConfigure::F0_MODE::F0_MODE_UNKNOWN;
