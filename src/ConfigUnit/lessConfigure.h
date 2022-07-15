@@ -33,7 +33,7 @@ public:
     double audio_model_frame_period = (1000.0 * 256 / 44100);
     bool custom_fft_size = false;
     int fft_size = 1024;
-    F0_MODE f0_mode = F0_MODE::F0_MODE_DIO;
+    F0_MODE f0_mode = F0_MODE::F0_MODE_HARVEST;
     int f0_speed = 1;
     double f0_dio_floor = 40.0;
     double f0_harvest_floor = 40.0;
