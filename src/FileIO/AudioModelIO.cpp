@@ -61,7 +61,9 @@ bool AudioModelIO::CheckAudioModelFile(const std::filesystem::path &path) {
     return std::filesystem::exists(path);
 }
 
-bool AudioModelIO::CheckAudioModel() {
+bool AudioModelIO::CheckAudioModel(lessConfigure configure) {
+    _configure = std::move(configure);
+
     YALL_DEBUG_ << "Check AudioModel File: " + in_file_path.string();
 
     if (!CheckAudioModelFile(audio_model_file_path)) {
