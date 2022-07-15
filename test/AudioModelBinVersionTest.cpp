@@ -54,8 +54,11 @@ int main(int argc, char *argv[]) {
 
     lessAudioModel less_o{};
 
+    // Change a para
+    configure.fft_size = 382408308420938;
+
     AudioModelIO ReadBinUnit("a.o");
-    less_o = ReadBinUnit.ReadAudioModel();
+    less_o = ReadBinUnit.ReadAudioModel(configure);
 
     size_t error_count = 0;
 
