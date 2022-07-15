@@ -70,10 +70,10 @@ bool AudioModelIO::CheckAudioModel() {
     } else {
         if (CheckAudioModelVersion()){
             YALL_DEBUG_ << "Audio Model Exist, But Version Check Fail. Regenerate...";
-            return true;
+            return false;
         }
         YALL_DEBUG_ << "Audio Model Exist.";
-        return false;
+        return true;
     }
 }
 
