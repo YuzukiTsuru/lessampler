@@ -22,6 +22,7 @@
 
 enum Yall_LEVEL {
     LOG_DEBUG,
+    LOG_OK,
     LOG_INFO,
     LOG_WARN,
     LOG_ERROR,
@@ -54,6 +55,9 @@ public:
         std::lock_guard<std::mutex> lock(streamMtx);
         for (auto &stream: streams) {
             switch (logLevel) {
+                case Yall_LEVEL::LOG_OK:
+                    *stream << cc::green << "[OKAY]" << cc::reset;
+                    break;
                 case Yall_LEVEL::LOG_INFO:
                     *stream << cc::cyan << "[INFO]" << cc::reset;
                     break;
@@ -175,6 +179,7 @@ private:
 #endif
 
 #define YALL_DEBUG_       Yall::GetDebugYall(Yall_LEVEL::LOG_DEBUG, __FILE__, YALL_FUNC_, __LINE__)
+#define YALL_OK_        Yall::GetYall(Yall_LEVEL::LOG_OK)
 #define YALL_INFO_        Yall::GetYall(Yall_LEVEL::LOG_INFO)
 #define YALL_WARN_        Yall::GetYall(Yall_LEVEL::LOG_WARN)
 #define YALL_ERROR_       Yall::GetYall(Yall_LEVEL::LOG_ERROR)
