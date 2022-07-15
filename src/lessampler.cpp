@@ -138,6 +138,8 @@ void lessampler::run() {
 
         // Save to target wav file
         FileWriteUnit::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);
+
+        YALL_OK_ << "All Process Done!";
     }
 }
 
