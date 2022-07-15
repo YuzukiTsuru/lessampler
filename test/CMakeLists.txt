@@ -19,6 +19,9 @@ add_executable(TimerTest TimerTest.cpp)
 add_executable(AudioModelBinTest AudioModelBinTest.cpp)
 target_link_libraries(AudioModelBinTest FileIO AudioModel world::tool ConfigUnit)
 
+add_executable(AudioModelBinVersionTest AudioModelBinVersionTest.cpp)
+target_link_libraries(AudioModelBinVersionTest FileIO AudioModel world::tool ConfigUnit)
+
 add_executable(WorldAnalysisTest WorldAnalysisTest.cpp)
 target_link_libraries(WorldAnalysisTest world::tool world::core)
 
