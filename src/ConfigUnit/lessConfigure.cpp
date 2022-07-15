@@ -39,6 +39,8 @@ void lessConfigure::make_ver() {
             return "HARVEST";
         return "UNKNOWN";
     }();
+
+    // Using SHA-1 for checksum feature
     SHA1 checksum;
     checksum.update(version_data);
     version_data = checksum.final();

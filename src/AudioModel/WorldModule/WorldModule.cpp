@@ -24,12 +24,13 @@
 
 #include <utility>
 
-WorldModule::WorldModule(double *x, int x_length, int fs, const lessConfigure &configure) : x(x), x_length(x_length), configure(configure) {
+WorldModule::WorldModule(double *x, int x_length, int fs, lessConfigure config) : x(x), x_length(x_length), configure(std::move(config)) {
     // Set the para
     this->worldPara.fs = fs;
     this->worldPara.frame_period = configure.audio_model_frame_period;
 
     YALL_DEBUG_ << "Generate F0 from PCM file.";
+
     if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO) {
         F0EstimationDio();
     } else if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST) {

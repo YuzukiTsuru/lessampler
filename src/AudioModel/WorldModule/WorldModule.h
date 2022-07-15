@@ -24,7 +24,7 @@
 
 class WorldModule {
 public:
-    WorldModule(double *x, int x_length, int fs, const lessConfigure &configure);
+    WorldModule(double *x, int x_length, int fs, lessConfigure config);
 
     ~WorldModule();
 
