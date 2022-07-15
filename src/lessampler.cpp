@@ -47,6 +47,34 @@ void lessampler::show_logo() {
               << std::endl;
 }
 
+bool lessampler::ParseArgs() {
+    // Basic Open
+    if (argc < 2) {
+        show_logo();
+        Dialogs::notify("lessampler", "lessampler: Configure");
+        // ADD Qt/TUI
+        return false;
+    }
+
+    // model generation operator
+    if (argc == 2) {
+        show_logo();
+        Dialogs::notify("lessampler", "Start modeling against the audio files");
+        YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
+        GenerateAudioModel genmodule(std::filesystem::path(argv[1]), configure);
+        return false;
+    }
+
+    // lessampler resampler
+    if (argc > 3) {
+        in_file_path = std::filesystem::path(argv[1]);
+        return true;
+    }
+
+    // default
+    return false;
+}
+
 void lessampler::run() {
     // Read configure
     if (this->configure.debug_mode) {
@@ -69,7 +97,7 @@ void lessampler::run() {
 
         // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
         if (!audio_model_io.CheckAudioModel()) {
-            YALL_INFO_ << "Audio Model: " + in_file_path.string() + " not found, generating...";
+            YALL_INFO_ << "Generating Audio Model: " + in_file_path.string();
             timer.SetTimer();
             GenerateAudioModel genmodule(argv[1], configure);
             YALL_INFO_ << timer.GetTimer("Generate Audio Model: ");
@@ -79,7 +107,7 @@ void lessampler::run() {
 
         // Read audio model
         timer.SetTimer();
-        audio_model_io.ReadAudioModel();
+        audio_model_io.ReadAudioModel(configure);
         auto origin_audio_model = audio_model_io.GetAudioModel();
         YALL_INFO_ << timer.GetTimer("Read Audio Model: ");
 
@@ -111,34 +139,6 @@ void lessampler::run() {
         // Save to target wav file
         FileWriteUnit::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);
     }
-}
-
-bool lessampler::ParseArgs() {
-    // Basic Open
-    if (argc < 2) {
-        show_logo();
-        Dialogs::notify("lessampler", "lessampler: Configure");
-        // ADD Qt/TUI
-        return false;
-    }
-
-    // model generation operator
-    if (argc == 2) {
-        show_logo();
-        Dialogs::notify("lessampler", "Start modeling against the audio files");
-        YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
-        GenerateAudioModel genmodule(std::filesystem::path(argv[1]), configure);
-        return false;
-    }
-
-    // lessampler resampler
-    if (argc > 3) {
-        in_file_path = std::filesystem::path(argv[1]);
-        return true;
-    }
-
-    // default
-    return false;
 }
 
 void lessampler::ShowAudioInfo(const lessAudioModel &audioModel) {
