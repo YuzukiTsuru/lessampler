@@ -210,6 +210,7 @@ bool AudioModelIO::CheckAudioModelVersion() {
         return false;
     }
 
+    // Check Model Para
     std::streamsize ver_string_size;
     audio_in_model.read(reinterpret_cast<char *>(&ver_string_size), sizeof(std::streamsize));
     std::vector<char> _temp(ver_string_size);
