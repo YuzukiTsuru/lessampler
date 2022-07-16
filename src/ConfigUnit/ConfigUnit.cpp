@@ -159,7 +159,7 @@ void ConfigUnit::read_config_file() {
     // read config file
     std::ifstream file(config_file_path);
     if (!file.is_open()) {
-        throw std::runtime_error("ConfigUnit file not found");
+        throw file_open_error(config_file_path.string());
     }
     config_file = std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
     file.close();
@@ -169,7 +169,7 @@ void ConfigUnit::save_config_file() {
     // read config file
     std::ofstream file(config_file_path);
     if (!file.is_open()) {
-        throw std::runtime_error("ConfigUnit file not found");
+        throw file_open_error(config_file_path.string());
     }
     file << config_file;
     file.close();
