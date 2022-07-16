@@ -14,6 +14,8 @@
 
 #include <fstream>
 #include <filesystem>
+
+#include "Utils/exception.h"
 #include "lessconfig.h"
 #include "ConfigUnit.h"
 
@@ -227,24 +229,7 @@ void ConfigUnit::parse_config() {
 }
 
 void ConfigUnit::print_config() const {
-    YALL_DEBUG_ << "Configure: ";
-    YALL_DEBUG_ << "version: " + configure.version;
-    YALL_DEBUG_ << "debug_mode: " + std::to_string(configure.debug_mode);
-    YALL_DEBUG_ << "audio_model_frame_period: " + std::to_string(configure.audio_model_frame_period);
-    YALL_DEBUG_ << "fft_size: " + std::to_string(configure.fft_size);
-    YALL_DEBUG_ << "f0_mode: " + [&]() -> std::string {
-        if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO)
-            return "DIO";
-        if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST)
-            return "HARVEST";
-        return "UNKNOWN";
-    }();
-    YALL_DEBUG_ << "f0_speed: " + std::to_string(configure.f0_speed);
-    YALL_DEBUG_ << "f0_dio_floor: " + std::to_string(configure.f0_dio_floor);
-    YALL_DEBUG_ << "f0_harvest_floor: " + std::to_string(configure.f0_harvest_floor);
-    YALL_DEBUG_ << "f0_cheap_trick_floor: " + std::to_string(configure.f0_cheap_trick_floor);
-    YALL_DEBUG_ << "f0_allow_range: " + std::to_string(configure.f0_allow_range);
-    YALL_DEBUG_ << "ap_threshold: " + std::to_string(configure.ap_threshold);
+
 }
 
 lessConfigure ConfigUnit::get_config() {
