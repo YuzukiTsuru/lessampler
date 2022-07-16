@@ -51,7 +51,7 @@ bool lessampler::ParseArgs() {
     // Basic Open
     if (argc < 2) {
         show_logo();
-        Dialogs::notify("lessampler", "lessampler: Configure");
+        Dialogs::notify("lessampler: Configure", "lessampler");
         // ADD Qt/TUI
         return false;
     }
@@ -59,7 +59,7 @@ bool lessampler::ParseArgs() {
     // model generation operator
     if (argc == 2) {
         show_logo();
-        Dialogs::notify("lessampler", "Start modeling against the audio files");
+        Dialogs::notify("Start modeling audio files", "lessampler");
         YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
         GenerateAudioModel genmodule(std::filesystem::path(argv[1]), configure);
         return false;
