@@ -227,10 +227,6 @@ void ConfigUnit::parse_config() {
     configure.ap_threshold = ap_section["ap_threshold"].get<inicpp::float_ini_t>();
 }
 
-void ConfigUnit::print_config() const {
-
-}
-
-lessConfigure ConfigUnit::get_config() {
+lessConfigure ConfigUnit::get_config() const {
     return configure;
 }
