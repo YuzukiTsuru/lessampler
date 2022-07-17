@@ -43,7 +43,6 @@ void ConfigUnit::init_config() {
         save_config_file();
         parse_config();
     }
-    print_config();
 }
 
 void ConfigUnit::make_schema() {
