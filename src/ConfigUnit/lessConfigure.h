@@ -41,6 +41,9 @@ public:
     double f0_allow_range = 0.1;
     double ap_threshold = 0.85;
 
+public:
+    static std::string get_f0_mode_str(lessConfigure::F0_MODE f0_mode);
+
 private:
     std::string version_data;
 
