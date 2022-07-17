@@ -182,7 +182,6 @@ void ConfigUnit::create_default_config() {
 }
 
 void ConfigUnit::parse_config() {
-    //TODO: bump to schema version
     config = inicpp::parser::load(config_file);
     // parse config file config section
     auto config_section = config["config"];
