@@ -31,18 +31,23 @@ void lessConfigure::make_ver() {
                    + std::to_string(f0_harvest_floor)
                    + std::to_string(f0_cheap_trick_floor)
                    + std::to_string(f0_allow_range)
-                   + std::to_string(ap_threshold);
-    version_data += [&]() -> std::string {
-        if (f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO)
-            return "DIO";
-        if (f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST)
-            return "HARVEST";
-        return "UNKNOWN";
-    }();
+                   + std::to_string(ap_threshold)
+                   + get_f0_mode_str(f0_mode);
 
     // Using SHA-1 for checksum feature
     SHA1 checksum;
     checksum.update(version_data);
     version_data = checksum.final();
+}
+
+std::string lessConfigure::get_f0_mode_str(lessConfigure::F0_MODE f0_mode) {
+    return [&]() -> std::string {
+        if (f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO)
+            return "DIO";
+        if (f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST)
+            return "HARVEST";
+        else
+            return "UNKNOWN";
+    }();
 }
 
