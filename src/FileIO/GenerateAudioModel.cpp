@@ -21,6 +21,7 @@
 #include "Utils/LOG.h"
 #include "AudioModel/AudioModel.h"
 #include "AudioModel/lessAudioModel.h"
+#include "AudioProcess/AutoAMP.h"
 #include "FileIO/AudioModelIO.h"
 #include "FileIO/FileReadUnit.h"
 
@@ -61,6 +62,10 @@ void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
     auto x_length = FileReadUnit::GetAudioLength(wav_path.string().c_str());
     auto x = new double[x_length];
     auto fs = FileReadUnit::WavRead(wav_path.string().c_str(), x);
+
+    YALL_DEBUG_ << "Apply AMP Before Modeling";
+    AutoAMP amp(x);
+    x = amp.GetAMP();
 
     AudioModel audioModel(x, x_length, fs, configure);
     auto model = audioModel.GetAudioModel();
