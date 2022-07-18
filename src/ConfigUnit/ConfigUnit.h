@@ -53,8 +53,10 @@ private:
     // set default configure file
     void save_config_file();
 
+    // create defalut config from lessConfigure class default value
     void create_default_config();
 
+    // configure parser
     void parse_config();
 };
 
