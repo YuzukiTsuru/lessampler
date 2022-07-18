@@ -79,7 +79,7 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::float_ini_t> frame_period{};
     frame_period.name = "frame_period";
-    frame_period.default_value = std::to_string(1000.0 * 256 / 44100);
+    frame_period.default_value = configure.audio_model_frame_period;
     frame_period.type = inicpp::option_item::single;
     config_schema.add_option("audio_model", frame_period);
 
@@ -105,25 +105,25 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::signed_ini_t> f0_speed{};
     f0_speed.name = "f0_speed";
-    f0_speed.default_value = "1";
+    f0_speed.default_value = std::to_string(configure.f0_speed);
     f0_speed.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_speed);
 
     inicpp::option_schema_params<inicpp::float_ini_t> f0_dio_floor{};
     f0_dio_floor.name = "f0_dio_floor";
-    f0_dio_floor.default_value = "20.0";
+    f0_dio_floor.default_value = std::to_string(configure.f0_dio_floor);
     f0_dio_floor.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_dio_floor);
 
     inicpp::option_schema_params<inicpp::float_ini_t> f0_harvest_floor{};
     f0_harvest_floor.name = "f0_harvest_floor";
-    f0_harvest_floor.default_value = "20.0";
+    f0_harvest_floor.default_value = std::to_string(configure.f0_harvest_floor);
     f0_harvest_floor.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_harvest_floor);
 
     inicpp::option_schema_params<inicpp::float_ini_t> f0_cheap_trick_floor{};
     f0_cheap_trick_floor.name = "f0_cheap_trick_floor";
-    f0_cheap_trick_floor.default_value = "41.0";
+    f0_cheap_trick_floor.default_value = std::to_string(configure.f0_cheap_trick_floor);
     f0_cheap_trick_floor.comment =
             "When fft_size changes from default value,\n"
             "a replaced f0_cheap_trick_floor will be used in CheapTrick\n"
@@ -136,7 +136,7 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::float_ini_t> f0_allow_range{};
     f0_allow_range.name = "f0_allow_range";
-    f0_allow_range.default_value = "0.1";
+    f0_allow_range.default_value = std::to_string(configure.f0_allow_range);
     f0_allow_range.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_allow_range);
 
@@ -149,7 +149,7 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::float_ini_t> ap_threshold{};
     ap_threshold.name = "ap_threshold";
-    ap_threshold.default_value = "0.42";
+    ap_threshold.default_value = std::to_string(configure.ap_threshold);
     ap_threshold.type = inicpp::option_item::single;
     config_schema.add_option("ap", ap_threshold);
 }
