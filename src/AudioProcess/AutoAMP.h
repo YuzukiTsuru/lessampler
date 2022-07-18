@@ -22,6 +22,8 @@ class AutoAMP {
 public:
     AutoAMP(ShinePara shine, double *x);
 
+    AutoAMP(double *x);
+
     double *GetAMP();
 
 private:
