@@ -24,7 +24,8 @@ public:
     AutoAMP(ShinePara shine, double *x);
 
     // Auto AMP only for WAV
-    AutoAMP(double *x);
+    // TODO: fix with vector
+    AutoAMP(double *x, int x_length);
 
     double *GetAMP();
 
