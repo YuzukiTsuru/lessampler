@@ -23,10 +23,11 @@
 class Timer {
 public:
     Timer() {
-        start_time = get_perf_count();
+        g_start_time = get_perf_count();
+        start_time = g_start_time;
     };
 
-    void SetTimer(){
+    void SetTimer() {
         end_time = 0;
         start_time = get_perf_count();
     }
@@ -47,10 +48,23 @@ public:
         }();
     }
 
+    std::string EndTimer() {
+        g_end_time = get_perf_count();
+        return [&]() -> std::string {
+            auto time = g_end_time - g_start_time;
+            if (time / 10000 == 0)
+                return std::to_string((g_end_time - g_start_time) / 10) + "us";
+            else
+                return std::to_string((g_end_time - g_start_time) / 10000) + "ms";
+        }();
+    }
 
 protected:
     uint64_t start_time = 0;
     uint64_t end_time = 0;
+
+    uint64_t g_start_time = 0;
+    uint64_t g_end_time = 0;
 
 private:
     static uint64_t get_perf_count() {
