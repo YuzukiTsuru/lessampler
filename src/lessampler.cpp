@@ -89,6 +89,7 @@ void lessampler::run() {
     if (ParseArgs()) {
         YALL_INFO_ << "lessampler Copyright (c)  2018 - 2022, YuzukiTsuru, Version: " + std::string(PROJECT_GIT_HASH);
         AudioModelIO audio_model_io(in_file_path);
+        YALL_INFO_ << "Audio File: " + in_file_path.string();
 
         // In some projects, the creator will use x.wav, z.wav or other non-existing audio to force truncation of audio
         // here is a basic handle。
