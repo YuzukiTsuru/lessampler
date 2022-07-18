@@ -62,13 +62,13 @@ public:
                     *stream << cc::cyan << "[INFO]" << cc::reset;
                     break;
                 case Yall_LEVEL::LOG_WARN:
-                    *stream << cc::yellow << "[WARNING]" << cc::reset;
+                    *stream << cc::yellow << "[WARN]" << cc::reset;
                     break;
                 case Yall_LEVEL::LOG_ERROR:
-                    *stream << cc::red << "[ERROR]" << cc::reset;
+                    *stream << cc::red << "[ERRO]" << cc::reset;
                     break;
                 case Yall_LEVEL::LOG_CRITICAL:
-                    *stream << cc::on_red << "[CRITICAL]" << cc::reset;
+                    *stream << cc::on_red << "[CRIT]" << cc::reset;
                     break;
                 default:
                     break;
