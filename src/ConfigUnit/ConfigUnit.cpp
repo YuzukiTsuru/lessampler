@@ -98,7 +98,7 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::string_ini_t> f0_mode{};
     f0_mode.name = "f0_mode";
-    f0_mode.default_value = "Harvest";
+    f0_mode.default_value = lessConfigure::get_f0_mode_str(configure.f0_mode);
     f0_mode.comment = "You Can Choose 'DIO' 'Harvest' for f0";
     f0_mode.type = inicpp::option_item::single;
     config_schema.add_option("f0", f0_mode);
