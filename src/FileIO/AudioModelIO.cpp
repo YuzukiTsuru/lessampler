@@ -71,7 +71,7 @@ bool AudioModelIO::CheckAudioModel(lessConfigure configure) {
         return false;
     } else {
         if (!CheckAudioModelVersion()){
-            YALL_DEBUG_ << "Audio Model Exist, But Version Check Fail. Regenerate...";
+            YALL_WARN_ << "Audio Model Exist, But Version Check Fail. Regenerate...";
             return false;
         }
         YALL_DEBUG_ << "Audio Model Exist.";
