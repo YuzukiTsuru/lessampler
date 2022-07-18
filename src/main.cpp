@@ -16,5 +16,7 @@ int main(int argc, char *argv[]) {
         lessampler.run();
     } catch (const std::runtime_error &error) {
         YALL_ERROR_ << error.what();
+        return -1;
     }
+    return 0;
 }
