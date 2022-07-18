@@ -30,6 +30,7 @@ public:
 
     std::string version;
     bool debug_mode = false;
+    bool model_amp = true;
     double audio_model_frame_period = (1000.0 * 256 / 44100);
     bool custom_fft_size = false;
     int fft_size = 1024;
