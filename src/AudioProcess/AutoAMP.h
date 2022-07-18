@@ -50,6 +50,8 @@ private:
 
     void DiminishedConsonantFricative();
 
+    void DiminishedConsonantFricative(double amp_volumes);
+
     void LimitMaximumAmplitude();
 };
 
