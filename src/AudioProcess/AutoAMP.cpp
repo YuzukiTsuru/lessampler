@@ -46,7 +46,8 @@ AutoAMP::AutoAMP(double *x, int x_length) {
     GetMaxAMP();
     YALL_DEBUG_ << "Get Max AMP is: " + std::to_string(MaxAMP);
     YALL_DEBUG_ << "Diminished Consonant Fricative...";
-    DiminishedConsonantFricative();
+    // TODO: add configure
+    DiminishedConsonantFricative(default_sample_value);
     YALL_DEBUG_ << "Limit maximum amplitude";
     LimitMaximumAmplitude();
 }
@@ -80,6 +81,17 @@ void AutoAMP::DiminishedConsonantFricative() {
             x_out[i] = 0.0;
         } else {
             x_out[i] = x[i] * 0.5 * shine.volumes / MaxAMP;
+        }
+    }
+}
+
+void AutoAMP::DiminishedConsonantFricative(double amp_volumes) {
+    for (int i = 0; i < x_length; ++i) {
+        // remove blank fricatives
+        if (std::isnan(x[i])) {
+            x_out[i] = 0.0;
+        } else {
+            x_out[i] = x[i] * 0.5 * amp_volumes / MaxAMP;
         }
     }
 }
