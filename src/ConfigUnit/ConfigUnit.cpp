@@ -79,7 +79,7 @@ void ConfigUnit::make_schema() {
 
     inicpp::option_schema_params<inicpp::float_ini_t> frame_period{};
     frame_period.name = "frame_period";
-    frame_period.default_value = configure.audio_model_frame_period;
+    frame_period.default_value = std::to_string(configure.audio_model_frame_period);
     frame_period.type = inicpp::option_item::single;
     config_schema.add_option("audio_model", frame_period);
 
