@@ -20,8 +20,10 @@
 
 class AutoAMP {
 public:
+    // Auto AMP with Shine para
     AutoAMP(ShinePara shine, double *x);
 
+    // Auto AMP only for WAV
     AutoAMP(double *x);
 
     double *GetAMP();
