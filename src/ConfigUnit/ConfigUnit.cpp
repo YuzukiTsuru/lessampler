@@ -89,12 +89,12 @@ void ConfigUnit::make_schema() {
     fft_size.type = inicpp::option_item::single;
     config_schema.add_option("audio_model", fft_size);
 
-    inicpp::option_schema_params<inicpp::float_ini_t> model_amp{};
+    inicpp::option_schema_params<inicpp::boolean_ini_t> model_amp{};
     model_amp.name = "model_amp";
     model_amp.default_value = std::to_string(configure.model_amp);
     model_amp.type = inicpp::option_item::single;
     model_amp.comment = "Apply AutoAMP before Modeling, Suitable for sound bank with uneven volume\n";
-    config_schema.add_option("model_amp", model_amp);
+    config_schema.add_option("audio_model", model_amp);
 
     // create project f0 section
     inicpp::section_schema_params section_f0_params{};
