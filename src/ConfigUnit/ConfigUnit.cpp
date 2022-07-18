@@ -198,6 +198,7 @@ void ConfigUnit::parse_config() {
     // parse config file audio model section
     auto audio_model_section = config["audio_model"];
     configure.audio_model_frame_period = audio_model_section["frame_period"].get<inicpp::float_ini_t>();
+    configure.model_amp = audio_model_section["model_amp"].get<inicpp::boolean_ini_t>();
     // check if fft_size is auto or not
     if (audio_model_section["fft_size"].get<inicpp::string_ini_t>() == "auto") {
         configure.fft_size = 0;
