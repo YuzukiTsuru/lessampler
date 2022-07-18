@@ -46,7 +46,6 @@ AutoAMP::AutoAMP(double *x, int x_length, double amp_val) {
     GetMaxAMP();
     YALL_DEBUG_ << "Get Max AMP is: " + std::to_string(MaxAMP);
     YALL_DEBUG_ << "Diminished Consonant Fricative...";
-    // TODO: add configure
     DiminishedConsonantFricative(amp_val);
     YALL_DEBUG_ << "Limit maximum amplitude";
     LimitMaximumAmplitude();
