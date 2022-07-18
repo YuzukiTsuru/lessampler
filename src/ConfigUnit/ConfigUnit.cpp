@@ -49,7 +49,7 @@ void ConfigUnit::make_schema() {
     // create project info section
     inicpp::section_schema_params section_config_params{};
     section_config_params.name = "config";
-    section_config_params.comment = "Global Settings";
+    section_config_params.comment = "\n============ Gobal Settings ===========\n";
     section_config_params.requirement = inicpp::item_requirement::mandatory;
     config_schema.add_section(section_config_params);
 
@@ -72,7 +72,7 @@ void ConfigUnit::make_schema() {
     // create project audio model section
     inicpp::section_schema_params section_audio_model_params{};
     section_audio_model_params.name = "audio_model";
-    section_audio_model_params.comment = "\nAudio Model Settings\n"
+    section_audio_model_params.comment = "\n========= Audio Model Settings ========\n"
                                          "Note: modifying any of the parameters here will require remodeling the voice db\n";
     section_audio_model_params.requirement = inicpp::item_requirement::mandatory;
     config_schema.add_section(section_audio_model_params);
@@ -92,7 +92,8 @@ void ConfigUnit::make_schema() {
     // create project f0 section
     inicpp::section_schema_params section_f0_params{};
     section_f0_params.name = "f0";
-    section_f0_params.comment = "F0 Settings";
+    section_f0_params.comment = "\n============= F0 Settings =============\n"
+                                "Note: modifying any of the parameters here will require remodeling the voice db\n";
     section_f0_params.requirement = inicpp::item_requirement::mandatory;
     config_schema.add_section(section_f0_params);
 
@@ -143,7 +144,7 @@ void ConfigUnit::make_schema() {
     // create project ap section
     inicpp::section_schema_params section_ap_params{};
     section_ap_params.name = "ap";
-    section_ap_params.comment = "AP Settings";
+    section_ap_params.comment = "\n============= AP Settings =============\n";
     section_ap_params.requirement = inicpp::item_requirement::mandatory;
     config_schema.add_section(section_ap_params);
 
