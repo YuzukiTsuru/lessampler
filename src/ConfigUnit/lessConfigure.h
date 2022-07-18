@@ -40,7 +40,7 @@ public:
     double f0_harvest_floor = 40.0;
     double f0_cheap_trick_floor = 71.0;
     double f0_allow_range = 0.1;
-    double ap_threshold = 0.85;
+    double ap_threshold = 0.05;
 
 public:
     static std::string get_f0_mode_str(lessConfigure::F0_MODE f0_mode);
