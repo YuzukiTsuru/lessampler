@@ -38,8 +38,8 @@ AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
     LimitMaximumAmplitude();
 }
 
-AutoAMP::AutoAMP(double *x) {
-    this->x_length = this->shine.output_samples;
+AutoAMP::AutoAMP(double *x, int x_length) {
+    this->x_length = x_length;
     this->x = x;
     this->x_out = new double[x_length];
     YALL_DEBUG_ << "The X_LENGTH is: " + std::to_string(x_length);
