@@ -63,9 +63,12 @@ void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
     auto x = new double[x_length];
     auto fs = FileReadUnit::WavRead(wav_path.string().c_str(), x);
 
-    YALL_DEBUG_ << "Apply AMP Before Modeling";
-    AutoAMP amp(x);
-    x = amp.GetAMP();
+    // Check weather need to apply amp before modeling
+    if (configure.model_amp) {
+        YALL_DEBUG_ << "Apply AMP Before Modeling";
+        AutoAMP amp(x);
+        x = amp.GetAMP();
+    }
 
     AudioModel audioModel(x, x_length, fs, configure);
     auto model = audioModel.GetAudioModel();
@@ -100,7 +103,7 @@ void GenerateAudioModel::for_each(size_t thread_count, I begin, I end, F f) {
     std::vector<std::thread> threads;
     threads.reserve(thread_count - 1);
 
-    auto f2 = [&]() {
+    auto worker_ = [&]() {
         for (;;) {
             I it;
             it = begin;
@@ -114,10 +117,10 @@ void GenerateAudioModel::for_each(size_t thread_count, I begin, I end, F f) {
     for (unsigned i = 0; i < thread_count - 1; ++i, ++it) {
         if (it == end)
             break;
-        threads.emplace_back(std::thread(f2));
+        threads.emplace_back(std::thread(worker_));
     }
 
-    f2();
+    worker_();
     for (auto &th: threads) {
         th.join();
     }
