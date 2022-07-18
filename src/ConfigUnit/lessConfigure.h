@@ -30,7 +30,7 @@ public:
 
     std::string version;
     bool debug_mode = false;
-    bool model_amp = true;
+    double model_amp = 0.85;
     double audio_model_frame_period = (1000.0 * 256 / 44100);
     bool custom_fft_size = false;
     int fft_size = 1024;
@@ -40,7 +40,7 @@ public:
     double f0_harvest_floor = 40.0;
     double f0_cheap_trick_floor = 71.0;
     double f0_allow_range = 0.1;
-    double ap_threshold = 0.05;
+    double ap_threshold = 0.10;
 
 public:
     static std::string get_f0_mode_str(lessConfigure::F0_MODE f0_mode);

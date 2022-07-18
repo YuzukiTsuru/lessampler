@@ -38,7 +38,7 @@ AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
     LimitMaximumAmplitude();
 }
 
-AutoAMP::AutoAMP(double *x, int x_length) {
+AutoAMP::AutoAMP(double *x, int x_length, double amp_val) {
     this->x_length = x_length;
     this->x = x;
     this->x_out = new double[x_length];
@@ -47,7 +47,7 @@ AutoAMP::AutoAMP(double *x, int x_length) {
     YALL_DEBUG_ << "Get Max AMP is: " + std::to_string(MaxAMP);
     YALL_DEBUG_ << "Diminished Consonant Fricative...";
     // TODO: add configure
-    DiminishedConsonantFricative(default_sample_value);
+    DiminishedConsonantFricative(amp_val);
     YALL_DEBUG_ << "Limit maximum amplitude";
     LimitMaximumAmplitude();
 }

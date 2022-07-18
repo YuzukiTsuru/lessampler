@@ -64,9 +64,9 @@ void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
     auto fs = FileReadUnit::WavRead(wav_path.string().c_str(), x);
 
     // Check weather need to apply amp before modeling
-    if (configure.model_amp) {
+    if (configure.model_amp != 0.0) {
         YALL_DEBUG_ << "Apply AMP Before Modeling";
-        AutoAMP amp(x, x_length);
+        AutoAMP amp(x, x_length, configure.model_amp);
         x = amp.GetAMP();
     }
 

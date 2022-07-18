@@ -25,7 +25,7 @@ public:
 
     // Auto AMP only for WAV
     // TODO: fix with vector
-    AutoAMP(double *x, int x_length);
+    AutoAMP(double *x, int x_length, double amp_val);
 
     double *GetAMP();
 
