@@ -62,6 +62,7 @@ bool lessampler::ParseArgs() {
         Dialogs::notify("Start modeling audio files", "lessampler");
         YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
         GenerateAudioModel genmodule(std::filesystem::path(argv[1]), configure);
+        Dialogs::notify("Modeling Done!", "lessampler");
         return false;
     }
 
