@@ -93,6 +93,7 @@ void lessampler::run() {
         // In some projects, the creator will use x.wav, z.wav or other non-existing audio to force truncation of audio
         // here is a basic handle。
         if (!std::filesystem::exists(in_file_path)) {
+            YALL_WARN_ << "No Audio File input.";
             return;
         }
 
@@ -140,7 +141,7 @@ void lessampler::run() {
         // Save to target wav file
         FileWriteUnit::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);
 
-        YALL_OK_ << "All Process Done!" + timer.EndTimer();
+        YALL_OK_ << "All Process Done: " + timer.EndTimer();
     }
 }
 
