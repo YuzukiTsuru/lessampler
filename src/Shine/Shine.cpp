@@ -23,12 +23,25 @@
 
 [[maybe_unused]] Shine::Shine(ShinePara para) : shine_para(std::move(para)) {}
 
-Shine::Shine(int argc, char *argv[], lessAudioModel audioModel, SHINE_MODE mode) {
+Shine::Shine(int argc, char *argv[], const lessAudioModel& audioModel, SHINE_MODE mode) {
     if (mode == SHINE_MODE::UTAU) {
         libUTAU utau(argc, argv);
         utau.CheckPara(audioModel);
         SetShine(utau.GetUTAUPara(), utau.GetUTAUFlags(), audioModel);
     }
+}
+
+Shine::Shine(int argc, char **argv, Shine::SHINE_MODE mode) {
+    if (mode == SHINE_MODE::UTAU) {
+        libUTAU utau(argc, argv);
+        SetShine(utau.GetUTAUPara());
+    }
+}
+
+void Shine::SetShine(const UTAUPara& utau_para){
+    shine_para.input_file_name = utau_para.input_file_name;
+    shine_para.output_file_name = utau_para.output_file_name;
+    shine_para.required_length = utau_para.required_length;
 }
 
 void Shine::SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, const lessAudioModel& audioModel) {
