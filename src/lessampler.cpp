@@ -104,7 +104,6 @@ void lessampler::run() {
                 x[i] = 0.0;
             }
             FileWriteUnit::WriteWav(shine_para.output_file_name, x, blank_audio_size, default_fs);
-            YALL_OK_ << "All Process Done.";
         } else {
             // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
             if (!audio_model_io.CheckAudioModel(configure)) {
@@ -148,9 +147,8 @@ void lessampler::run() {
 
             // Save to target wav file
             FileWriteUnit::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);
-
-            YALL_OK_ << "All Process Done: " + timer.EndTimer();
         }
+        YALL_OK_ << "All Process Done: " + timer.EndTimer();
     }
 }
 
