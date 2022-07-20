@@ -99,7 +99,9 @@ void lessampler::run() {
             auto shine_para = shine.GetShine();
             auto blank_audio_size = static_cast<int>(shine_para.required_length * 0.001 * default_fs) + 1;
             auto x = new double[blank_audio_size];
-
+            for (int i = 0; i < blank_audio_size; ++i) {
+                x[i] = 0.0;
+            }
 
         } else {
             // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
