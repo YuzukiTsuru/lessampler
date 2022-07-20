@@ -36,6 +36,9 @@ private:
     lessConfigure configure;
 
 private:
+    const int default_fs = 44100;
+
+private:
     [[nodiscard]] bool ParseArgs();
 
 private:
