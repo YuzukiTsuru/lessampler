@@ -94,14 +94,16 @@ void lessampler::run() {
         // In some projects, the creator will use x.wav, z.wav or other non-existing audio to force truncation of audio
         // here is a basic handle。
         if (!std::filesystem::exists(in_file_path)) {
-            YALL_WARN_ << "No Audio File input. Blank Audio";
+            YALL_WARN_ << "No Audio File input. Generate Blank Audio";
             Shine shine(argc, argv, Shine::SHINE_MODE::UTAU);
             auto shine_para = shine.GetShine();
             auto blank_audio_size = static_cast<int>(shine_para.required_length * 0.001 * default_fs) + 1;
             auto x = new double[blank_audio_size];
+
             for (int i = 0; i < blank_audio_size; ++i) {
                 x[i] = 0.0;
             }
+            FileWriteUnit::WriteWav(shine_para.output_file_name, x, blank_audio_size, default_fs);
 
         } else {
             // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
