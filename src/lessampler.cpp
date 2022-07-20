@@ -97,8 +97,8 @@ void lessampler::run() {
             YALL_WARN_ << "No Audio File input. Blank Audio";
             Shine shine(argc, argv, Shine::SHINE_MODE::UTAU);
             auto shine_para = shine.GetShine();
-            auto blank_audio = static_cast<int>(shine_para.required_length * 0.001 * default_fs) + 1;
-
+            auto blank_audio_size = static_cast<int>(shine_para.required_length * 0.001 * default_fs) + 1;
+            auto x = new double[blank_audio_size];
 
 
         } else {
