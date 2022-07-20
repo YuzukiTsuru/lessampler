@@ -105,7 +105,7 @@ void lessampler::run() {
             }
             FileWriteUnit::WriteWav(shine_para.output_file_name, x, blank_audio_size, default_fs);
         } else {
-            // Check if an audio model exists。 If it does not exist, turn on multithreaded generation
+            // Check if an audio model exists。 If it does not exist, generate new model
             if (!audio_model_io.CheckAudioModel(configure)) {
                 YALL_INFO_ << "Generating Audio Model: " + in_file_path.string();
                 timer.SetTimer();
