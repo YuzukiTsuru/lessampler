@@ -28,7 +28,12 @@ public:
 public:
     [[maybe_unused]] explicit Shine(ShinePara para);
 
-    [[maybe_unused]] Shine(int argc, char *argv[], lessAudioModel audioModel, SHINE_MODE mode);
+    /*
+     * Shine only for blank output
+     */
+    [[maybe_unused]] Shine(int argc, char *argv[], SHINE_MODE mode);
+
+    [[maybe_unused]] Shine(int argc, char *argv[], const lessAudioModel& audioModel, SHINE_MODE mode);
 
     ~Shine() = default;
 
@@ -39,6 +44,8 @@ private:
 
 private:
     void SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, const lessAudioModel& audioModel);
+
+    void SetShine(const UTAUPara& utau_para);
 
     void DecodePitchBend(int fs, double frame_period, std::string pitch);
 };
