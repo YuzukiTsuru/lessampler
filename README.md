@@ -41,7 +41,7 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
 ```
 git clone --recursive --depth 1 https://github.com/YuzukiTsuru/lessampler
 mkdir build && cd build
-cmake ..
+cmake .. && make -j
 ```
 
 
