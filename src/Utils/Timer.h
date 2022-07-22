@@ -36,10 +36,10 @@ public:
         end_time = get_perf_count();
         return [&]() -> std::string {
             auto time = end_time - start_time;
-            if (time / 10000 == 0)
-                return info + std::to_string((end_time - start_time) / 10) + "us";
+            if (time / 1000 == 0)
+                return info + std::to_string(end_time - start_time) + "us";
             else
-                return info + std::to_string((end_time - start_time) / 10000) + "ms";
+                return info + std::to_string((end_time - start_time) / 1000) + "ms";
         }();
     }
 
@@ -47,10 +47,10 @@ public:
         g_end_time = get_perf_count();
         return [&]() -> std::string {
             auto time = g_end_time - g_start_time;
-            if (time / 10000 == 0)
-                return std::to_string((g_end_time - g_start_time) / 10) + "us";
+            if (time / 1000 == 0)
+                return std::to_string(g_end_time - g_start_time) + "us";
             else
-                return std::to_string((g_end_time - g_start_time) / 10000) + "ms";
+                return std::to_string((g_end_time - g_start_time) / 1000) + "ms";
         }();
     }
 
@@ -63,7 +63,7 @@ protected:
 
 private:
     static uint64_t get_perf_count() {
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     };
 };
 
