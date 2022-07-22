@@ -13,12 +13,7 @@
 //
 
 #include <iostream>
-
-#if defined(_WIN32) || defined(UNDER_CE)
-
-#include <windows.h>
-
-#endif
+#include <chrono>
 
 class Timer {
 public:
@@ -68,15 +63,7 @@ protected:
 
 private:
     static uint64_t get_perf_count() {
-#if defined(__linux__) || defined(__ANDROID__) || defined(__QNX__) || defined(__CYGWIN__)
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        return (uint64_t)((uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000);
-#elif defined(_WIN32) || defined(UNDER_CE)
-        LARGE_INTEGER ln;
-        QueryPerformanceCounter(&ln);
-        return (uint64_t) ln.QuadPart;
-#endif
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     };
 };
 

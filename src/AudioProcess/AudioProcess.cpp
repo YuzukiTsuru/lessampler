@@ -186,13 +186,13 @@ void AudioProcess::TimeStretch() {
     of << "AVG FREQ: " << avg_freq << "\n"
        << "Trans F0 Length: " << transAudioModel.f0.size() << "\n";
     of << "Original F0: \n";
-    for (int j = 0; j < audioModel.f0.size(); ++j) {
-        of << audioModel.f0[j] << " ";
+    for (double j : audioModel.f0) {
+        of << j << " ";
     }
 
     of << "\nTransd F0: \n";
-    for (int j = 0; j < transAudioModel.f0.size(); ++j) {
-        of << transAudioModel.f0[j] << " ";
+    for (double j : transAudioModel.f0) {
+        of << j << " ";
     }
     of << "\n";
 

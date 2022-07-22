@@ -63,9 +63,9 @@ int main(int argc, char *argv[]) {
 
     auto shine_para = shine.GetShine();
 
-    AudioProcess aduioProcess(less_i, shine_para);
+    AudioProcess audioProcess(less_i, shine_para);
 
-    auto less_t = aduioProcess.GetTransAudioModel();
+    auto less_t = audioProcess.GetTransAudioModel();
 
     YALL_DEBUG_ << "Trans Done. Generate File...";
 

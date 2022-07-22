@@ -68,7 +68,7 @@ public:
 
     void PrintUTAUPara() const;
 
-    void CheckPara(lessAudioModel audioModel);
+    void CheckPara(const lessAudioModel& audioModel);
 
     [[maybe_unused]] [[nodiscard]] UTAUPara GetUTAUPara() const;
 

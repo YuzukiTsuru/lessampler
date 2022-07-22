@@ -53,7 +53,7 @@ UTAUFlags libUTAU::GetUTAUFlags() const {
     return utauFlags;
 }
 
-void libUTAU::CheckPara(lessAudioModel audioModel) {
+void libUTAU::CheckPara(const lessAudioModel& audioModel) {
     utauPara.wave_length = static_cast<double>(audioModel.x.size()) / static_cast<double>(audioModel.fs) * 1000;
     // Check last Unused Part of audio less 0
     if (utauPara.last_unused_part < 0) {
