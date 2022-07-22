@@ -103,8 +103,8 @@ void GenerateAudioModel::for_each(size_t thread_count, I begin, I end, F f) {
     std::vector<std::thread> threads;
     threads.reserve(thread_count - 1);
 
-    auto worker_ = [&]() {
-        for (;;) {
+    auto worker_ = [&begin, &end, &f] {
+        while (true) {
             I it;
             it = begin;
             if (it == end)

@@ -129,8 +129,8 @@ void lessampler::run() {
 
             // Audio transform
             timer.SetTimer();
-            AudioProcess aduioProcess(origin_audio_model, shine_para);
-            auto trans_audio_model = aduioProcess.GetTransAudioModel();
+            AudioProcess audioProcess(origin_audio_model, shine_para);
+            auto trans_audio_model = audioProcess.GetTransAudioModel();
             YALL_INFO_ << timer.GetTimer("Processing Model: ");
 
             // Synthesize audio from a model

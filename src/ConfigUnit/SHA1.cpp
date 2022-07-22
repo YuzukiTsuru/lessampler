@@ -218,8 +218,8 @@ void SHA1::update(const std::string &s) {
 void SHA1::update(std::istream &is) {
     while (true) {
         char sbuf[64];
-        is.read(sbuf, 64 - buffer.size());
-        buffer.append(sbuf, (std::size_t) is.gcount());
+        is.read(sbuf, 64 - std::ssize(buffer));
+        buffer.append(sbuf, static_cast<std::size_t>(is.gcount()));
         if (buffer.size() != 64) {
             return;
         }

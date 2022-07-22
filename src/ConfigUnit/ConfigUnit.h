@@ -31,7 +31,7 @@ public:
 
     ~ConfigUnit();
 
-    lessConfigure get_config() const;
+    [[nodiscard]] lessConfigure get_config() const;
 
 private:
     std::filesystem::path config_file_path;
