@@ -147,16 +147,16 @@ void AudioProcess::TimeStretch() {
         YALL_DUMP_ << "_ap_trans_index -> " + std::to_string(_ap_trans_index);
         YALL_DUMP_ << "_sample_ap_trans_index -> " + std::to_string(_ap_trans_index + _sample_ap_trans_index);
 
-        YALL_DEBUG_ << "Apply Pitch Shift With Pitch Bend";
+        YALL_DUMP_ << "Apply Pitch Shift With Pitch Bend";
         auto pitch_base = shine.scale_num * pow(2, (shine.pitch_bend[_ap_trans_index] * (1.0 - _sample_ap_trans_index) +
                                                     shine.pitch_bend[_ap_trans_index + 1] * _sample_ap_trans_index) / 1200.0);
 
-        YALL_DEBUG_ << "Trans F0 " + std::to_string(transAudioModel.f0[i]) + " Add " + std::to_string(pitch_base);
+        YALL_DUMP_ << "Trans F0 " + std::to_string(transAudioModel.f0[i]) + " Add " + std::to_string(pitch_base);
         transAudioModel.f0[i] = pitch_base;
 
         transAudioModel.f0[i] = transAudioModel.f0[i] * pow(temp_f0 / avg_freq, shine.modulation * 0.01);
 
-        YALL_DEBUG_ << "Trans SP ";
+        YALL_DUMP_ << "Trans SP ";
         for (int j = 0; j < audioModel.w_length; ++j) {
             if (_sp_trans_index < audioModel.f0.size() - 1) {
                 transAudioModel.spectrogram[i][j] = audioModel.spectrogram[_sp_trans_index][j] * (1.0 - _sample_sp_trans_index) +
@@ -166,7 +166,7 @@ void AudioProcess::TimeStretch() {
             }
         }
 
-        YALL_DEBUG_ << "Trans AP";
+        YALL_DUMP_ << "Trans AP";
         _ap_trans_index = _sp_trans_index;
         if (_sample_sp_trans_index > 0.5) {
             ++_ap_trans_index;
