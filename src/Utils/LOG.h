@@ -20,7 +20,10 @@
 #include <iomanip>
 #include <string_view>
 
+#include "StaticCast.h"
+
 enum Yall_LEVEL {
+    LOG_DUMP,
     LOG_DEBUG,
     LOG_OK,
     LOG_INFO,
@@ -104,10 +107,24 @@ public:
     void operator<<(const std::string &msg) override {
         std::lock_guard<std::mutex> lock(streamMtx);
         for (auto &stream: streams) {
-            *stream << cc::cyan << "[FUNC] " << std::left << std::setw(23) << cc::reset << fmt(this->FUNC) << " "
-                    << cc::yellow << "[FILE] " << std::setw(23) << cc::reset << fmt(this->FILE) << " "
-                    << cc::green << "[LINE] " << std::setw(4) << cc::reset << this->LINE << " "
-                    << cc::white << "[DEBUG] " << cc::reset << msg << " " << std::endl;
+            switch (logLevel) {
+#ifdef DUMP_DATA
+                case LOG_DUMP:
+                    *stream << cc::cyan << "[FUNC] " << std::left << std::setw(23) << cc::reset << fmt(this->FUNC) << " "
+                            << cc::yellow << "[FILE] " << std::setw(23) << cc::reset << fmt(this->FILE) << " "
+                            << cc::green << "[LINE] " << std::setw(4) << cc::reset << this->LINE << " "
+                            << cc::white << "[DEBUG] " << cc::reset << msg << " " << std::endl;
+                    break;
+#endif
+                case LOG_DEBUG:
+                    *stream << cc::cyan << "[FUNC] " << std::left << std::setw(23) << cc::reset << fmt(this->FUNC) << " "
+                            << cc::yellow << "[FILE] " << std::setw(23) << cc::reset << fmt(this->FILE) << " "
+                            << cc::green << "[LINE] " << std::setw(4) << cc::reset << this->LINE << " "
+                            << cc::white << "[DEBUG] " << cc::reset << msg << " " << std::endl;
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -178,6 +195,7 @@ private:
 #define YALL_FUNC_        __func__
 #endif
 
+#define YALL_DUMP_       Yall::GetDebugYall(Yall_LEVEL::LOG_DUMP, __FILE__, YALL_FUNC_, __LINE__)
 #define YALL_DEBUG_       Yall::GetDebugYall(Yall_LEVEL::LOG_DEBUG, __FILE__, YALL_FUNC_, __LINE__)
 #define YALL_OK_        Yall::GetYall(Yall_LEVEL::LOG_OK)
 #define YALL_INFO_        Yall::GetYall(Yall_LEVEL::LOG_INFO)
