@@ -18,6 +18,7 @@
 #include "Utils/exception.h"
 #include "Utils/LOG.h"
 #include "AudioProcess.h"
+#include "StaticCast.h"
 
 #ifdef DEBUG_MODE
 
@@ -46,7 +47,7 @@ void AudioProcess::PicthEqualizing() {
     auto freq_avg = GetAvgFreq();
     YALL_DEBUG_ << "The average frequency is " + std::to_string(freq_avg);
     if (freq_avg == 0.0) {
-        for (double & i : audioModel.f0) {
+        for (double &i: audioModel.f0) {
             if (i != 0.0) {
                 i = shine.scale_num;
             } else {
@@ -54,7 +55,7 @@ void AudioProcess::PicthEqualizing() {
             }
         }
     } else {
-        for (double & i : audioModel.f0) {
+        for (double &i: audioModel.f0) {
             if (i != 0.0) {
                 i = ((i - freq_avg) * shine.modulation / 100.0 + freq_avg) * (shine.scale_num / freq_avg);
             } else {
@@ -110,15 +111,15 @@ void AudioProcess::TimeStretch() {
         } else {
             _in_sample_index = shine.offset + shine.first_half_fixed_part + (_out_sample_index - shine.base_length) * shine.stretch_length;
         }
-        YALL_DEBUG_ << "_in_sample_index -> " + std::to_string(_in_sample_index);
-        YALL_DEBUG_ << "_out_sample_index -> " + std::to_string(_out_sample_index);
+        YALL_DUMP_ << "_in_sample_index -> " + std::to_string(_in_sample_index);
+        YALL_DUMP_ << "_out_sample_index -> " + std::to_string(_out_sample_index);
 
         _sample_sp_trans_index = _in_sample_index / audioModel.frame_period;
         _sp_trans_index = static_cast<int>(floor(_sample_sp_trans_index));
         _sample_sp_trans_index -= _sp_trans_index;
 
-        YALL_DEBUG_ << "_sp_trans_index -> " + std::to_string(_sp_trans_index);
-        YALL_DEBUG_ << "_sample_sp_trans_index -> " + std::to_string(_sp_trans_index + _sample_sp_trans_index);
+        YALL_DUMP_ << "_sp_trans_index -> " + std::to_string(_sp_trans_index);
+        YALL_DUMP_ << "_sample_sp_trans_index -> " + std::to_string(_sp_trans_index + _sample_sp_trans_index);
 
         auto temp_f0 = audioModel.f0[_sp_trans_index];
         if (_sp_trans_index < audioModel.f0.size() - 1) {
@@ -143,8 +144,8 @@ void AudioProcess::TimeStretch() {
             _sample_sp_trans_index = 0.0;
         }
 
-        YALL_DEBUG_ << "_ap_trans_index -> " + std::to_string(_ap_trans_index);
-        YALL_DEBUG_ << "_sample_ap_trans_index -> " + std::to_string(_ap_trans_index + _sample_ap_trans_index);
+        YALL_DUMP_ << "_ap_trans_index -> " + std::to_string(_ap_trans_index);
+        YALL_DUMP_ << "_sample_ap_trans_index -> " + std::to_string(_ap_trans_index + _sample_ap_trans_index);
 
         YALL_DEBUG_ << "Apply Pitch Shift With Pitch Bend";
         auto pitch_base = shine.scale_num * pow(2, (shine.pitch_bend[_ap_trans_index] * (1.0 - _sample_ap_trans_index) +
@@ -181,6 +182,7 @@ void AudioProcess::TimeStretch() {
     }
 
 #ifdef DEBUG_MODE
+#ifdef DUMP_DATA
     std::ofstream of(shine.output_file_name + ".log", std::ios::out | std::ios::app);
 
     of << "AVG FREQ: " << avg_freq << "\n"
@@ -213,6 +215,7 @@ void AudioProcess::TimeStretch() {
     of << "\n";
 
     of.close();
+#endif
 #endif
 }
 
