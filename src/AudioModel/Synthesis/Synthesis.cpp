@@ -37,6 +37,9 @@ double *Synthesis::GetWavData() {
 
 void Synthesis::AllocateMemory() {
     x = new double[x_length];
+    for (int i = 0; i < x_length; ++i) {
+        x[i] = 0.0;
+    }
 }
 
 void Synthesis::SynthesisWav() const {
