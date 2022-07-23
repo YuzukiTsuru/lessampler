@@ -23,7 +23,7 @@
 
 [[maybe_unused]] Shine::Shine(ShinePara para) : shine_para(std::move(para)) {}
 
-Shine::Shine(int argc, char *argv[], const lessAudioModel& audioModel, SHINE_MODE mode) {
+Shine::Shine(int argc, char *argv[], const lessAudioModel &audioModel, SHINE_MODE mode) {
     if (mode == SHINE_MODE::UTAU) {
         libUTAU utau(argc, argv);
         utau.CheckPara(audioModel);
@@ -38,13 +38,13 @@ Shine::Shine(int argc, char **argv, Shine::SHINE_MODE mode) {
     }
 }
 
-void Shine::SetShine(const UTAUPara& utau_para){
+void Shine::SetShine(const UTAUPara &utau_para) {
     shine_para.input_file_name = utau_para.input_file_name;
     shine_para.output_file_name = utau_para.output_file_name;
     shine_para.required_length = utau_para.required_length;
 }
 
-void Shine::SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, const lessAudioModel& audioModel) {
+void Shine::SetShine(const UTAUPara &utau_para, UTAUFlags utau_flags, const lessAudioModel &audioModel) {
     shine_para.input_file_name = utau_para.input_file_name;
     shine_para.output_file_name = utau_para.output_file_name;
     shine_para.time_percent = utau_para.time_percent;
@@ -83,16 +83,10 @@ void Shine::DecodePitchBend(int fs, double frame_period, std::string pitch) {
 
         PitchBendDecoder pitchBendDecoder(pitch, shine_para.pitch_length);
 
-        shine_para.pitch_bend = new int[shine_para.pitch_length + 1];
-        for (int i = 0; i < shine_para.pitch_length + 1; ++i) {
-            shine_para.pitch_bend[i] = 0;
-        }
-        std::memcpy(shine_para.pitch_bend, pitchBendDecoder.getPitchBend(), sizeof(int) * shine_para.pitch_length);
+        shine_para.pitch_bend = std::move(pitchBendDecoder.GetPitchBend());
     } else {
-        shine_para.pitch_bend = new int[shine_para.pitch_length + 1];
-        for (int i = 0; i < shine_para.pitch_length + 1; ++i) {
-            shine_para.pitch_bend[i] = 0;
-        }
+        shine_para.pitch_bend.resize(shine_para.pitch_length + 1);
+        std::fill(shine_para.pitch_bend.begin(), shine_para.pitch_bend.end(), 0);
     }
 
     shine_para.required_frame = static_cast<int>(1000.0 * shine_para.output_samples / fs / frame_period) + 1;

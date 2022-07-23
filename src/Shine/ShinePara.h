@@ -16,6 +16,7 @@
 #define LESSAMPLER_SHINEPARA_H
 
 #include <iostream>
+#include <vector>
 
 class ShinePara {
 public:
@@ -42,7 +43,7 @@ public:
 
 public:
     // Pitch sections
-    int *pitch_bend = nullptr;
+    std::vector<int> pitch_bend = {};
     int pitch_length = 0;
     int pitch_step = 256;
 
