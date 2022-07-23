@@ -56,10 +56,12 @@ double *AutoAMP::GetAMP() {
 }
 
 void AutoAMP::GetMaxAMP() {
-    for (int i = 0; i < x_length; ++i) {
+    for (int i = 0; i < x_length - 1; ++i) {
         if (!std::isnan(x[i])) {
             if (MaxAMP < std::abs(x[i])) {
-                MaxAMP = std::abs(x[i]);
+                // TODO: figure out why
+                if (std::abs(x[i]) <= 1)
+                    MaxAMP = std::abs(x[i]);
             }
         }
     }
