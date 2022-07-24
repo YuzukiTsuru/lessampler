@@ -31,7 +31,7 @@ public:
 
 class file_version_error : public std::runtime_error {
 public:
-    explicit file_version_error(const std::string &what) : std::runtime_error("Audio Model Version Mismatch: " + what + ".") {};
+    explicit file_version_error(const std::string &what) : std::runtime_error(what + " Version Mismatch.") {};
 };
 
 class parameter_error : public std::runtime_error {
