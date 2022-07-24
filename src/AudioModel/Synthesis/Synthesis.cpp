@@ -28,7 +28,7 @@ Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(std::
 }
 
 Synthesis::~Synthesis() {
-    delete x;
+    delete[] x;
 }
 
 double *Synthesis::GetWavData() {
