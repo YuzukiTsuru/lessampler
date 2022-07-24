@@ -55,37 +55,43 @@ int main(int argc, char *argv[]) {
     lessAudioModel less_o{};
 
     // Change a para
-    configure.fft_size = 382408308420938;
+    configure.fft_size = 3824;
 
-    AudioModelIO ReadBinUnit("a.o");
-    less_o = ReadBinUnit.ReadAudioModel(configure);
+    try {
+        AudioModelIO ReadBinUnit("a.o");
+        less_o = ReadBinUnit.ReadAudioModel(configure);
 
-    size_t error_count = 0;
+        size_t error_count = 0;
 
-    for (int i = 0; i < less_i.f0.size(); ++i) {
-        if (less_i.f0[i] != less_o.f0[i]) {
-            std::cout << " ERROR: " << i << less_i.f0[i] << "->" << less_o.f0[i] << std::endl;
-            error_count++;
-        }
-        for (int j = 0; j < less_i.w_length; ++j) {
-            if (less_i.spectrogram[i][j] != less_i.spectrogram[i][j]) {
-                std::cout << " ERROR: " << i << ", " << j << less_i.spectrogram[i][j] << "->" << less_o.spectrogram[i][j] << std::endl;
+        for (int i = 0; i < less_i.f0.size(); ++i) {
+            if (less_i.f0[i] != less_o.f0[i]) {
+                std::cout << " ERROR: " << i << less_i.f0[i] << "->" << less_o.f0[i] << std::endl;
                 error_count++;
             }
-            if (less_i.aperiodicity[i][j] != less_i.aperiodicity[i][j]) {
-                std::cout << " ERROR: " << i << ", " << j << less_i.aperiodicity[i][j] << "->" << less_o.aperiodicity[i][j] << std::endl;
-                error_count++;
+            for (int j = 0; j < less_i.w_length; ++j) {
+                if (less_i.spectrogram[i][j] != less_i.spectrogram[i][j]) {
+                    std::cout << " ERROR: " << i << ", " << j << less_i.spectrogram[i][j] << "->" << less_o.spectrogram[i][j] << std::endl;
+                    error_count++;
+                }
+                if (less_i.aperiodicity[i][j] != less_i.aperiodicity[i][j]) {
+                    std::cout << " ERROR: " << i << ", " << j << less_i.aperiodicity[i][j] << "->" << less_o.aperiodicity[i][j] << std::endl;
+                    error_count++;
+                }
             }
         }
+
+        std::cout << "All Test Done! " << [&]() {
+            if (error_count == 0) {
+                return std::string("No Error");
+            } else {
+                return "Error: " + std::to_string(error_count);
+            }
+        }() << std::endl;
+
+        JSONFileIO jsonFileIo(less_o, "a.json");
+    } catch (const std::runtime_error &error) {
+        std::cout << error.what() << std::endl;
+        return 0;
     }
-
-    std::cout << "All Test Done! " << [&]() {
-        if (error_count == 0) {
-            return std::string("No Error");
-        } else {
-            return "Error: " + std::to_string(error_count);
-        }
-    }() << std::endl;
-
-    JSONFileIO jsonFileIo(less_o, "a.json");
+    return -1;
 }
