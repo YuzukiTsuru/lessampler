@@ -24,6 +24,7 @@
 
 enum Yall_LEVEL {
     LOG_DUMP,
+    LOG_EVAL,
     LOG_DEBUG,
     LOG_OK,
     LOG_INFO,
@@ -72,6 +73,9 @@ public:
                     break;
                 case Yall_LEVEL::LOG_CRITICAL:
                     *stream << cc::on_red << "[CRIT]" << cc::reset;
+                    break;
+                case Yall_LEVEL::LOG_EVAL:
+                    *stream << cc::on_cyan << "[TIME]" << cc::reset;
                     break;
                 default:
                     break;
@@ -195,9 +199,10 @@ private:
 #define YALL_FUNC_        __func__
 #endif
 
-#define YALL_DUMP_       Yall::GetDebugYall(Yall_LEVEL::LOG_DUMP, __FILE__, YALL_FUNC_, __LINE__)
+#define YALL_DUMP_        Yall::GetDebugYall(Yall_LEVEL::LOG_DUMP, __FILE__, YALL_FUNC_, __LINE__)
 #define YALL_DEBUG_       Yall::GetDebugYall(Yall_LEVEL::LOG_DEBUG, __FILE__, YALL_FUNC_, __LINE__)
-#define YALL_OK_        Yall::GetYall(Yall_LEVEL::LOG_OK)
+#define YALL_OK_          Yall::GetYall(Yall_LEVEL::LOG_OK)
+#define YALL_EVAL_        Yall::GetYall(Yall_LEVEL::LOG_EVAL)
 #define YALL_INFO_        Yall::GetYall(Yall_LEVEL::LOG_INFO)
 #define YALL_WARN_        Yall::GetYall(Yall_LEVEL::LOG_WARN)
 #define YALL_ERROR_       Yall::GetYall(Yall_LEVEL::LOG_ERROR)
