@@ -33,5 +33,6 @@
 #define CONFIGFILENAME               "lessampler.fex"
 
 #define DUMP_DATA                    0
+#define TIME_EVAL                    1
 
 #endif //LESSAMPLER_STATICCAST_H

@@ -74,9 +74,11 @@ public:
                 case Yall_LEVEL::LOG_CRITICAL:
                     *stream << cc::on_red << "[CRIT]" << cc::reset;
                     break;
+#if TIME_EVAL
                 case Yall_LEVEL::LOG_EVAL:
-                    *stream << cc::on_cyan << "[TIME]" << cc::reset;
+                    *stream << cc::magenta << "[TIME]" << cc::reset;
                     break;
+#endif
                 default:
                     break;
             }
