@@ -15,6 +15,7 @@
 #include "WorldModule.h"
 
 #include "Utils/LOG.h"
+#include "Utils/Timer.h"
 
 #include <world/dio.h>
 #include <world/stonemask.h>
@@ -31,17 +32,30 @@ WorldModule::WorldModule(double *x, int x_length, int fs, lessConfigure config) 
 
     YALL_DEBUG_ << "Generate F0 from PCM file.";
 
+    // Set Timer
+    Timer timer;
+
     if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO) {
+        timer.SetTimer();
         F0EstimationDio();
+        YALL_EVAL_ << timer.GetTimer("DIO F0 Estimation: ");
     } else if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST) {
+        timer.SetTimer();
         F0EstimationHarvest();
+        YALL_EVAL_ << timer.GetTimer("HARVEST F0 Estimation: ");
     } else {
         throw std::runtime_error("F0 Estimation Mode Error.");
     }
+
     YALL_DEBUG_ << "Generate Envelope from PCM file and F0.";
+    timer.SetTimer();
     SpectralEnvelopeEstimation();
+    YALL_EVAL_ << timer.GetTimer("Spectral Envelope Estimation: ");
+
     YALL_DEBUG_ << "Generate Aperiodicity.";
+    timer.SetTimer();
     AperiodicityEstimation();
+    YALL_EVAL_ << timer.GetTimer("Aperiodicity Estimation: ");
 }
 
 WorldModule::~WorldModule() {
