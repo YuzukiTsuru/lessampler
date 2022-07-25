@@ -57,7 +57,6 @@ void GenerateAudioModel::GetWavFileLists() {
 }
 
 void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
-    YALL_INFO_ << "Modeling Audio File: " + wav_path.string();
     // Read Audio File
     auto x_length = FileReadUnit::GetAudioLength(wav_path.string().c_str());
     auto x = new double[x_length];
