@@ -28,8 +28,6 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
   - [ ] Voice Conversion and Audio Style Transfer
   - [ ] Noise reduction enhanced MOS
 
-
-
 ## Build Status
 
 | Ubuntu                                                       | Windows                                                      | macOS                                                        |
