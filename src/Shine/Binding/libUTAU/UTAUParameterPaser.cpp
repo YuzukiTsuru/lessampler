@@ -89,7 +89,10 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
     if (argc > 12) {
         std::istringstream sstream(argv[12]);
         sstream >> utauPara.tempo;
-        utauPara.tempo_num = std::stoi(utauPara.tempo.substr(1, utauPara.tempo.length()));
+        if (utauPara.tempo.find('!') != std::string::npos && utauPara.tempo.starts_with("!"))
+            utauPara.tempo_num = std::stoi(utauPara.tempo.substr(1, utauPara.tempo.length()));
+        else
+            utauPara.tempo_num = std::stoi(utauPara.tempo.substr(2, utauPara.tempo.length()));
         sstream.clear();
     }
 
