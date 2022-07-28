@@ -15,9 +15,9 @@
 #include "libUTAU.h"
 #include "AudioModel/lessAudioModel.h"
 
-class UTAUParameterPaser {
+class UTAUParameterParser {
 public:
-    UTAUParameterPaser(int argc, char *argv[]);
+    UTAUParameterParser(int argc, char *argv[]);
 
     UTAUPara get_para();
 

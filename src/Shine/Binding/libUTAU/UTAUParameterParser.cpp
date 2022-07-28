@@ -20,7 +20,7 @@
 #include "UTAUParameterPaser.h"
 #include "ScaleConvert.h"
 
-UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
+UTAUParameterParser::UTAUParameterParser(int argc, char *argv[]) {
     utauPara.local_name = argv[0];
     utauPara.input_file_name = argv[1];
     utauPara.output_file_name = argv[2];
@@ -104,6 +104,6 @@ UTAUParameterPaser::UTAUParameterPaser(int argc, char *argv[]) {
     }
 }
 
-UTAUPara UTAUParameterPaser::get_para() {
+UTAUPara UTAUParameterParser::get_para() {
     return utauPara;
 }

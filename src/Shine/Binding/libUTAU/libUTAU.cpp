@@ -20,7 +20,7 @@ libUTAU::libUTAU(int argc, char **argv) {
     if (argc < 3) {
         throw parameter_error("too sort");
     }
-    UTAUParameterPaser paser(argc, argv);
+    UTAUParameterParser paser(argc, argv);
     utauPara = paser.get_para();
 }
 
