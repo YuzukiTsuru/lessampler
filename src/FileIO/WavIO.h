@@ -1,31 +1,27 @@
 /*
  * Copyright (c) 2022. YuzukiTsuru <GloomyGhost@GloomyGhost.com>.
- * lessampler is free software: you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License v3.0 as published by
  *  the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * You should have received a copy of the GNU Lesser General Public License v3.0
- * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
 //
-// @Author Ghost Gloomy on 2020/1/26.
+// Created by gloom on 2022/8/1.
 //
-#ifndef LESSAMPLER_FILEREADUNIT_H
-#define LESSAMPLER_FILEREADUNIT_H
 
-#include <iostream>
+#ifndef LESSAMPLER_WAVIO_H
+#define LESSAMPLER_WAVIO_H
+
 #include <filesystem>
+#include <iostream>
 
-
-extern "C" {
-#include <sndfile.h>
-}
-
-#define ENABLE_SNDFILE_WINDOWS_PROTOTYPES 1
-
-class FileReadUnit {
+class WavIO {
 public:
+    WavIO() = default;
+
     /*
      * Get Audio Length
      */
@@ -35,6 +31,10 @@ public:
      * Read Audio
      */
     static int WavRead(const char *FilePath, double *output);
+
+    static void WriteWav(const std::filesystem::path &path, double *x, long long x_length, int fs);
+
 };
 
-#endif //LESSAMPLER_FILEREADUNIT_H
+
+#endif //LESSAMPLER_WAVIO_H
