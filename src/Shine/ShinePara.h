@@ -51,7 +51,13 @@ public:
     // Options
     bool is_custom_pitch = false;
     bool is_gender = false;
-
+    bool is_breath = false;
+    bool is_opening = false;
+public:
+    // option data
+    double gender_value = 0.0;
+    double breath_value = 0.0;
+    double opening = 0.0;
 };
 
 #endif //LESSAMPLER_SHINEPARA_H
