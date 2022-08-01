@@ -18,7 +18,7 @@
 #include "AudioProcess/AutoAMP.h"
 #include "AudioModel/Synthesis/Synthesis.h"
 #include "FileIO/GenerateAudioModel.h"
-#include "FileIO/FileWriteUnit.h"
+#include "FileIO/WavIO.h"
 
 #include "lessconfig.h"
 #include "StaticCast.h"
@@ -103,7 +103,7 @@ void lessampler::run() {
             for (int i = 0; i < blank_audio_size; ++i) {
                 x[i] = 0.0;
             }
-            FileWriteUnit::WriteWav(shine_para.output_file_name, x, blank_audio_size, default_fs);
+            WavIO::WriteWav(shine_para.output_file_name, x, blank_audio_size, default_fs);
         } else {
             // Check if an audio model exists。 If it does not exist, generate new model
             if (!audio_model_io.CheckAudioModel(configure)) {
@@ -146,7 +146,7 @@ void lessampler::run() {
             YALL_INFO_ << timer.GetTimer("Auto AMP Audio: ");
 
             // Save to target wav file
-            FileWriteUnit::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);
+            WavIO::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);
         }
         YALL_OK_ << "All Process Done: " + timer.EndTimer();
     }

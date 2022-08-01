@@ -23,7 +23,7 @@
 #include "AudioModel/lessAudioModel.h"
 #include "AudioProcess/AutoAMP.h"
 #include "FileIO/AudioModelIO.h"
-#include "FileIO/FileReadUnit.h"
+#include "FileIO/WavIO.h"
 
 GenerateAudioModel::GenerateAudioModel(std::filesystem::path path, lessConfigure configure) : target_voice_path(std::move(path)),
                                                                                               configure(std::move(configure)) {
@@ -58,9 +58,9 @@ void GenerateAudioModel::GetWavFileLists() {
 
 void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
     // Read Audio File
-    auto x_length = FileReadUnit::GetAudioLength(wav_path.string().c_str());
+    auto x_length = WavIO::GetAudioLength(wav_path.string().c_str());
     auto x = new double[x_length];
-    auto fs = FileReadUnit::WavRead(wav_path.string().c_str(), x);
+    auto fs = WavIO::WavRead(wav_path.string().c_str(), x);
 
     // Check weather need to apply amp before modeling
     if (configure.model_amp != 0.0) {
