@@ -24,8 +24,7 @@ std::string lessConfigure::get_version() {
 
 void lessConfigure::make_ver() {
     // Generate Checksum code
-    version_data = version + std::to_string(debug_mode)
-                   + std::to_string(audio_model_frame_period)
+    version_data = std::to_string(audio_model_frame_period)
                    + std::to_string(fft_size)
                    + std::to_string(model_amp)
                    + std::to_string(f0_speed)

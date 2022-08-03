@@ -195,10 +195,6 @@ void ConfigUnit::parse_config() {
     auto config_section = config["config"];
     configure.version = config_section["version"].get<inicpp::string_ini_t>();
 
-    if (configure.version != PROJECT_GIT_HASH) {
-        throw file_version_error("Configure File");
-    }
-
     configure.debug_mode = config_section["debug"].get<inicpp::boolean_ini_t>();
 
     // parse config file audio model section
