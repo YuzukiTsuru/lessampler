@@ -60,7 +60,6 @@ void Synthesis::SynthesisWav() const {
     }
 
     int offset = 0;
-    int index;
     for (int i = 0; i < audioModel.f0.size();) {
         // Add one frame ('i' shows the frame index that should be added)
         if (AddParameters(&f0[i], 1, &spectrogram[i], &aperiodicity[i], &synthesizer) == 1) {
@@ -71,7 +70,7 @@ void Synthesis::SynthesisWav() const {
         // It is repeated until the function returns 0
         // (it suggests that the synthesizer cannot generate speech).
         while (Synthesis2(&synthesizer) != 0) {
-            index = offset * buffer_size;
+            int index = offset * buffer_size;
             for (int j = 0; j < buffer_size; ++j)
                 x[j + index] = synthesizer.buffer[j];
             offset++;

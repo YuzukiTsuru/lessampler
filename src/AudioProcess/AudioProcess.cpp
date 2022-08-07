@@ -19,12 +19,7 @@
 #include "Utils/LOG.h"
 #include "AudioProcess.h"
 #include "StaticCast.h"
-
-#ifdef DEBUG_MODE
-
 #include <fstream>
-
-#endif
 
 AudioProcess::AudioProcess(lessAudioModel audioModel, ShinePara shine) : audioModel(std::move(audioModel)), shine(std::move(shine)) {
     YALL_DEBUG_ << "Init TransAudioModel default data...";
@@ -98,8 +93,8 @@ void AudioProcess::TimeStretch() {
     transAudioModel.spectrogram.resize(transAudioModel.f0.size(), std::vector<double>(audioModel.w_length));
     transAudioModel.aperiodicity.resize(transAudioModel.f0.size(), std::vector<double>(audioModel.w_length));
 
-    YALL_DEBUG_ << "Get Stretch Paras";
     auto avg_freq = GetAvgFreq();
+    YALL_DEBUG_ << "Get Stretch Paras, AVG: " + std::to_string(avg_freq);
 
     double _sample_sp_trans_index, _sample_ap_trans_index, _out_sample_index, _in_sample_index;
     int _sp_trans_index, _ap_trans_index;

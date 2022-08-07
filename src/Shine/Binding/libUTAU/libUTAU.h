@@ -21,14 +21,14 @@ public:
 };
 
 // AudioProcess Concept
-//  offset    fixed  pre_cross   blank
+//  offset   fixed   pre_cross   blank
 //|--------|--------|---------|---------| Original Signal
 //         |        |          |
 //         |   l1   |    l2     |
 //         |--------|------------|        Output Signal
 // l1  = fixed / velocity                        -> base_length
 // l2  = pre_cross / stretch                     -> cross_length
-// l1 + l2 = required_length = argv[7]         -> required_length
+// l1 + l2 = required_length = argv[7]           -> required_length
 
 class UTAUPara {
 public:
