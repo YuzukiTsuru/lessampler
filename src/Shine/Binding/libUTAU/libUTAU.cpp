@@ -78,7 +78,9 @@ void libUTAU::CheckPara(const lessAudioModel& audioModel) {
     if (utauPara.pre_cross_length <= 0 && utauPara.cross_length > 0)
         throw parameter_error("The input audio length does not match the required cross-transformation length, and its reference value is less than 0");
 
+    // get stretched length
     utauPara.stretch_length = utauPara.pre_cross_length / utauPara.cross_length;
+
     // Prevent telescopic cutting beyond the required length
     if (utauPara.stretch_length > 1.0)
         utauPara.stretch_length = 1.0;
