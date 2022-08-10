@@ -13,3 +13,7 @@
 //
 
 #include "ConfigPathHelper.h"
+
+ConfigPathHelper::ConfigPathHelper(std::filesystem::path exec_path) {
+
+}

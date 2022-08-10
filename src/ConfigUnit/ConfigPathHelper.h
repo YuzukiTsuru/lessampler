@@ -19,7 +19,7 @@
 
 class ConfigPathHelper {
 public:
-    ConfigPathHelper(std::filesystem::path exec_path);
+    explicit ConfigPathHelper(std::filesystem::path exec_path);
 };
 
 
