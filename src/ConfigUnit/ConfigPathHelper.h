@@ -15,9 +15,11 @@
 #ifndef LESSAMPLER_CONFIGPATHHELPER_H
 #define LESSAMPLER_CONFIGPATHHELPER_H
 
+#include <filesystem>
 
 class ConfigPathHelper {
-
+public:
+    ConfigPathHelper(std::filesystem::path exec_path);
 };
 
 
