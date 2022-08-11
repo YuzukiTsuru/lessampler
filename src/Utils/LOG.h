@@ -135,7 +135,7 @@ private:
     // Get the last 20 char
     static std::string fmt(std::string sv) {
         if (sv.length() > 20) {
-            return std::string("...") + sv.substr(sv.length() - 20, sv.length()).data();
+            return std::string("...") + sv.substr(sv.length() - 20, sv.length());
         } else {
             return sv;
         }
