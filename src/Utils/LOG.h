@@ -83,7 +83,9 @@ public:
 
 class Yall_Debug_Instance : Yall_Inst {
 public:
-    explicit Yall_Debug_Instance(Yall_LEVEL logLevel) : Yall_Inst(logLevel) {}
+    explicit Yall_Debug_Instance(Yall_LEVEL logLevel) : Yall_Inst(logLevel) {
+        enable = false;
+    }
 
     void SetDebugInfo(const std::string &file, const std::string &func, int line) {
         this->FILE = file;
