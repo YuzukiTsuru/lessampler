@@ -102,7 +102,7 @@ public:
     void operator<<(const std::string &msg) override {
         std::lock_guard<std::mutex> lock(streamMtx);
         switch (logLevel) {
-#ifdef DUMP_DATA
+#if DUMP_DATA
             case LOG_DUMP:
                 std::cout << cc::cyan << "[FUNC] " << std::left << std::setw(23) << cc::reset << fmt(this->FUNC) << " "
                        << cc::yellow << "[FILE] " << std::setw(23) << cc::reset << fmt(this->FILE) << " "
