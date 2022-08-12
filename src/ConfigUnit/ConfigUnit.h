@@ -21,19 +21,21 @@
 #include <inicpp/inicpp.h>
 
 #include "lessConfigure.h"
+#include "ConfigPathHelper.h"
 #include "Utils/LOG.h"
 
 class ConfigUnit {
 public:
-    explicit ConfigUnit(const std::filesystem::path &config_path);
+    explicit ConfigUnit(const std::filesystem::path &exec_path);
 
-    [[maybe_unused]] void set_config(const std::filesystem::path &config_path);
+    [[maybe_unused]] void set_config(const std::filesystem::path &exec_path);
 
     ~ConfigUnit();
 
     [[nodiscard]] lessConfigure get_config() const;
 
 private:
+    ConfigPathHelper Pathhelper;
     std::filesystem::path config_file_path;
     std::string config_file;
     inicpp::config config;

@@ -19,13 +19,15 @@
 #include "lessconfig.h"
 #include "ConfigUnit.h"
 
-ConfigUnit::ConfigUnit(const std::filesystem::path &config_path) {
-    this->config_file_path = config_path;
+ConfigUnit::ConfigUnit(const std::filesystem::path &exec_path) {
+    Pathhelper.SetExecPath(exec_path);
+    this->config_file_path = Pathhelper.GetConfigPath();
     init_config();
 }
 
-[[maybe_unused]] void ConfigUnit::set_config(const std::filesystem::path &config_path) {
-    this->config_file_path = config_path;
+[[maybe_unused]] void ConfigUnit::set_config(const std::filesystem::path &exec_path) {
+    Pathhelper.SetExecPath(exec_path);
+    this->config_file_path = Pathhelper.GetConfigPath();
     init_config();
 }
 
@@ -33,7 +35,7 @@ ConfigUnit::~ConfigUnit() = default;
 
 void ConfigUnit::init_config() {
     make_schema();
-    if (std::filesystem::exists(this->config_file_path)) {
+    if (Pathhelper.config_is_exec()) {
         YALL_DEBUG_ << "Config file exists, loading...";
         read_config_file();
         parse_config();
