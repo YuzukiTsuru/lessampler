@@ -21,7 +21,7 @@ class ConfigPathHelper {
 public:
     explicit ConfigPathHelper() = default;
 
-    void SetExecPath(const std::filesystem::path &exec_path);
+    void SetExecPath(const std::filesystem::path &execPath);
 
     std::filesystem::path GetConfigPath();
 

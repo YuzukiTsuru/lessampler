@@ -20,8 +20,8 @@ std::filesystem::path ConfigPathHelper::GetConfigPath() {
     return exec_config;
 }
 
-void ConfigPathHelper::SetExecPath(const std::filesystem::path &exec_path) {
-    exec_config = exec_path / CONFIGFILENAME;
+void ConfigPathHelper::SetExecPath(const std::filesystem::path &execPath) {
+    exec_config = execPath / CONFIGFILENAME;
     if (std::filesystem::exists(exec_config)) {
         is_exec = true;
     } else {
