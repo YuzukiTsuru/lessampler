@@ -16,10 +16,6 @@
 
 #include "StaticCast.h"
 
-bool ConfigPathHelper::config_is_exec() const {
-    return is_exec;
-}
-
 std::filesystem::path ConfigPathHelper::GetConfigPath() {
     return exec_config;
 }

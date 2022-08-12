@@ -35,7 +35,7 @@ ConfigUnit::~ConfigUnit() = default;
 
 void ConfigUnit::init_config() {
     make_schema();
-    if (Pathhelper.config_is_exec()) {
+    if (Pathhelper.is_exec) {
         YALL_DEBUG_ << "Config file exists, loading...";
         read_config_file();
         parse_config();

@@ -25,15 +25,13 @@ public:
 
     std::filesystem::path GetConfigPath();
 
-    bool config_is_exec();
+public:
+    bool is_exec = false;
+    bool is_voicebank = false;
 
 private:
     std::filesystem::path exec_path = {};
     std::filesystem::path exec_config = {};
-
-private:
-    bool is_exec = false;
-    bool is_voicebank = false;
 };
 
 
