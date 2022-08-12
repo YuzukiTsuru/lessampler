@@ -14,6 +14,21 @@
 
 #include "ConfigPathHelper.h"
 
-ConfigPathHelper::ConfigPathHelper(std::filesystem::path exec_path) {
+#include "StaticCast.h"
 
+bool ConfigPathHelper::config_is_exec() const {
+    return is_exec;
+}
+
+std::filesystem::path ConfigPathHelper::GetConfigPath() {
+    return exec_config;
+}
+
+void ConfigPathHelper::SetExecPath(const std::filesystem::path &exec_path) {
+    exec_config = exec_path / CONFIGFILENAME;
+    if (std::filesystem::exists(exec_config)) {
+        is_exec = true;
+    } else {
+        is_exec = false;
+    }
 }
