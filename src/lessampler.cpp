@@ -29,7 +29,7 @@ lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
     exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
     YALL_DEBUG_ << "exec path: " + this->exec_path.string();
     // Setting the configure file and get config
-    ConfigUnit configUnit(this->exec_path / CONFIGFILENAME);
+    ConfigUnit configUnit(this->exec_path);
     configure = configUnit.get_config();
 }
 
@@ -84,6 +84,8 @@ void lessampler::run() {
 
     // Enable Timer
     Timer timer;
+
+    // Read VoiceBankConfig
 
     // Parse CommandLine Args
     if (ParseArgs()) {
