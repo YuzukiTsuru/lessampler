@@ -25,7 +25,7 @@ public:
 
     std::filesystem::path GetConfigPath();
 
-    bool config_is_e constxec();
+    bool config_is_exec();
 
 private:
     std::filesystem::path exec_path = {};
