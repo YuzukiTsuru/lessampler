@@ -15,9 +15,13 @@
 #ifndef LESSAMPLER_VOICEBANKCONFIGURE_H
 #define LESSAMPLER_VOICEBANKCONFIGURE_H
 
+#include <filesystem>
 
-class VoiceBankConfigure {
+#include "lessConfigure.h"
 
+class VoiceBankConfigure : public lessConfigure{
+public:
+    VoiceBankConfigure(std::filesystem::path in_file_path);
 };
 
 

@@ -13,3 +13,7 @@
 //
 
 #include "VoiceBankConfigure.h"
+
+VoiceBankConfigure::VoiceBankConfigure(std::filesystem::path in_file_path) {
+
+}
