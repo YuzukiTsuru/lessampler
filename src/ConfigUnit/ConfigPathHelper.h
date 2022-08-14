@@ -23,6 +23,8 @@ public:
 
     void SetExecPath(const std::filesystem::path &execPath);
 
+    void SetVoiceBankPath(const std::filesystem::path &VBPath);
+
     std::filesystem::path GetConfigPath();
 
 public:
@@ -31,7 +33,9 @@ public:
 
 private:
     std::filesystem::path exec_path = {};
-    std::filesystem::path exec_config = {};
+    std::filesystem::path exec_config_path = {};
+    std::filesystem::path voice_bank_path = {};
+    std::filesystem::path voice_bank_config_path = {};
 };
 
 

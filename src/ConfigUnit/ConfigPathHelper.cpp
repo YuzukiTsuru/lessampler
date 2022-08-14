@@ -17,14 +17,25 @@
 #include "StaticCast.h"
 
 std::filesystem::path ConfigPathHelper::GetConfigPath() {
-    return exec_config;
+    return exec_config_path;
 }
 
 void ConfigPathHelper::SetExecPath(const std::filesystem::path &execPath) {
-    exec_config = execPath / CONFIGFILENAME;
-    if (std::filesystem::exists(exec_config)) {
+    exec_path = execPath;
+    exec_config_path = exec_path / CONFIGFILENAME;
+    if (std::filesystem::exists(exec_config_path)) {
         is_exec = true;
     } else {
         is_exec = false;
+    }
+}
+
+void ConfigPathHelper::SetVoiceBankPath(const std::filesystem::path &VBPath) {
+    voice_bank_path = VBPath;
+    voice_bank_config_path = voice_bank_path / VOIICEBANKCONFIGFILENAME;
+    if (std::filesystem::exists(voice_bank_config_path)) {
+        is_voicebank = true;
+    } else {
+        is_voicebank = false;
     }
 }

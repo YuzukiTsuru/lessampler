@@ -31,6 +31,7 @@
 #define LESS_SQRT_3                  1.73205077648163               // sqrt(3)
 
 #define CONFIGFILENAME               "lessampler.fex"
+#define VOIICEBANKCONFIGFILENAME     "lessvoice.fex"
 
 #define DUMP_DATA                    0
 #define TIME_EVAL                    1
