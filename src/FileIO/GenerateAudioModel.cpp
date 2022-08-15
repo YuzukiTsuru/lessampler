@@ -127,6 +127,6 @@ void GenerateAudioModel::for_each(size_t thread_count, I begin, I end, F f) {
 
 template<class I, class F>
 void GenerateAudioModel::for_each(I begin, I end, F f) {
-    for_each(std::thread::hardware_concurrency(), begin, end, f);
+    for_each(std::lround(std::thread::hardware_concurrency() / 2), begin, end, f);
 }
 
