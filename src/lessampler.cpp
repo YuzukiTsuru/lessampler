@@ -30,7 +30,7 @@ lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
     YALL_DEBUG_ << "exec path: " + this->exec_path.string();
     // Setting the configure file and get config
     ConfigUnit configUnit(this->exec_path);
-    configure = configUnit.get_config();
+    configure = configUnit.GetConfig();
 }
 
 void lessampler::show_logo() {

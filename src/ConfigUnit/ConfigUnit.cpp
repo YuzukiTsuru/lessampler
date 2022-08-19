@@ -20,14 +20,14 @@
 #include "ConfigUnit.h"
 
 ConfigUnit::ConfigUnit(const std::filesystem::path &exec_path) {
-    Pathhelper.SetExecPath(exec_path);
-    this->config_file_path = Pathhelper.GetConfigPath();
+    path_helper.SetExecPath(exec_path);
+    this->config_file_path = path_helper.GetConfigPath();
     init_config();
 }
 
-[[maybe_unused]] void ConfigUnit::set_config(const std::filesystem::path &exec_path) {
-    Pathhelper.SetExecPath(exec_path);
-    this->config_file_path = Pathhelper.GetConfigPath();
+[[maybe_unused]] void ConfigUnit::SetConfig(const std::filesystem::path &exec_path) {
+    path_helper.SetExecPath(exec_path);
+    this->config_file_path = path_helper.GetConfigPath();
     init_config();
 }
 
@@ -35,7 +35,7 @@ ConfigUnit::~ConfigUnit() = default;
 
 void ConfigUnit::init_config() {
     make_schema();
-    if (Pathhelper.is_exec) {
+    if (path_helper.is_exec) {
         YALL_DEBUG_ << "Config file exists, loading...";
         read_config_file();
         parse_config();
@@ -241,6 +241,6 @@ void ConfigUnit::parse_config() {
     configure.ap_threshold = ap_section["ap_threshold"].get<inicpp::float_ini_t>();
 }
 
-lessConfigure ConfigUnit::get_config() const {
+lessConfigure ConfigUnit::GetConfig() const {
     return configure;
 }
