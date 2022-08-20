@@ -20,18 +20,16 @@
 #include "ConfigUnit.h"
 
 ConfigUnit::ConfigUnit(const std::filesystem::path &exec_path) {
-    path_helper.SetExecPath(exec_path);
-    this->config_file_path = path_helper.GetConfigPath();
-    init_config();
-}
-
-[[maybe_unused]] void ConfigUnit::SetConfig(const std::filesystem::path &exec_path) {
-    path_helper.SetExecPath(exec_path);
-    this->config_file_path = path_helper.GetConfigPath();
-    init_config();
+    SetConfig(exec_path);
 }
 
 ConfigUnit::~ConfigUnit() = default;
+
+void ConfigUnit::SetConfig(const std::filesystem::path &exec_path) {
+    path_helper.SetExecPath(exec_path);
+    this->config_file_path = path_helper.GetConfigPath();
+    init_config();
+}
 
 void ConfigUnit::init_config() {
     make_schema();

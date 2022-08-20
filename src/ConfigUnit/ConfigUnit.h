@@ -28,7 +28,7 @@ class ConfigUnit {
 public:
     explicit ConfigUnit(const std::filesystem::path &exec_path);
 
-    [[maybe_unused]] void SetConfig(const std::filesystem::path &exec_path);
+    void SetConfig(const std::filesystem::path &exec_path);
 
     ~ConfigUnit();
 
