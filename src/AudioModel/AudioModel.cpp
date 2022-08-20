@@ -15,7 +15,7 @@
 #include "WorldModule/WorldModule.h"
 
 AudioModel::AudioModel(double *x, int x_length, int fs, const lessConfigure &configure) : configure(configure) {
-    _lessAudioModel.x.reserve(x_length);
+    _lessAudioModel.x.resize(x_length);
     _lessAudioModel.x.insert(_lessAudioModel.x.end(), x, x + x_length);
     _lessAudioModel.fs = fs;
 
@@ -33,10 +33,10 @@ void AudioModel::InitAudioModel() {
     _lessAudioModel.fft_size = worldPara.fft_size;
     _lessAudioModel.frame_period = worldPara.frame_period;
 
-    _lessAudioModel.f0.reserve(worldPara.f0_length);
+    _lessAudioModel.f0.resize(worldPara.f0_length);
     _lessAudioModel.f0.insert(_lessAudioModel.f0.end(), worldPara.f0, worldPara.f0 + worldPara.f0_length);
 
-    _lessAudioModel.time_axis.reserve(worldPara.f0_length);
+    _lessAudioModel.time_axis.resize(worldPara.f0_length);
     _lessAudioModel.time_axis.insert(_lessAudioModel.time_axis.end(), worldPara.time_axis, worldPara.time_axis + worldPara.f0_length);
 
     _lessAudioModel.w_length = worldPara.fft_size / 2 + 1;

@@ -85,7 +85,7 @@ void lessampler::run() {
     // Enable Timer
     Timer timer;
 
-    // Read VoiceBankConfig
+    // TODO Read VoiceBankConfig
 
     // Parse CommandLine Args
     if (ParseArgs()) {
