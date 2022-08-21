@@ -28,21 +28,25 @@ ConfigUnit::~ConfigUnit() = default;
 
 void ConfigUnit::SetConfig(const std::filesystem::path &exec_path) {
     this->config_file_path = exec_path / CONFIGFILENAME;
-    init_config();
-}
+    if (config_file_path.empty()) {
+        throw file_open_error("Configure file: " + config_file_path.string());
+    }
 
-void ConfigUnit::init_config() {
     make_schema();
     if (std::filesystem::exists(config_file_path)) {
         YALL_DEBUG_ << "Config file exists, loading...";
-        config_file_string = ConfigFileIO::read_config_file(config_file_path);
+        config_file_data_string = ConfigFileIO::read_config_file(config_file_path);
         parse_config();
     } else {
         YALL_DEBUG_ << "Config file not exists, creating...";
         create_default_config();
-        ConfigFileIO::save_config_file(config_file_path, config_file_string);
+        ConfigFileIO::save_config_file(config_file_path, config_file_data_string);
         parse_config();
     }
+}
+
+void ConfigUnit::init_config() {
+
 }
 
 void ConfigUnit::make_schema() {
@@ -166,11 +170,11 @@ void ConfigUnit::make_schema() {
 void ConfigUnit::create_default_config() {
     std::stringstream str;
     str << config_schema;
-    config_file_string = str.str();
+    config_file_data_string = str.str();
 }
 
 void ConfigUnit::parse_config() {
-    config = inicpp::parser::load(config_file_string);
+    config = inicpp::parser::load(config_file_data_string);
     // parse config file config section
     auto config_section = config["config"];
     configure.version = config_section["version"].get<inicpp::string_ini_t>();

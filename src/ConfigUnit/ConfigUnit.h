@@ -35,7 +35,7 @@ public:
 
 private:
     std::filesystem::path config_file_path;
-    std::string config_file_string;
+    std::string config_file_data_string;
     inicpp::config config;
     inicpp::schema config_schema;
     lessConfigure configure;
