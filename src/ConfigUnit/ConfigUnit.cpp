@@ -17,6 +17,7 @@
 
 #include "Utils/exception.h"
 #include "lessconfig.h"
+#include "ConfigFileIO.h"
 #include "ConfigUnit.h"
 
 ConfigUnit::ConfigUnit(const std::filesystem::path &exec_path) {
@@ -26,21 +27,20 @@ ConfigUnit::ConfigUnit(const std::filesystem::path &exec_path) {
 ConfigUnit::~ConfigUnit() = default;
 
 void ConfigUnit::SetConfig(const std::filesystem::path &exec_path) {
-    path_helper.SetExecPath(exec_path);
-    this->config_file_path = path_helper.GetConfigPath();
+    this->config_file_path = exec_path / CONFIGFILENAME;
     init_config();
 }
 
 void ConfigUnit::init_config() {
     make_schema();
-    if (path_helper.is_exec) {
+    if (std::filesystem::exists(config_file_path)) {
         YALL_DEBUG_ << "Config file exists, loading...";
-        read_config_file();
+        config_file_string = ConfigFileIO::read_config_file(config_file_path);
         parse_config();
     } else {
         YALL_DEBUG_ << "Config file not exists, creating...";
         create_default_config();
-        save_config_file();
+        ConfigFileIO::save_config_file(config_file_path, config_file_string);
         parse_config();
     }
 }
@@ -163,34 +163,14 @@ void ConfigUnit::make_schema() {
     config_schema.add_option("ap", ap_threshold);
 }
 
-void ConfigUnit::read_config_file() {
-    // read config file
-    std::ifstream file(config_file_path);
-    if (!file.is_open()) {
-        throw file_open_error(config_file_path.string());
-    }
-    config_file = std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
-    file.close();
-}
-
-void ConfigUnit::save_config_file() {
-    // read config file
-    std::ofstream file(config_file_path);
-    if (!file.is_open()) {
-        throw file_open_error(config_file_path.string());
-    }
-    file << config_file;
-    file.close();
-}
-
 void ConfigUnit::create_default_config() {
     std::stringstream str;
     str << config_schema;
-    config_file = str.str();
+    config_file_string = str.str();
 }
 
 void ConfigUnit::parse_config() {
-    config = inicpp::parser::load(config_file);
+    config = inicpp::parser::load(config_file_string);
     // parse config file config section
     auto config_section = config["config"];
     configure.version = config_section["version"].get<inicpp::string_ini_t>();
@@ -242,4 +222,5 @@ void ConfigUnit::parse_config() {
 lessConfigure ConfigUnit::GetConfig() const {
     return configure;
 }
+
 

@@ -21,7 +21,6 @@
 #include <inicpp/inicpp.h>
 
 #include "lessConfigure.h"
-#include "ConfigPathHelper.h"
 #include "Utils/LOG.h"
 
 class ConfigUnit {
@@ -35,9 +34,8 @@ public:
     [[nodiscard]] lessConfigure GetConfig() const;
 
 private:
-    ConfigPathHelper path_helper;
     std::filesystem::path config_file_path;
-    std::string config_file;
+    std::string config_file_string;
     inicpp::config config;
     inicpp::schema config_schema;
     lessConfigure configure;
@@ -48,12 +46,6 @@ private:
 
     // make configure schema
     void make_schema();
-
-    // read configure file
-    void read_config_file();
-
-    // set default configure file
-    void save_config_file();
 
     // create defalut config from lessConfigure class default value
     void create_default_config();
