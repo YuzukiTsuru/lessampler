@@ -28,9 +28,8 @@ ConfigVoiceBank::ConfigVoiceBank(lessConfigure _configure) : configure(std::move
 }
 
 void ConfigVoiceBank::SetVoiceConfig() {
-    if (voice_path.empty()) {
-        throw file_open_error("Configure file: " + voice_path.string());
-    } else {
-        voice_config_path = voice_path / VOIICEBANKCONFIGFILENAME;
+    voice_config_path = voice_path / VOIICEBANKCONFIGFILENAME;
+    if (voice_config_path.empty()) {
+        throw file_open_error("Configure file: " + voice_config_path.string());
     }
 }
