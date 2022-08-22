@@ -45,10 +45,6 @@ void ConfigUnit::SetConfig(const std::filesystem::path &exec_path) {
     }
 }
 
-void ConfigUnit::init_config() {
-
-}
-
 void ConfigUnit::make_schema() {
     // create project info section
     inicpp::section_schema_params section_config_params{};

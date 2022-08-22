@@ -41,9 +41,6 @@ private:
     lessConfigure configure;
 
 private:
-    // init config
-    void init_config();
-
     // make configure schema
     void make_schema();
 
