@@ -18,6 +18,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include <inicpp/inicpp.h>
+
 #include "lessConfigure.h"
 
 class ConfigVoiceBank {
@@ -32,9 +34,12 @@ private:
     lessConfigure configure;
     std::filesystem::path voice_path;
     std::filesystem::path voice_config_path;
+    inicpp::config config;
+    inicpp::schema config_schema;
+    std::string config_file_data_string;
 
 private:
-
+    void parse_config();
 
 };
 
