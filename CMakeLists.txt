@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-
 # Set Version, Release need cmake
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 0)
