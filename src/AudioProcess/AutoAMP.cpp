@@ -41,7 +41,7 @@ AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
 AutoAMP::AutoAMP(double *x, int x_length, double amp_val) {
     this->x_length = x_length;
     this->x = x;
-    this->x_out = new double[x_length];
+    x_out = new double[x_length];
     YALL_DEBUG_ << "The X_LENGTH is: " + std::to_string(x_length);
     GetMaxAMP();
     YALL_DEBUG_ << "Get Max AMP is: " + std::to_string(MaxAMP);
