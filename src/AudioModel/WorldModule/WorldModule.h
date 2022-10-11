@@ -43,7 +43,7 @@ protected:
     double *x = nullptr;
     int x_length = 0;
 
-    WorldPara worldPara;
+    WorldPara_t worldPara;
 
     lessConfigure configure;
 };
