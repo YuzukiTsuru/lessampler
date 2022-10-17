@@ -23,11 +23,11 @@ typedef struct lessAudioModel_ {
     int w_length = 0;
     int fft_size = 0;
 
-    std::vector<float> x;
-    std::vector<float> f0;
-    std::vector<float> time_axis;
-    std::vector<std::vector<float>> spectrogram;
-    std::vector<std::vector<float>> aperiodicity;
+    std::vector<double> x;
+    std::vector<double> f0;
+    std::vector<double> time_axis;
+    std::vector<std::vector<double>> spectrogram;
+    std::vector<std::vector<double>> aperiodicity;
 } lessAudioModel;
 
 #endif//LESSAMPLER_LESSAUDIOMODEL_H

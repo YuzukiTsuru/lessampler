@@ -42,7 +42,7 @@ private:
     [[nodiscard]] bool ParseArgs();
 
 private:
-    inline void ShowAudioInfo(const lessAudioModel& audioModel){
+    static inline void ShowAudioInfo(const lessAudioModel& audioModel){
         YALL_INFO_ << "Audio Sample Rate: " + std::to_string(audioModel.fs);
         YALL_INFO_ << "Model Sample Rate: " + std::to_string(audioModel.frame_period);
         YALL_INFO_ << "Model FFT Size: " + std::to_string(audioModel.fft_size);
