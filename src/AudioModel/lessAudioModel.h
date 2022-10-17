@@ -17,18 +17,17 @@
 
 #include <vector>
 
-class lessAudioModel {
-public:
+typedef struct lessAudioModel_ {
     double frame_period = 0.0;
     int fs = 0;
     int w_length = 0;
     int fft_size = 0;
 
-    std::vector<double> x;
-    std::vector<double> f0;
-    std::vector<double> time_axis;
-    std::vector<std::vector<double>> spectrogram;
-    std::vector<std::vector<double>> aperiodicity;
-};
+    std::vector<float> x;
+    std::vector<float> f0;
+    std::vector<float> time_axis;
+    std::vector<std::vector<float>> spectrogram;
+    std::vector<std::vector<float>> aperiodicity;
+} lessAudioModel;
 
-#endif //LESSAMPLER_LESSAUDIOMODEL_H
+#endif//LESSAMPLER_LESSAUDIOMODEL_H

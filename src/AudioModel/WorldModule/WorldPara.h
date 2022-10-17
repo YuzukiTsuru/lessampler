@@ -15,8 +15,7 @@
 #ifndef LESSAMPLER_WORLDPARA_H
 #define LESSAMPLER_WORLDPARA_H
 
-class WorldPara {
-public:
+typedef struct WorldPara_ {
     double frame_period = 5.0;
     int fs = 0;
 
@@ -27,6 +26,6 @@ public:
     double **spectrogram = nullptr;
     double **aperiodicity = nullptr;
     int fft_size = 0;
-};
+} WorldPara;
 
-#endif //LESSAMPLER_WORLDPARA_H
+#endif//LESSAMPLER_WORLDPARA_H
