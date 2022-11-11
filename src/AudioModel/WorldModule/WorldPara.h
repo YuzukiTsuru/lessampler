@@ -15,7 +15,7 @@
 #ifndef LESSAMPLER_WORLDPARA_H
 #define LESSAMPLER_WORLDPARA_H
 
-typedef struct WorldPara_ {
+typedef struct {
     double frame_period = 5.0;
     int fs = 0;
 
