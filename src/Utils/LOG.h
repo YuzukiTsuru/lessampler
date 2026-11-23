@@ -11,196 +11,215 @@
 #ifndef LESSAMPLER_LOG_H
 #define LESSAMPLER_LOG_H
 
-#include <ColorCout.hpp>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <sstream>
+#include <atomic>
+#include <cstdint>
+#include <filesystem>
+#include <format>
+#include <iostream>
 #include <mutex>
-#include <iomanip>
+#include <string>
 #include <string_view>
+#include <utility>
 
-#include "StaticCast.h"
-
-enum Yall_LEVEL {
-    LOG_DUMP,
-    LOG_EVAL,
-    LOG_DEBUG,
-    LOG_OK,
-    LOG_INFO,
-    LOG_WARN,
-    LOG_ERROR,
-    LOG_CRITICAL,
-};
-
-class Yall_Inst {
-public:
-    explicit Yall_Inst(Yall_LEVEL logLevel) {
-        this->logLevel = logLevel;
-    };
-
-    virtual void operator<<(const std::string &msg) {};
-
-protected:
-    std::string name;
-    Yall_LEVEL logLevel;
-    std::mutex streamMtx;
-};
-
-class Yall_Instance : Yall_Inst {
-public:
-    explicit Yall_Instance(Yall_LEVEL logLevel) : Yall_Inst(logLevel) {};
-
-    void operator<<(const std::string &msg) override {
-        std::lock_guard<std::mutex> lock(streamMtx);
-        switch (logLevel) {
-            case Yall_LEVEL::LOG_OK:
-                std::cout << cc::green << "[OKAY]" << cc::reset;
-                break;
-            case Yall_LEVEL::LOG_INFO:
-                std::cout << cc::cyan << "[INFO]" << cc::reset;
-                break;
-            case Yall_LEVEL::LOG_WARN:
-                std::cout << cc::yellow << "[WARN]" << cc::reset;
-                break;
-            case Yall_LEVEL::LOG_ERROR:
-                std::cout << cc::red << "[ERRO]" << cc::reset;
-                break;
-            case Yall_LEVEL::LOG_CRITICAL:
-                std::cout << cc::on_red << "[CRIT]" << cc::reset;
-                break;
-#if TIME_EVAL
-            case Yall_LEVEL::LOG_EVAL:
-                std::cout << cc::magenta << "[TIME]" << cc::reset;
-                break;
+#if defined(_WIN32)
+#include <windows.h>
 #endif
-            default:
-                break;
-        }
-        std::cout << " " << msg << " " << std::endl;
+
+namespace lessampler_log {
+
+    enum class Level : std::uint8_t {
+        dump,
+        eval,
+        debug,
+        ok,
+        info,
+        warn,
+        error,
+        critical,
     };
-};
 
-class Yall_Debug_Instance : Yall_Inst {
-public:
-    explicit Yall_Debug_Instance(Yall_LEVEL logLevel) : Yall_Inst(logLevel) {
-        enable = false;
+    namespace color {
+        inline constexpr std::string_view reset = "\033[0m";
+        inline constexpr std::string_view red = "\033[31m";
+        inline constexpr std::string_view green = "\033[32m";
+        inline constexpr std::string_view yellow = "\033[33m";
+        inline constexpr std::string_view blue = "\033[34m";
+        inline constexpr std::string_view magenta = "\033[35m";
+        inline constexpr std::string_view cyan = "\033[36m";
+        inline constexpr std::string_view white = "\033[37m";
+        inline constexpr std::string_view on_red = "\033[41m";
+    }// namespace color
+
+    inline std::atomic<bool> &debug_flag() {
+        static std::atomic<bool> enabled{false};
+        return enabled;
     }
 
-    void SetDebugInfo(const std::string &file, const std::string &func, int line) {
-        this->FILE = file;
-        this->FUNC = func;
-        this->LINE = line;
+    inline std::mutex &log_mutex() {
+        static std::mutex mutex;
+        return mutex;
     }
 
-    [[maybe_unused]] void EnableDebug() {
-        enable = true;
-    }
-
-    [[maybe_unused]] void DisableDebug() {
-        enable = false;
-    }
-
-    void operator<<(const std::string &msg) override {
-        std::lock_guard<std::mutex> lock(streamMtx);
-        switch (logLevel) {
-#if DUMP_DATA
-            case LOG_DUMP:
-                std::cout << cc::cyan << "[FUNC] " << std::left << std::setw(23) << cc::reset << fmt(this->FUNC) << " "
-                       << cc::yellow << "[FILE] " << std::setw(23) << cc::reset << fmt(this->FILE) << " "
-                       << cc::green << "[LINE] " << std::setw(4) << cc::reset << this->LINE << " "
-                       << cc::white << "[DUMP] " << cc::reset << msg << " " << std::endl;
-                break;
+    inline void enable_ansi() {
+#if defined(_WIN32)
+        static bool enabled = []() {
+            HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+            if (handle == INVALID_HANDLE_VALUE) {
+                return false;
+            }
+            DWORD mode = 0;
+            if (!GetConsoleMode(handle, &mode)) {
+                return false;
+            }
+            return SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
+        }();
+        (void) enabled;
 #endif
-            case LOG_DEBUG:
-                std::cout << cc::cyan << "[FUNC] " << std::left << std::setw(23) << cc::reset << fmt(this->FUNC) << " "
-                       << cc::yellow << "[FILE] " << std::setw(23) << cc::reset << fmt(this->FILE) << " "
-                       << cc::green << "[LINE] " << std::setw(4) << cc::reset << this->LINE << " "
-                       << cc::white << "[DEBUG] " << cc::reset << msg << " " << std::endl;
-                break;
-            default:
-                break;
-        }
     }
 
-private:
-    std::string FILE = {};
-    std::string FUNC = {};
-    int LINE = {};
-
-private:
-    bool enable = false;
-
-private:
-    // Get the last 20 char
-    static std::string fmt(std::string sv) {
-        if (sv.length() > 20) {
-            return std::string("...") + sv.substr(sv.length() - 20, sv.length());
-        } else {
-            return sv;
+    inline std::string_view level_name(Level level) {
+        switch (level) {
+            case Level::dump:
+                return "DUMP";
+            case Level::eval:
+                return "TIME";
+            case Level::debug:
+                return "DEBUG";
+            case Level::ok:
+                return "OKAY";
+            case Level::info:
+                return "INFO";
+            case Level::warn:
+                return "WARN";
+            case Level::error:
+                return "ERRO";
+            case Level::critical:
+                return "CRIT";
         }
+        return "INFO";
     }
-};
 
-class Yall {
-public:
-    Yall(Yall const &) = delete;
-
-    void operator=(Yall const &) = delete;
-
-    static Yall_Instance &GetYall(Yall_LEVEL logLevel) {
-        auto it = GetInstance().yall_inst.find(logLevel);
-        if (it == GetInstance().yall_inst.end()) {
-            auto *logger = new Yall_Instance(logLevel);
-            GetInstance().yall_inst[logLevel] = logger;
-            return *logger;
+    inline std::string_view level_color(Level level) {
+        switch (level) {
+            case Level::ok:
+                return color::green;
+            case Level::info:
+                return color::cyan;
+            case Level::warn:
+                return color::yellow;
+            case Level::error:
+                return color::red;
+            case Level::critical:
+                return color::on_red;
+            case Level::eval:
+                return color::magenta;
+            case Level::debug:
+            case Level::dump:
+                return color::white;
         }
-        return *it->second;
-    };
+        return color::reset;
+    }
 
-    static Yall_Debug_Instance &GetDebugYall(Yall_LEVEL logLevel, const std::string &FILE, const std::string &FUNC, int LINE) {
-        auto it = GetDebugInstance().yall_debug_inst.find(logLevel);
-        if (it == GetDebugInstance().yall_debug_inst.end()) {
-            auto *logger = new Yall_Debug_Instance(logLevel);
-            GetDebugInstance().yall_debug_inst[logLevel] = logger;
-            logger->SetDebugInfo(FILE, FUNC, LINE);
-            return *logger;
+    class Line {
+    public:
+        Line(Level level, bool active, std::string_view file, std::string_view function, int line)
+            : level_(level), active_(active), file_(file), function_(function), line_number_(line) {}
+
+        Line(const Line &) = delete;
+        Line &operator=(const Line &) = delete;
+
+        Line(Line &&other) noexcept
+            : level_(other.level_), active_(other.active_), file_(other.file_),
+              function_(other.function_), line_number_(other.line_number_), message_(std::move(other.message_)) {
+            other.active_ = false;
         }
-        it->second->SetDebugInfo(FILE, FUNC, LINE);
-        return *it->second;
+
+        Line &operator=(Line &&) = delete;
+
+        ~Line() {
+            if (!active_ || message_.empty()) {
+                return;
+            }
+
+            std::lock_guard<std::mutex> lock(log_mutex());
+            enable_ansi();
+            std::cout << level_color(level_) << "[" << level_name(level_) << "]" << color::reset << " ";
+            if (level_ == Level::debug || level_ == Level::dump) {
+                std::cout << color::cyan << "[" << function_ << "]" << color::reset << " "
+                          << color::yellow << "[" << file_ << ":" << line_number_ << "]" << color::reset << " ";
+            }
+            std::cout << message_ << std::endl;
+        }
+
+        template<typename T>
+        Line &operator<<(const T &value) {
+            if (active_) {
+                message_ += std::format("{}", value);
+            }
+            return *this;
+        }
+
+        Line &operator<<(const std::filesystem::path &value) {
+            if (active_) {
+                message_ += value.string();
+            }
+            return *this;
+        }
+
+    private:
+        Level level_;
+        bool active_;
+        std::string_view file_;
+        std::string_view function_;
+        int line_number_;
+        std::string message_;
     };
 
-private:
-    std::unordered_map<Yall_LEVEL, Yall_Instance *> yall_inst;
-    std::unordered_map<Yall_LEVEL, Yall_Debug_Instance *> yall_debug_inst;
+    class DebugLine : public Line {
+    public:
+        DebugLine(std::string_view file, std::string_view function, int line)
+            : Line(Level::debug, debug_flag().load(std::memory_order_relaxed), file, function, line) {}
 
-    Yall() = default;;
+        static void EnableDebug() { debug_flag().store(true, std::memory_order_relaxed); }
 
-    static Yall &GetInstance() {
-        static Yall inst;
-        return inst;
+        static void DisableDebug() { debug_flag().store(false, std::memory_order_relaxed); }
     };
 
-    static Yall &GetDebugInstance() {
-        static Yall inst_d;
-        return inst_d;
-    };
-};
-
-
-#if __GNUC__
-#define YALL_FUNC_        __PRETTY_FUNCTION__
+    inline Line dump_line(std::string_view file, std::string_view function, int line) {
+#if defined(LESSAMPLER_DUMP_DATA)
+        return {Level::dump, true, file, function, line};
 #else
-#define YALL_FUNC_        __func__
+        return {Level::dump, false, file, function, line};
+#endif
+    }
+
+    inline Line eval_line(std::string_view file, std::string_view function, int line) {
+#if defined(LESSAMPLER_TIME_EVAL)
+        return {Level::eval, true, file, function, line};
+#else
+        return {Level::eval, false, file, function, line};
+#endif
+    }
+
+    inline Line make_line(Level level, std::string_view file, std::string_view function, int line) {
+        return {level, true, file, function, line};
+    }
+
+}// namespace lessampler_log
+
+#if defined(__GNUC__) || defined(__clang__)
+#define YALL_FUNC_ __PRETTY_FUNCTION__
+#else
+#define YALL_FUNC_ __func__
 #endif
 
-#define YALL_DUMP_        Yall::GetDebugYall(Yall_LEVEL::LOG_DUMP, __FILE__, YALL_FUNC_, __LINE__)
-#define YALL_DEBUG_       Yall::GetDebugYall(Yall_LEVEL::LOG_DEBUG, __FILE__, YALL_FUNC_, __LINE__)
-#define YALL_OK_          Yall::GetYall(Yall_LEVEL::LOG_OK)
-#define YALL_EVAL_        Yall::GetYall(Yall_LEVEL::LOG_EVAL)
-#define YALL_INFO_        Yall::GetYall(Yall_LEVEL::LOG_INFO)
-#define YALL_WARN_        Yall::GetYall(Yall_LEVEL::LOG_WARN)
-#define YALL_ERROR_       Yall::GetYall(Yall_LEVEL::LOG_ERROR)
-#define YALL_CRITICAL_    Yall::GetYall(Yall_LEVEL::LOG_CRITICAL)
+#define YALL_DUMP_ ::lessampler_log::dump_line(__FILE__, YALL_FUNC_, __LINE__)
+#define YALL_EVAL_ ::lessampler_log::eval_line(__FILE__, YALL_FUNC_, __LINE__)
+#define YALL_DEBUG_ ::lessampler_log::DebugLine(__FILE__, YALL_FUNC_, __LINE__)
+#define YALL_OK_ ::lessampler_log::make_line(::lessampler_log::Level::ok, __FILE__, YALL_FUNC_, __LINE__)
+#define YALL_INFO_ ::lessampler_log::make_line(::lessampler_log::Level::info, __FILE__, YALL_FUNC_, __LINE__)
+#define YALL_WARN_ ::lessampler_log::make_line(::lessampler_log::Level::warn, __FILE__, YALL_FUNC_, __LINE__)
+#define YALL_ERROR_ ::lessampler_log::make_line(::lessampler_log::Level::error, __FILE__, YALL_FUNC_, __LINE__)
+#define YALL_CRITICAL_ ::lessampler_log::make_line(::lessampler_log::Level::critical, __FILE__, YALL_FUNC_, __LINE__)
 
-#endif //LESSAMPLER_LOG_H
+#endif//LESSAMPLER_LOG_H
