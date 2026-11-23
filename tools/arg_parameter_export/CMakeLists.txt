@@ -1,1 +1,2 @@
 add_executable(arg_parameter_export arg_parameter_export.cpp)
+target_link_libraries(arg_parameter_export PRIVATE lessampler_common)

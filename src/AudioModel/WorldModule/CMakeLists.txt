@@ -1,3 +1,6 @@
-file(GLOB world_module_source *.cpp *.h)
-add_library(WorldModule ${world_module_source})
-target_link_libraries(WorldModule world::core)
+add_library(WorldModule
+        WorldModule.cpp
+        WorldModule.h
+        WorldPara.h
+)
+target_link_libraries(WorldModule PUBLIC world::core lessampler_common)
