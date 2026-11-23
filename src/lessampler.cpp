@@ -9,23 +9,24 @@
  */
 
 #include <iostream>
+#include <string_view>
+#include <vector>
 
-#include "Utils/LOG.h"
-#include "Utils/Timer.h"
-#include "Dialogs/Dialogs.h"
-#include "Shine/Shine.h"
+#include "AudioModel/Synthesis/Synthesis.h"
 #include "AudioProcess/AudioProcess.h"
 #include "AudioProcess/AutoAMP.h"
-#include "AudioModel/Synthesis/Synthesis.h"
+#include "ConfigUnit/ConfigVoiceBank.h"
+#include "Dialogs/Dialogs.h"
 #include "FileIO/GenerateAudioModel.h"
 #include "FileIO/WavIO.h"
-#include "ConfigUnit/ConfigVoiceBank.h"
+#include "Shine/Shine.h"
+#include "Utils/LOG.h"
+#include "Utils/Timer.h"
 
-#include "lessconfig.h"
-#include "StaticCast.h"
 #include "lessampler.h"
+#include "lessconfig.h"
 
-lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
+lessampler::lessampler(int _argc, char **_argv) : argc(_argc), argv(_argv) {
     // Get the executable file path
     exec_path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
     YALL_DEBUG_ << "exec path: " + this->exec_path.string();
@@ -35,46 +36,72 @@ lessampler::lessampler(int argc, char **argv) : argc(argc), argv(argv) {
 }
 
 void lessampler::show_logo() {
-    std::cout << cc::cyan <<
-              " _                           _         \n"
-              "| |___ ___ ___ ___ _____ ___| |___ ___ \n"
-              "| | -_|_ -|_ -| .'|     | . | | -_|  _|\n"
-              "|_|___|___|___|__,|_|_|_|  _|_|___|_|  \n"
-              " Version: "
+    std::cout << lessampler_log::color::cyan << " _                           _         \n"
+                                                "| |___ ___ ___ ___ _____ ___| |___ ___ \n"
+                                                "| | -_|_ -|_ -| .'|     | . | | -_|  _|\n"
+                                                "|_|___|___|___|__,|_|_|_|  _|_|___|_|  \n"
+                                                " Version: "
               << PROJECT_GIT_HASH
               << "       |_|            "
               << "\n\nCopyright (c)  2018 - 2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>\n"
-              << cc::reset
+              << lessampler_log::color::reset
+              << std::endl;
+}
+
+void lessampler::ShowUsage() {
+    std::cout << "Usage:\n"
+                 "  lessampler --help | --version\n"
+                 "  lessampler <voicebank-directory>\n"
+                 "  lessampler <in.wav> <out.wav> <note> [time%] [flags] [offset] [required]\n"
+                 "             [fixed] [blank] [volume] [modulation] [tempo] [pitchbend]\n"
               << std::endl;
 }
 
 bool lessampler::ParseArgs() {
-    // Basic Open
+    if (argc >= 2) {
+        const std::string_view first(argv[1]);
+        if (first == "--help" || first == "-h") {
+            show_logo();
+            ShowUsage();
+            return false;
+        }
+        if (first == "--version" || first == "-V") {
+            show_logo();
+            return false;
+        }
+    }
+
     if (argc < 2) {
         show_logo();
+        ShowUsage();
         Dialogs::notify("lessampler: Configure", "lessampler");
-        // ADD Qt/TUI
         return false;
     }
 
-    // model generation operator
     if (argc == 2) {
         show_logo();
+        const std::filesystem::path target(argv[1]);
+        if (!std::filesystem::is_directory(target)) {
+            YALL_ERROR_ << "Modeling input is not a directory: " + target.string();
+            ShowUsage();
+            return false;
+        }
+
         Dialogs::notify("Start modeling audio files", "lessampler");
         YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
-        GenerateAudioModel genmodule(std::filesystem::path(argv[1]), configure);
+        GenerateAudioModel genmodule(target, configure);
         Dialogs::notify("Modeling Done!", "lessampler");
         return false;
     }
 
-    // lessampler resampler
-    if (argc > 3) {
-        in_file_path = std::filesystem::path(argv[1]);
-        return true;
+    if (argc == 3) {
+        show_logo();
+        ShowUsage();
+        return false;
     }
 
-    // default
-    return false;
+    in_file_path = std::filesystem::path(argv[1]);
+    return true;
 }
 
 void lessampler::run() {
@@ -92,8 +119,8 @@ void lessampler::run() {
         AudioModelIO audio_model_io(in_file_path);
         YALL_INFO_ << "Audio File: " + in_file_path.string();
 
-        // TODO Read VoiceBankConfig
         ConfigVoiceBank voice_bank_config(in_file_path, configure);
+        configure = voice_bank_config.GetConfig();
 
         // In some projects, the creator will use x.wav, z.wav or other non-existing audio to force truncation of audio
         // here is a basic handle。
@@ -102,18 +129,14 @@ void lessampler::run() {
             Shine shine(argc, argv, Shine::SHINE_MODE::UTAU);
             auto shine_para = shine.GetShine();
             auto blank_audio_size = static_cast<int>(shine_para.required_length * 0.001 * default_fs) + 1;
-            auto x = new double[blank_audio_size];
-
-            for (int i = 0; i < blank_audio_size; ++i) {
-                x[i] = 0.0;
-            }
-            WavIO::WriteWav(shine_para.output_file_name, x, blank_audio_size, default_fs);
+            std::vector<double> blank_audio(static_cast<std::size_t>(blank_audio_size), 0.0);
+            WavIO::WriteWav(shine_para.output_file_name, blank_audio, default_fs);
         } else {
             // Check if an audio model exists。 If it does not exist, generate new model
             if (!audio_model_io.CheckAudioModel(configure)) {
                 YALL_INFO_ << "Generating Audio Model: " + in_file_path.string();
                 timer.SetTimer();
-                GenerateAudioModel genmodule(argv[1], configure);
+                GenerateAudioModel::GenerateModelForFile(in_file_path, configure);
                 YALL_INFO_ << timer.GetTimer("Generate Audio Model: ");
             } else {
                 YALL_INFO_ << "Found Audio Model, Processing...";
@@ -122,7 +145,7 @@ void lessampler::run() {
             // Read audio model
             timer.SetTimer();
             audio_model_io.ReadAudioModel(configure);
-            auto origin_audio_model = audio_model_io.GetAudioModel();
+            const auto &origin_audio_model = audio_model_io.GetAudioModel();
             YALL_INFO_ << timer.GetTimer("Read Audio Model: ");
 
             ShowAudioInfo(origin_audio_model);
@@ -134,26 +157,24 @@ void lessampler::run() {
             // Audio transform
             timer.SetTimer();
             AudioProcess audioProcess(origin_audio_model, shine_para);
-            auto trans_audio_model = audioProcess.GetTransAudioModel();
+            const auto &trans_audio_model = audioProcess.GetTransAudioModel();
+            const int output_fs = trans_audio_model.fs;
             YALL_INFO_ << timer.GetTimer("Processing Model: ");
 
             // Synthesize audio from a model
             timer.SetTimer();
             Synthesis synthesis(trans_audio_model, shine_para.output_samples);
-            auto out_wav_data = synthesis.GetWavData();
+            auto &out_wav_data = synthesis.GetWavData();
             YALL_INFO_ << timer.GetTimer("Synthesis Audio: ");
 
-            // Perform automatic amplification
+            // Perform automatic amplification in place
             timer.SetTimer();
-            AutoAMP amp(shine_para, out_wav_data);
-            out_wav_data = amp.GetAMP();
+            AutoAMP::ApplyInPlace(out_wav_data, shine_para.volumes);
             YALL_INFO_ << timer.GetTimer("Auto AMP Audio: ");
 
             // Save to target wav file
-            WavIO::WriteWav(shine_para.output_file_name, out_wav_data, shine_para.output_samples, trans_audio_model.fs);
+            WavIO::WriteWav(shine_para.output_file_name, out_wav_data, output_fs);
         }
         YALL_OK_ << "All Process Done: " + timer.EndTimer();
     }
 }
-
-

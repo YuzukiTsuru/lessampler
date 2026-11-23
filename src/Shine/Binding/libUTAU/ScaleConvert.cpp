@@ -10,21 +10,37 @@
 
 #include "ScaleConvert.h"
 
-#include <utility>
+#include <cmath>
+#include <format>
 
-ScaleConvert::ScaleConvert(std::string scaleName) {
-    ScaleConvertToDouble(std::move(scaleName));
+ScaleConvert::ScaleConvert(std::string_view scale_name) : scale_num_(ScaleConvertToDouble(scale_name)) {}
+
+std::expected<double, std::string> ScaleConvert::GetScaleNum() const {
+    return scale_num_;
 }
 
-bool ScaleConvert::ScaleConvertToDouble(std::string scaleName) {
-    int bias = 0;
-
-    if (scaleName[1] == '#') {
-        bias = 1;
+std::expected<double, std::string> ScaleConvert::ScaleConvertToDouble(std::string_view scale_name) {
+    if (scale_name.size() < 2 || scale_name.size() > 3) {
+        return std::unexpected(std::format("expected a note name such as A4 or A#3, got '{}'", scale_name));
     }
 
-    int scale;
-    switch (scaleName[0]) {
+    const char note = scale_name[0];
+    int bias = 0;
+    std::size_t octave_index = 1;
+    if (scale_name.size() == 3) {
+        if (scale_name[1] != '#') {
+            return std::unexpected(std::format("unexpected accidental in '{}'", scale_name));
+        }
+        bias = 1;
+        octave_index = 2;
+    }
+
+    if (scale_name[octave_index] < '0' || scale_name[octave_index] > '9') {
+        return std::unexpected(std::format("missing octave in '{}'", scale_name));
+    }
+
+    int scale = 0;
+    switch (note) {
         case 'C':
             scale = -9 + bias;
             break;
@@ -32,6 +48,9 @@ bool ScaleConvert::ScaleConvertToDouble(std::string scaleName) {
             scale = -7 + bias;
             break;
         case 'E':
+            if (bias != 0) {
+                return std::unexpected(std::format("E# is not supported: '{}'", scale_name));
+            }
             scale = -5;
             break;
         case 'F':
@@ -44,19 +63,16 @@ bool ScaleConvert::ScaleConvertToDouble(std::string scaleName) {
             scale = bias;
             break;
         case 'B':
+            if (bias != 0) {
+                return std::unexpected(std::format("B# is not supported: '{}'", scale_name));
+            }
             scale = 2;
             break;
         default:
-            return false;
+            return std::unexpected(std::format("unknown note '{}'", scale_name));
     }
 
-    double octave = scaleName[1 + bias] - '0' - 4;
-    scaleNum = pow(2.0, octave) * pow(2.0, static_cast<double>(scale) / 12.0) * 440.00;
-
-    return true;
+    const int octave = scale_name[octave_index] - '0' - 4;
+    const double frequency = std::pow(2.0, octave) * std::pow(2.0, static_cast<double>(scale) / 12.0) * 440.0;
+    return frequency;
 }
-
-double ScaleConvert::GetScaleNum() const {
-    return scaleNum;
-}
-

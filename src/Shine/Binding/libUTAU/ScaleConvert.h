@@ -11,27 +11,20 @@
 #ifndef LESSAMPLER_SCALECONVERT_H
 #define LESSAMPLER_SCALECONVERT_H
 
-#include <cmath>
-#include <iostream>
+#include <expected>
+#include <string>
+#include <string_view>
 
 class ScaleConvert {
 public:
-    explicit ScaleConvert(std::string scaleName);
+    explicit ScaleConvert(std::string_view scale_name);
 
-    [[nodiscard]] double GetScaleNum() const;
+    [[nodiscard]] std::expected<double, std::string> GetScaleNum() const;
 
 private:
-    double scaleNum = 0.0;
-    /*
-     * Scale Name Convert to number than double
-     * IN: std::string scale_name
-     * RET: bool
-     *   true -> success
-     *   false -> fail
-     * OUT: double scale_num
-     */
-    bool ScaleConvertToDouble(std::string scaleName);
+    static std::expected<double, std::string> ScaleConvertToDouble(std::string_view scale_name);
+
+    std::expected<double, std::string> scale_num_;
 };
 
-
-#endif //LESSAMPLER_SCALECONVERT_H
+#endif//LESSAMPLER_SCALECONVERT_H

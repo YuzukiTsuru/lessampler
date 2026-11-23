@@ -8,22 +8,22 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LESSAMPLER_UTAUPARAMETERPASER_H
-#define LESSAMPLER_UTAUPARAMETERPASER_H
+#ifndef LESSAMPLER_UTAUPARAMETERPARSER_H
+#define LESSAMPLER_UTAUPARAMETERPARSER_H
 
-#include <iostream>
+#include <span>
+#include <string_view>
+
 #include "libUTAU.h"
-#include "AudioModel/lessAudioModel.h"
 
 class UTAUParameterParser {
 public:
-    UTAUParameterParser(int argc, char *argv[]);
+    explicit UTAUParameterParser(std::span<const std::string_view> args);
 
-    UTAUPara get_para();
+    [[nodiscard]] UTAUPara get_para() const;
 
 private:
     UTAUPara utauPara;
 };
 
-
-#endif //LESSAMPLER_UTAUPARAMETERPASER_H
+#endif//LESSAMPLER_UTAUPARAMETERPARSER_H

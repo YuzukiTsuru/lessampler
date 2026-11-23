@@ -11,28 +11,23 @@
 #ifndef LESSAMPLER_PITCHBENDDECODER_H
 #define LESSAMPLER_PITCHBENDDECODER_H
 
-#include <iostream>
+#include <string_view>
 #include <vector>
 
 class PitchBendDecoder {
 public:
-    explicit PitchBendDecoder(std::string &str, int count);
+    PitchBendDecoder(std::string_view pitch, int count);
 
-    std::vector<int> GetPitchBend();
-
-private:
-    std::string pitch = {};
-    int count = 0, pitch_string_length = 0;
-    std::vector<int> pitch_bend{};
+    [[nodiscard]] std::vector<int> GetPitchBend() const;
 
 private:
-    // Decode Splited UTAU String
-    static int GetDataFromUTAU64(char i);
+    std::string_view pitch;
+    std::vector<int> pitch_bend;
 
 private:
-    // Decode the Pitch Bend
+    static int GetDataFromUTAU64(char value);
+
     void PitchBendDecode();
 };
 
-
-#endif //LESSAMPLER_PITCHBENDDECODER_H
+#endif//LESSAMPLER_PITCHBENDDECODER_H

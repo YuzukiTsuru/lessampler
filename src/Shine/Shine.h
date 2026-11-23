@@ -15,16 +15,20 @@
 #ifndef LESSAMPLER_SHINE_H
 #define LESSAMPLER_SHINE_H
 
+#include <span>
+#include <string_view>
+
 #include "ShinePara.h"
 
-#include "Binding/libUTAU/libUTAU.h"
 #include "AudioModel/lessAudioModel.h"
+#include "Binding/libUTAU/libUTAU.h"
 
 class Shine {
 public:
-    enum SHINE_MODE{
+    enum class SHINE_MODE {
         UTAU,
     };
+
 public:
     [[maybe_unused]] explicit Shine(ShinePara para);
 
@@ -33,22 +37,24 @@ public:
      */
     [[maybe_unused]] Shine(int argc, char *argv[], SHINE_MODE mode);
 
-    [[maybe_unused]] Shine(int argc, char *argv[], const lessAudioModel& audioModel, SHINE_MODE mode);
+    [[maybe_unused]] Shine(int argc, char *argv[], const lessAudioModel &audioModel, SHINE_MODE mode);
+
+    [[maybe_unused]] Shine(std::span<const std::string_view> args, const lessAudioModel &audioModel, SHINE_MODE mode);
 
     ~Shine() = default;
 
-    [[maybe_unused]] ShinePara GetShine();
+    [[nodiscard]] ShinePara GetShine() const;
 
 private:
     ShinePara shine_para;
 
 private:
-    void SetShine(const UTAUPara& utau_para, UTAUFlags utau_flags, const lessAudioModel& audioModel);
+    void SetShine(const UTAUPara &utau_para, const lessAudioModel &audioModel);
 
-    void SetShine(const UTAUPara& utau_para);
+    void SetShine(const UTAUPara &utau_para);
 
-    void DecodePitchBend(int fs, double frame_period, std::string pitch);
+    void DecodePitchBend(int fs, double frame_period, std::string_view pitch);
 };
 
 
-#endif //LESSAMPLER_SHINE_H
+#endif//LESSAMPLER_SHINE_H
