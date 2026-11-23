@@ -8,20 +8,12 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/4.
-//
-
 #ifndef LESSAMPLER_CONFIGUNIT_H
 #define LESSAMPLER_CONFIGUNIT_H
 
-#include <iostream>
 #include <filesystem>
 
-#include <inicpp/inicpp.h>
-
 #include "lessConfigure.h"
-#include "Utils/LOG.h"
 
 class ConfigUnit {
 public:
@@ -35,21 +27,12 @@ public:
 
 private:
     std::filesystem::path config_file_path;
-    std::string config_file_data_string;
-    inicpp::config config;
-    inicpp::schema config_schema;
     lessConfigure configure;
 
 private:
-    // make configure schema
-    void make_schema();
+    void load_or_create();
 
-    // create defalut config from lessConfigure class default value
-    void create_default_config();
-
-    // configure parser
-    void parse_config();
+    void migrate_legacy_ini();
 };
 
-
-#endif //LESSAMPLER_CONFIGUNIT_H
+#endif//LESSAMPLER_CONFIGUNIT_H
