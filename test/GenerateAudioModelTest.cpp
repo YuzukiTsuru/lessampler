@@ -1,27 +1,31 @@
-/*
- * Copyright (c) 2022. YuzukiTsuru <GloomyGhost@GloomyGhost.com>.
- * lessampler is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License v3.0 as published by
- *  the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * You should have received a copy of the GNU Lesser General Public License v3.0
- * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
- */
+#include "TestSupport.h"
 
-//
-// Created by gloom on 2022/5/23.
-//
+#include <filesystem>
 
+#include "ConfigUnit/lessConfigure.h"
+#include "FileIO/AudioModelIO.h"
 #include "FileIO/GenerateAudioModel.h"
-#include <utility>
-#include <Utils/LOG.h>
 
-int main(int argc, char *argv[]) {
-    YALL_DEBUG_.EnableDebug();
-    YALL_INFO_ << "Test Audio Read";
-    std::filesystem::path audio_dir("../../test");
+int main() {
+    const auto root = std::filesystem::temp_directory_path() / "lessampler-generate-model-test";
+    std::filesystem::remove_all(root);
+    std::filesystem::create_directories(root);
+
+    const auto source = std::filesystem::path(LESSAMPLER_TEST_DATA_DIR) / "vaiueo2d.wav";
+    const auto target = root / "vaiueo2d.wav";
+    std::filesystem::copy_file(source, target);
 
     lessConfigure configure;
+    GenerateAudioModel generator(root, configure);
 
-    GenerateAudioModel test(audio_dir, configure);
+    CHECK(std::filesystem::exists(root / "vaiueo2d.lessaudio"));
+
+    AudioModelIO reader(target);
+    CHECK(reader.CheckAudioModel(configure));
+    const auto &model = reader.ReadAudioModel(configure);
+    CHECK(!model.f0.empty());
+    CHECK_EQ(model.spectrogram.rows(), model.f0.size());
+
+    std::filesystem::remove_all(root);
+    return test::finish();
 }

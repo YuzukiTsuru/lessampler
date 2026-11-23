@@ -1,32 +1,37 @@
-//
-// Created by gloom on 2022/5/9.
-//
+#include "TestSupport.h"
+
+#include <format>
+#include <thread>
+#include <vector>
 
 #include "Utils/LOG.h"
 
-class class_lift {
-public:
-    class_lift(){
-        YALL_DEBUG_ << "Debug Message From Class";
-    }
-};
-
-void func(){
-    YALL_DEBUG_ << "Debug Message From Func";
-}
-
 int main() {
+    lessampler_log::debug_flag().store(false);
+    YALL_DEBUG_ << "This debug message must stay hidden";
+    CHECK(!lessampler_log::debug_flag().load());
+
     YALL_DEBUG_.EnableDebug();
-    YALL_DEBUG_ << "Debug Message 1";
-    class_lift classLift;
-    func();
-    YALL_DEBUG_ << "Debug Message 2";
+    CHECK(lessampler_log::debug_flag().load());
+    YALL_DEBUG_ << "Debug is enabled";
+
     YALL_DEBUG_.DisableDebug();
-    YALL_DEBUG_ << "Disable Message 1";
-    class_lift classLift1;
-    func();
-    YALL_INFO_ << "LOG Info";
-    YALL_WARN_ << "LOG Warning";
-    YALL_ERROR_ << "LOG Error";
-    YALL_CRITICAL_ << "LOG Cirtical";
+    CHECK(!lessampler_log::debug_flag().load());
+
+    YALL_INFO_ << std::format("Formatted value: {}", 42);
+    YALL_WARN_ << "Warning message";
+    YALL_ERROR_ << "Error message";
+    YALL_OK_ << "OK message";
+
+    std::vector<std::jthread> threads;
+    for (int i = 0; i < 4; ++i) {
+        threads.emplace_back([i] {
+            for (int j = 0; j < 20; ++j) {
+                YALL_INFO_ << std::format("thread {} message {}", i, j);
+            }
+        });
+    }
+    threads.clear();
+
+    return test::finish();
 }

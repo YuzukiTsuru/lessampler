@@ -1,88 +1,80 @@
-/*
- * Copyright (c) 2022. YuzukiTsuru <GloomyGhost@GloomyGhost.com>.
- * lessampler is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License v3.0 as published by
- *  the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * You should have received a copy of the GNU Lesser General Public License v3.0
- * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
- */
+#include "TestSupport.h"
 
-//
-// Created by gloom on 2022/5/10.
-//
+#include <exception>
+#include <filesystem>
+#include <vector>
 
-#include "FileIO/AudioModelIO.h"
-#include "AudioModel/AudioModel.h"
 #include "ConfigUnit/lessConfigure.h"
-#include "FileIO/JSONFileIO.h"
-#include "../lib/World/tools/audioio.h"
+#include "FileIO/AudioModelIO.h"
+#include "FileIO/WavIO.h"
 
+namespace {
 
-int main(int argc, char *argv[]) {
-    std::string FileName;
-
-    if (argc < 2) {
-        FileName = "../../test/vaiueo2d.wav";
-    } else {
-        FileName = argv[1];
+    lessAudioModel make_model() {
+        lessAudioModel model;
+        model.fs = 44100;
+        model.frame_period = 5.0;
+        model.fft_size = 1024;
+        model.w_length = 513;
+        model.x_length = 1000;
+        model.f0 = {100.0, 110.0, 120.0};
+        model.spectrogram.assign(3, 513, 0.25);
+        model.aperiodicity.assign(3, 513, 0.5);
+        return model;
     }
-    // Open wav File
 
-    int x_length = GetAudioLength(FileName.c_str());
-    if (x_length <= 0) {
-        if (x_length == 0)
-            std::cerr << "error: File \"" << FileName << "\" not found" << std::endl;
-        else
-            std::cerr << "error: File \"" << FileName << "\" is not a .wav format" << std::endl;
-        return EXIT_FAILURE;
-    }
-    auto *x = new double[x_length];
+}// namespace
 
-    // wavread() must be called after GetAudioLength().
-    int fs, nbit;
-    wavread(FileName.c_str(), &fs, &nbit, x);
+int main() {
+    const auto root = std::filesystem::temp_directory_path() / "lessampler-modelio-test";
+    std::filesystem::remove_all(root);
+    std::filesystem::create_directories(root);
 
-    lessConfigure configure{};
+    const auto wav_path = root / "source.wav";
+    WavIO::WriteWav(wav_path, std::vector<double>(1000, 0.1), 44100);
 
-    AudioModel audioModel(x, x_length, fs, configure);
+    lessConfigure configure;
+    const auto model = make_model();
 
-    auto less_i = audioModel.GetAudioModel();
+    AudioModelIO writer(wav_path, model, configure);
+    writer.SaveAudioModel();
+    CHECK(std::filesystem::exists(root / "source.lessaudio"));
 
-    AudioModelIO WriteBinUnit("a.o", less_i, configure);
-    WriteBinUnit.SaveAudioModel();
+    AudioModelIO reader(wav_path);
+    CHECK(reader.CheckAudioModel(configure));
 
-    lessAudioModel less_o{};
+    const auto &read = reader.ReadAudioModel(configure);
+    CHECK_EQ(read.fs, model.fs);
+    CHECK_NEAR(read.frame_period, model.frame_period, 1e-12);
+    CHECK_EQ(read.fft_size, model.fft_size);
+    CHECK_EQ(read.w_length, model.w_length);
+    CHECK_EQ(read.x_length, model.x_length);
+    CHECK_EQ(read.f0, model.f0);
+    CHECK_EQ(read.spectrogram.rows(), model.spectrogram.rows());
+    CHECK_EQ(read.aperiodicity.rows(), model.aperiodicity.rows());
 
-    AudioModelIO ReadBinUnit("a.o");
-    less_o = ReadBinUnit.ReadAudioModel(configure);
-
-    size_t error_count = 0;
-
-    for (int i = 0; i < less_i.f0.size(); ++i) {
-        if (less_i.f0[i] != less_o.f0[i]) {
-            std::cout << " ERROR: " << i << less_i.f0[i] << "->" << less_o.f0[i] << std::endl;
-            error_count++;
-        }
-        for (int j = 0; j < less_i.w_length; ++j) {
-            if (less_i.spectrogram[i][j] != less_i.spectrogram[i][j]) {
-                std::cout << " ERROR: " << i << ", " << j << less_i.spectrogram[i][j] << "->" << less_o.spectrogram[i][j] << std::endl;
-                error_count++;
-            }
-            if (less_i.aperiodicity[i][j] != less_i.aperiodicity[i][j]) {
-                std::cout << " ERROR: " << i << ", " << j << less_i.aperiodicity[i][j] << "->" << less_o.aperiodicity[i][j] << std::endl;
-                error_count++;
-            }
+    for (std::size_t i = 0; i < read.spectrogram.rows(); ++i) {
+        for (std::size_t j = 0; j < read.spectrogram.cols(); ++j) {
+            CHECK_EQ(read.spectrogram[i][j], model.spectrogram[i][j]);
+            CHECK_EQ(read.aperiodicity[i][j], model.aperiodicity[i][j]);
         }
     }
 
-    std::cout << "All Test Done! " << [&]() {
-        if (error_count == 0) {
-            return std::string("No Error");
-        } else {
-            return "Error: " + std::to_string(error_count);
-        }
-    }() << std::endl;
+    auto changed = configure;
+    changed.custom_fft_size = true;
+    changed.fft_size = 2048;
+    CHECK(!reader.CheckAudioModel(changed));
 
-    JSONFileIO jsonFileIo(less_o, "a.json");
+    WavIO::WriteWav(wav_path, std::vector<double>(2000, 0.2), 44100);
+    CHECK(!reader.CheckAudioModel(configure));
+    bool rejected_source_change = false;
+    try {
+        reader.ReadAudioModel(configure);
+    } catch (const std::exception &) {
+        rejected_source_change = true;
+    }
+    CHECK(rejected_source_change);
+
+    std::filesystem::remove_all(root);
+    return test::finish();
 }
