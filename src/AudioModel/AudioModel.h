@@ -8,32 +8,23 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/2.
-//
-
 #ifndef LESSAMPLER_AUDIOMODEL_H
 #define LESSAMPLER_AUDIOMODEL_H
+
+#include <span>
 
 #include "lessAudioModel.h"
 
 #include "ConfigUnit/lessConfigure.h"
-#include "WorldModule/WorldPara.h"
 
 class AudioModel {
 public:
-    AudioModel(double *x, int x_length, int fs, const lessConfigure &configure);
+    AudioModel(std::span<const double> x, int fs, const lessConfigure &configure);
 
-    lessAudioModel GetAudioModel();
+    [[nodiscard]] const lessAudioModel &GetAudioModel() const;
 
 private:
-    lessConfigure configure{};
-    WorldPara worldPara{};
     lessAudioModel _lessAudioModel{};
-
-private:
-    void InitAudioModel();
 };
 
-
-#endif //LESSAMPLER_AUDIOMODEL_H
+#endif//LESSAMPLER_AUDIOMODEL_H

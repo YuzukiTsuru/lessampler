@@ -8,24 +8,24 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/23.
-//
-
 #ifndef LESSAMPLER_GENERATEAUDIOMODEL_H
 #define LESSAMPLER_GENERATEAUDIOMODEL_H
 
 #include <filesystem>
 #include <vector>
 
-#include "ConfigUnit/ConfigUnit.h"
+#include "ConfigUnit/lessConfigure.h"
 
 class GenerateAudioModel {
 public:
-    GenerateAudioModel(std::filesystem::path path, lessConfigure configure);
-    GenerateAudioModel(char *path, lessConfigure configure);
+    GenerateAudioModel(const std::filesystem::path &path, lessConfigure configure);
 
-    void PrintWavFiles();
+    /*
+     * Analyze one WAV file and write its .lessaudio sidecar.
+     */
+    static void GenerateModelForFile(const std::filesystem::path &wav_path, const lessConfigure &configure);
+
+    void PrintWavFiles() const;
 
 private:
     std::filesystem::path target_voice_path;
@@ -36,18 +36,6 @@ private:
     void GetWavFileLists();
 
     void GenerateModelFromFile();
-
-    void WavFileModel(const std::filesystem::path &wav_path);
-
-private:
-    // Baisc Impl of Parallel foreach
-    template<class I, class F>
-    void for_each(size_t thread_count, I begin, I end, F f);
-
-    // Compatible Impl of Parallel foreach
-    template<class I, class F>
-    void for_each(I begin, I end, F f);
 };
 
-
-#endif //LESSAMPLER_GENERATEAUDIOMODEL_H
+#endif//LESSAMPLER_GENERATEAUDIOMODEL_H

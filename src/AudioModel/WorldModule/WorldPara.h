@@ -8,24 +8,22 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/2.
-//
-
 #ifndef LESSAMPLER_WORLDPARA_H
 #define LESSAMPLER_WORLDPARA_H
 
-typedef struct WorldPara {
+#include <vector>
+
+#include "Utils/Matrix.h"
+
+struct WorldPara {
     double frame_period = 5.0;
     int fs = 0;
-
-    double *f0 = nullptr;
-    double *time_axis = nullptr;
-    int f0_length = 0;
-
-    double **spectrogram = nullptr;
-    double **aperiodicity = nullptr;
     int fft_size = 0;
-} WorldPara;
+
+    std::vector<double> f0;
+    std::vector<double> time_axis;
+    Matrix spectrogram;
+    Matrix aperiodicity;
+};
 
 #endif//LESSAMPLER_WORLDPARA_H

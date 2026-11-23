@@ -8,52 +8,23 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/21.
-//
-
 #ifndef LESSAMPLER_AUTOAMP_H
 #define LESSAMPLER_AUTOAMP_H
 
-#include "AudioModel/lessAudioModel.h"
-#include "Shine/ShinePara.h"
+#include <span>
 
 class AutoAMP {
 public:
-    // Auto AMP with Shine para
-    AutoAMP(ShinePara shine, double *x);
+    /*
+     * Normalize and clamp the samples in place. No temporary buffer is allocated.
+     */
+    static void ApplyInPlace(std::span<double> samples, double volume);
 
-    // Auto AMP only for WAV
-    // TODO: fix with vector
-    AutoAMP(double *x, int x_length, double amp_val);
-
-    double *GetAMP();
+    [[nodiscard]] static double MaxAmplitude(std::span<const double> samples);
 
 private:
-    ShinePara shine;
-
-    int x_length = 0;
-    double *x = nullptr;
-    double *x_out = nullptr;
-
-    const double default_sample_value = 0.86;
-    const double MaxValue = 1.0;
-    const double MinValue = -1.0;
-
-    double sample_value = 0.0;
-    double MaxAMP = 0.0;
-
-private:
-    void GetMaxAMP();
-
-    void SetDefaultValue();
-
-    void DiminishedConsonantFricative();
-
-    void DiminishedConsonantFricative(double amp_volumes);
-
-    void LimitMaximumAmplitude();
+    static constexpr double MaxValue = 1.0;
+    static constexpr double MinValue = -1.0;
 };
 
-
-#endif //LESSAMPLER_AUTOAMP_H
+#endif//LESSAMPLER_AUTOAMP_H

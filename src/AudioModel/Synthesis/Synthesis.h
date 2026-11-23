@@ -8,36 +8,26 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/20.
-//
-
 #ifndef LESSAMPLER_SYNTHESIS_H
 #define LESSAMPLER_SYNTHESIS_H
 
-#include <iostream>
+#include <vector>
 
 #include "AudioModel/lessAudioModel.h"
 
 class Synthesis {
 public:
-    explicit Synthesis(lessAudioModel audioModel, int x_length);
+    Synthesis(const lessAudioModel &audioModel, int x_length);
 
-    ~Synthesis();
+    [[nodiscard]] std::vector<double> &GetWavData() noexcept;
 
-    double *GetWavData();
-
-private:
-    double *x = nullptr;
-    int x_length = 0;
-
-    lessAudioModel audioModel{};
+    [[nodiscard]] const std::vector<double> &GetWavData() const noexcept;
 
 private:
-    void AllocateMemory();
+    std::vector<double> x;
 
-    void SynthesisWav() const;
+private:
+    void SynthesisWav(const lessAudioModel &audioModel);
 };
 
-
-#endif //LESSAMPLER_SYNTHESIS_H
+#endif//LESSAMPLER_SYNTHESIS_H

@@ -8,25 +8,44 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/23.
-//
-
-#include <utility>
-#include <future>
-#include <thread>
-
 #include "GenerateAudioModel.h"
 
-#include "Utils/LOG.h"
+#include <algorithm>
+#include <atomic>
+#include <cctype>
+#include <exception>
+#include <format>
+#include <mutex>
+#include <thread>
+#include <utility>
+#include <vector>
+
 #include "AudioModel/AudioModel.h"
 #include "AudioModel/lessAudioModel.h"
 #include "AudioProcess/AutoAMP.h"
 #include "FileIO/AudioModelIO.h"
 #include "FileIO/WavIO.h"
+#include "Utils/LOG.h"
+#include "Utils/exception.h"
 
-GenerateAudioModel::GenerateAudioModel(std::filesystem::path path, lessConfigure configure) : target_voice_path(std::move(path)),
-                                                                                              configure(std::move(configure)) {
+namespace {
+
+    bool has_wav_extension(const std::filesystem::path &path) {
+        std::string extension = path.extension().string();
+        std::ranges::transform(extension, extension.begin(), [](unsigned char c) {
+            return static_cast<char>(std::tolower(c));
+        });
+        return extension == ".wav";
+    }
+
+}// namespace
+
+GenerateAudioModel::GenerateAudioModel(const std::filesystem::path &path, lessConfigure _configure)
+    : target_voice_path(path), configure(std::move(_configure)) {
+    if (!std::filesystem::is_directory(target_voice_path)) {
+        throw parameter_error("Modeling input is not a directory: " + target_voice_path.string());
+    }
+
     YALL_INFO_ << "Get the audio files in the directory";
     GetWavFileLists();
 #ifdef DEBUG_MODE
@@ -36,12 +55,23 @@ GenerateAudioModel::GenerateAudioModel(std::filesystem::path path, lessConfigure
     GenerateModelFromFile();
 }
 
-GenerateAudioModel::GenerateAudioModel(char *path, lessConfigure configure) : configure(std::move(configure)) {
-    auto file_path = std::string(path);
-    WavFileModel(file_path);
+void GenerateAudioModel::GenerateModelForFile(const std::filesystem::path &wav_path,
+                                              const lessConfigure &configure) {
+    WavData wav = WavIO::ReadWav(wav_path);
+
+    if (configure.model_amp != 0.0) {
+        YALL_DEBUG_ << "Apply AMP Before Modeling";
+        AutoAMP::ApplyInPlace(wav.samples, configure.model_amp);
+    }
+
+    AudioModel audioModel(wav.samples, wav.sample_rate, configure);
+    const auto &model = audioModel.GetAudioModel();
+
+    AudioModelIO audioModelIO(wav_path, model, configure);
+    audioModelIO.SaveAudioModel();
 }
 
-void GenerateAudioModel::PrintWavFiles() {
+void GenerateAudioModel::PrintWavFiles() const {
     for (const auto &file: wav_files) {
         YALL_DEBUG_ << file.string();
     }
@@ -50,83 +80,54 @@ void GenerateAudioModel::PrintWavFiles() {
 void GenerateAudioModel::GetWavFileLists() {
     YALL_INFO_ << "Working on folder: " + target_voice_path.string();
     for (const auto &entry: std::filesystem::directory_iterator(target_voice_path)) {
-        if (entry.path().extension().string() == ".wav") {
+        if (entry.is_regular_file() && has_wav_extension(entry.path())) {
             wav_files.push_back(entry.path());
         }
     }
-}
-
-void GenerateAudioModel::WavFileModel(const std::filesystem::path &wav_path) {
-    // Read Audio File
-    auto x_length = WavIO::GetAudioLength(wav_path.string().c_str());
-    auto x = new double[x_length];
-    auto fs = WavIO::WavRead(wav_path.string().c_str(), x);
-
-    // Check weather need to apply amp before modeling
-    if (configure.model_amp != 0.0) {
-        YALL_DEBUG_ << "Apply AMP Before Modeling";
-        AutoAMP amp(x, x_length, configure.model_amp);
-        x = amp.GetAMP();
-    }
-
-    AudioModel audioModel(x, x_length, fs, configure);
-    auto model = audioModel.GetAudioModel();
-
-    AudioModelIO audioModelIO(wav_path.string(), model, configure);
-    audioModelIO.SaveAudioModel();
+    std::ranges::sort(wav_files);
 }
 
 void GenerateAudioModel::GenerateModelFromFile() {
-    YALL_INFO_ << "Modeling with " + std::to_string(std::thread::hardware_concurrency()) + " threads";
-    for_each(wav_files.begin(), wav_files.end(), [&](const std::filesystem::path &wav_path) {
-        WavFileModel(wav_path);
-    });
-}
+    const auto hardware_threads = std::thread::hardware_concurrency();
+    const auto requested_threads = std::max(1U, hardware_threads == 0 ? 1U : hardware_threads / 2U);
+    const auto thread_count = std::min<std::size_t>(requested_threads,
+                                                    std::max<std::size_t>(1, wav_files.size()));
+    YALL_INFO_ << std::format("Modeling with {} threads", thread_count);
 
-template<class I, class F>
-void GenerateAudioModel::for_each(size_t thread_count, I begin, I end, F f) {
-    I it = begin;
+    std::atomic<std::size_t> next{0};
+    std::mutex error_mutex;
+    std::exception_ptr first_error;
 
-    if (it == end)
-        return;
-    if (++it == end) {
-        f(*begin);
-        return;
-    }
-
-    // If std::thread::hardware_concurrency() does not get the number of threads, use 1 thread
-    if (thread_count == 0) {
-        thread_count = 1;
-    }
-
-    std::vector<std::thread> threads;
-    threads.reserve(thread_count - 1);
-
-    auto worker_ = [&begin, &end, &f] {
+    auto worker = [&]() {
         while (true) {
-            I it;
-            it = begin;
-            if (it == end)
-                break;
-            ++begin;
-            f(*it);
+            const std::size_t index = next.fetch_add(1, std::memory_order_relaxed);
+            if (index >= wav_files.size()) {
+                return;
+            }
+
+            try {
+                GenerateModelForFile(wav_files[index], configure);
+            } catch (...) {
+                std::lock_guard<std::mutex> lock(error_mutex);
+                if (!first_error) {
+                    first_error = std::current_exception();
+                }
+                next.store(wav_files.size(), std::memory_order_relaxed);
+                return;
+            }
         }
     };
 
-    for (unsigned i = 0; i < thread_count - 1; ++i, ++it) {
-        if (it == end)
-            break;
-        threads.emplace_back(std::thread(worker_));
+    std::vector<std::jthread> threads;
+    threads.reserve(thread_count - 1);
+    for (unsigned i = 1; i < thread_count; ++i) {
+        threads.emplace_back(worker);
     }
 
-    worker_();
-    for (auto &th: threads) {
-        th.join();
+    worker();
+    threads.clear();
+
+    if (first_error) {
+        std::rethrow_exception(first_error);
     }
 }
-
-template<class I, class F>
-void GenerateAudioModel::for_each(I begin, I end, F f) {
-    for_each(std::lround(std::thread::hardware_concurrency() / 2), begin, end, f);
-}
-

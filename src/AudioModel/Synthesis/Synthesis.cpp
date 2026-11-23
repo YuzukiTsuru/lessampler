@@ -8,80 +8,82 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/20.
-//
-
 #include "Synthesis.h"
 
-#include <utility>
-
-#include "Utils/LOG.h"
+#include <algorithm>
+#include <vector>
 
 #include <world/synthesisrealtime.h>
 
-Synthesis::Synthesis(lessAudioModel audioModel, int x_length) : audioModel(std::move(audioModel)), x_length(x_length) {
+#include "Utils/LOG.h"
+#include "Utils/exception.h"
+
+namespace {
+
+    struct SynthesizerGuard {
+        WorldSynthesizer synthesizer{};
+
+        ~SynthesizerGuard() { DestroySynthesizer(&synthesizer); }
+    };
+
+}// namespace
+
+Synthesis::Synthesis(const lessAudioModel &audioModel, int x_length)
+    : x(static_cast<std::size_t>(std::max(0, x_length)), 0.0) {
     YALL_DEBUG_ << "Allocate Out Memory, Length: " + std::to_string(x_length);
-    AllocateMemory();
-    YALL_DEBUG_ << "Synthesis Audio...";
-    SynthesisWav();
+    SynthesisWav(audioModel);
 }
 
-Synthesis::~Synthesis() {
-    delete[] x;
-}
-
-double *Synthesis::GetWavData() {
+std::vector<double> &Synthesis::GetWavData() noexcept {
     return x;
 }
 
-void Synthesis::AllocateMemory() {
-    x = new double[x_length];
-    for (int i = 0; i < x_length; ++i) {
-        x[i] = 0.0;
-    }
+const std::vector<double> &Synthesis::GetWavData() const noexcept {
+    return x;
 }
 
-void Synthesis::SynthesisWav() const {
-    WorldSynthesizer synthesizer = {0};
-    int buffer_size = 64;
-    InitializeSynthesizer(audioModel.fs, audioModel.frame_period,
-                          audioModel.fft_size, buffer_size, 100, &synthesizer);
-
-    auto f0 = new double[audioModel.f0.size()];
-    std::copy(audioModel.f0.begin(), audioModel.f0.end(), f0);
-    auto spectrogram = new double *[audioModel.f0.size()];
-    auto aperiodicity = new double *[audioModel.f0.size()];
-    for (int i = 0; i < audioModel.f0.size(); ++i) {
-        spectrogram[i] = new double[audioModel.w_length];
-        aperiodicity[i] = new double[audioModel.w_length];
-        std::copy(audioModel.spectrogram[i].begin(), audioModel.spectrogram[i].end(), spectrogram[i]);
-        std::copy(audioModel.aperiodicity[i].begin(), audioModel.aperiodicity[i].end(), aperiodicity[i]);
+void Synthesis::SynthesisWav(const lessAudioModel &audioModel) {
+    if (audioModel.frame_period <= 0.0 || audioModel.fft_size <= 0 || audioModel.fs <= 0) {
+        throw parameter_error("Invalid audio model parameters for synthesis");
     }
 
-    int offset = 0;
-    for (int i = 0; i < audioModel.f0.size();) {
-        // Add one frame ('i' shows the frame index that should be added)
-        if (AddParameters(&f0[i], 1, &spectrogram[i], &aperiodicity[i], &synthesizer) == 1) {
+    const std::size_t frame_count = std::min({audioModel.f0.size(),
+                                              audioModel.spectrogram.rows(),
+                                              audioModel.aperiodicity.rows()});
+    if (frame_count == 0) {
+        return;
+    }
+
+    SynthesizerGuard guard;
+    constexpr int buffer_size = 64;
+    InitializeSynthesizer(audioModel.fs, audioModel.frame_period, audioModel.fft_size, buffer_size, 100,
+                          &guard.synthesizer);
+
+    std::vector<double> f0(audioModel.f0.begin(), audioModel.f0.begin() + static_cast<std::ptrdiff_t>(frame_count));
+    auto spectrogram = audioModel.spectrogram.mutable_row_pointers();
+    auto aperiodicity = audioModel.aperiodicity.mutable_row_pointers();
+
+    std::size_t offset = 0;
+    for (std::size_t i = 0; i < frame_count;) {
+        if (AddParameters(f0.data() + i, 1, spectrogram.data() + i, aperiodicity.data() + i, &guard.synthesizer) == 1) {
             ++i;
         }
 
-        // Synthesize speech with length of buffer_size sample.
-        // It is repeated until the function returns 0
-        // (it suggests that the synthesizer cannot generate speech).
-        while (Synthesis2(&synthesizer) != 0) {
-            int index = offset * buffer_size;
-            for (int j = 0; j < buffer_size; ++j)
-                x[j + index] = synthesizer.buffer[j];
-            offset++;
+        while (Synthesis2(&guard.synthesizer) != 0) {
+            const std::size_t index = offset * static_cast<std::size_t>(buffer_size);
+            if (index >= x.size()) {
+                break;
+            }
+            const std::size_t count = std::min(static_cast<std::size_t>(buffer_size), x.size() - index);
+            for (std::size_t j = 0; j < count; ++j) {
+                x[index + j] = guard.synthesizer.buffer[j];
+            }
+            ++offset;
         }
 
-        // Check the "Lock" (Please see synthesisrealtime.h)
-        if (IsLocked(&synthesizer) == 1) {
+        if (IsLocked(&guard.synthesizer) == 1) {
             YALL_WARN_ << "Synthesis Buffer Locked";
             break;
         }
     }
-    DestroySynthesizer(&synthesizer);
 }
-
