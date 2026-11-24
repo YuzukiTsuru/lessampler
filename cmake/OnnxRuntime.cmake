@@ -125,6 +125,12 @@ function(lessampler_setup_onnxruntime)
                 file(REMOVE "${root}/lib/libonnxruntime.so.1")
                 file(CREATE_LINK "libonnxruntime.so" "${root}/lib/libonnxruntime.so.1" SYMBOLIC)
             endif ()
+        elseif (APPLE)
+            # The dylib's install name is libonnxruntime.1.dylib.
+            if (EXISTS "${root}/lib/libonnxruntime.dylib")
+                file(REMOVE "${root}/lib/libonnxruntime.1.dylib")
+                file(CREATE_LINK "libonnxruntime.dylib" "${root}/lib/libonnxruntime.1.dylib" SYMBOLIC)
+            endif ()
         endif ()
 
         file(GLOB onnxruntime_licenses

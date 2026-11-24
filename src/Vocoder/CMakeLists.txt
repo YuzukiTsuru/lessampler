@@ -110,7 +110,10 @@ if (LESSAMPLER_ENABLE_LLSM)
     endif ()
 
     find_package(OpenMP QUIET)
-    if (OpenMP_C_FOUND)
+    # MSVC's OpenMP front end rejects the induction-variable form used by
+    # ciglet. Build that C code single-threaded on MSVC rather than patching
+    # the vendored source.
+    if (OpenMP_C_FOUND AND NOT MSVC)
         target_link_libraries(ciglet PUBLIC OpenMP::OpenMP_C)
         target_link_libraries(llsm2 PUBLIC OpenMP::OpenMP_C)
     endif ()
