@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 
+#if defined(_WIN32)
+#include <process.h>
+#endif
+
 #include "Audio/WavIO.h"
 #include "EndToEndBinary.h"
 
@@ -14,12 +18,34 @@ using namespace lessampler;
 
 namespace {
 
-    std::string quote(const std::filesystem::path &path) {
-        return "\"" + path.string() + "\"";
+    std::string native_separators(std::string value) {
+#if defined(_WIN32)
+        std::ranges::replace(value, '/', '\\');
+#endif
+        return value;
     }
 
-    int run(const std::string &command) {
+    std::string quote(std::string_view value) {
+        return "\"" + std::string(value) + "\"";
+    }
+
+    int run(const std::string &binary, const std::vector<std::string> &args) {
+#if defined(_WIN32)
+        std::vector<const char *> argv;
+        argv.reserve(args.size() + 2);
+        argv.push_back(binary.c_str());
+        for (const auto &argument: args) {
+            argv.push_back(argument.c_str());
+        }
+        argv.push_back(nullptr);
+        return _spawnv(_P_WAIT, binary.c_str(), argv.data());
+#else
+        std::string command = quote(binary);
+        for (const auto &argument: args) {
+            command += " " + quote(argument);
+        }
         return std::system(command.c_str());
+#endif
     }
 
     double peak_of(const std::vector<double> &samples) {
@@ -57,14 +83,16 @@ int main() {
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(root);
 
-    const std::string binary = LESSAMPLER_BINARY_PATH;
+    const std::string binary = native_separators(LESSAMPLER_BINARY_PATH);
     const auto source = std::filesystem::path(LESSAMPLER_TEST_DATA_DIR) / "vaiueo2d.wav";
     const auto input = root / "input.wav";
     const auto output = root / "output.wav";
     std::filesystem::copy_file(source, input);
 
-    const std::string render = quote(binary) + " " + quote(input) + " " + quote(output) + " A4 100 \"\" 0 1000 100 0 100 0 \"!120\" \"\"";
-    CHECK_EQ(run(render), 0);
+    const std::vector<std::string> render_args{
+            input.string(), output.string(), "A4", "100", "", "0", "1000",
+            "100", "0", "100", "0", "!120", ""};
+    CHECK_EQ(run(binary, render_args), 0);
 
     const auto rendered = WavIO::ReadWav(output);
     CHECK_EQ(rendered.sample_rate, 22050);
@@ -77,8 +105,10 @@ int main() {
 
     const auto missing = root / "missing.wav";
     const auto blank_output = root / "blank.wav";
-    const std::string blank = quote(binary) + " " + quote(missing) + " " + quote(blank_output) + " A4 100 \"\" 0 1000 100 0 100 0 \"!120\" \"\"";
-    CHECK_EQ(run(blank), 0);
+    const std::vector<std::string> blank_args{
+            missing.string(), blank_output.string(), "A4", "100", "", "0", "1000",
+            "100", "0", "100", "0", "!120", ""};
+    CHECK_EQ(run(binary, blank_args), 0);
 
     const auto silent = WavIO::ReadWav(blank_output);
     CHECK_EQ(silent.sample_rate, 44100);
@@ -88,8 +118,8 @@ int main() {
         CHECK_NEAR(value, 0.0, 1e-12);
     }
 
-    CHECK_EQ(run(quote(binary) + " --version"), 0);
-    CHECK_EQ(run(quote(binary) + " --help"), 0);
+    CHECK_EQ(run(binary, {"--version"}), 0);
+    CHECK_EQ(run(binary, {"--help"}), 0);
 
     std::filesystem::remove_all(root);
     return test::finish();
