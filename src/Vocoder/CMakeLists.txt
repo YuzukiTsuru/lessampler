@@ -111,9 +111,10 @@ if (LESSAMPLER_ENABLE_LLSM)
 
     find_package(OpenMP QUIET)
     # MSVC's OpenMP front end rejects the induction-variable form used by
-    # ciglet. Build that C code single-threaded on MSVC rather than patching
-    # the vendored source.
-    if (OpenMP_C_FOUND AND NOT MSVC)
+    # ciglet. macOS release archives would also need a bundled libgomp. Build
+    # that C code single-threaded on both platforms rather than patching the
+    # vendored source or growing the runtime dependency set.
+    if (OpenMP_C_FOUND AND NOT MSVC AND NOT APPLE)
         target_link_libraries(ciglet PUBLIC OpenMP::OpenMP_C)
         target_link_libraries(llsm2 PUBLIC OpenMP::OpenMP_C)
     endif ()
