@@ -9,7 +9,9 @@
 #include <vector>
 
 #if defined(_WIN32)
-#include <process.h>
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #endif
 
 #include "Audio/WavIO.h"
@@ -30,16 +32,63 @@ namespace {
         return "\"" + std::string(value) + "\"";
     }
 
+#if defined(_WIN32)
+    // Quote one argument following the rules the MSVC CRT uses to parse
+    // argv. _spawnv does not quote empty arguments, which drops them and
+    // shifts every later UTAU parameter.
+    std::string quote_windows(std::string_view value) {
+        if (value.empty()) {
+            return "\"\"";
+        }
+        if (value.find_first_of(" \t\n\v\"") == std::string_view::npos) {
+            return std::string(value);
+        }
+
+        std::string result = "\"";
+        for (auto iterator = value.begin();; ++iterator) {
+            std::size_t backslashes = 0;
+            while (iterator != value.end() && *iterator == '\\') {
+                ++iterator;
+                ++backslashes;
+            }
+            if (iterator == value.end()) {
+                result.append(backslashes * 2, '\\');
+                break;
+            }
+            if (*iterator == '"') {
+                result.append(backslashes * 2 + 1, '\\');
+            } else {
+                result.append(backslashes, '\\');
+            }
+            result.push_back(*iterator);
+        }
+        result.push_back('"');
+        return result;
+    }
+#endif
+
     int run(const std::string &binary, const std::vector<std::string> &args) {
 #if defined(_WIN32)
-        std::vector<const char *> argv;
-        argv.reserve(args.size() + 2);
-        argv.push_back(binary.c_str());
+        std::string command = quote_windows(binary);
         for (const auto &argument: args) {
-            argv.push_back(argument.c_str());
+            command += ' ';
+            command += quote_windows(argument);
         }
-        argv.push_back(nullptr);
-        return _spawnv(_P_WAIT, binary.c_str(), argv.data());
+
+        STARTUPINFOA startup{};
+        startup.cb = sizeof(startup);
+        PROCESS_INFORMATION process{};
+        if (!CreateProcessA(binary.c_str(), command.data(), nullptr, nullptr, FALSE, 0,
+                            nullptr, nullptr, &startup, &process)) {
+            return -1;
+        }
+
+        WaitForSingleObject(process.hProcess, INFINITE);
+        DWORD exit_code = 1;
+        GetExitCodeProcess(process.hProcess, &exit_code);
+        CloseHandle(process.hThread);
+        CloseHandle(process.hProcess);
+        return static_cast<int>(exit_code);
 #else
         std::string command = quote(binary);
         for (const auto &argument: args) {
