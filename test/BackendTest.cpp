@@ -124,6 +124,14 @@ int main() {
     CHECK(rms_of(world_result.samples) > 1e-4);
     CHECK_NEAR(estimate_pitch(world_result.samples, world_result.fs), 440.0, 25.0);
 
+    // A uniform +100 cent bend must move A4 to A#4 in both backends.
+    auto shifted = shine;
+    std::ranges::fill(shifted.pitch_bend, 100);
+    const lessbackend::RenderRequest shifted_request{input, wav.samples, wav.sample_rate, shifted, configure};
+    const auto shifted_world = world_backend->Render(shifted_request);
+    CHECK_EQ(shifted_world.samples.size(), static_cast<std::size_t>(shifted.output_samples));
+    CHECK_NEAR(estimate_pitch(shifted_world.samples, shifted_world.fs), 466.16, 25.0);
+
 #if defined(LESSAMPLER_ENABLE_LLSM)
     auto llsm_backend = lessbackend::CreateVocoderBackend(lessbackend::VocoderKind::llsm);
     REQUIRE(llsm_backend != nullptr);
@@ -136,6 +144,11 @@ int main() {
     CHECK(all_finite(llsm_result.samples));
     CHECK(rms_of(llsm_result.samples) > 1e-4);
     CHECK_NEAR(estimate_pitch(llsm_result.samples, llsm_result.fs), 440.0, 25.0);
+
+    const auto shifted_llsm = llsm_backend->Render(shifted_request);
+    CHECK_EQ(shifted_llsm.samples.size(), static_cast<std::size_t>(shifted.output_samples));
+    CHECK(all_finite(shifted_llsm.samples));
+    CHECK_NEAR(estimate_pitch(shifted_llsm.samples, shifted_llsm.fs), 466.16, 25.0);
 #else
     bool rejected = false;
     try {
