@@ -73,13 +73,14 @@
     },
     {
       "name": "ci-msvc",
-      "displayName": "CI build with MSVC",
+      "displayName": "CI release build with MSVC",
       "inherits": "base",
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/ci-msvc",
       "cacheVariables": {
-        "CMAKE_CONFIGURATION_TYPES": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
       }
     }
   ],
@@ -111,8 +112,7 @@
     },
     {
       "name": "ci-msvc",
-      "configurePreset": "ci-msvc",
-      "configuration": "Release"
+      "configurePreset": "ci-msvc"
     }
   ],
   "testPresets": [
@@ -162,7 +162,6 @@
     {
       "name": "ci-msvc",
       "configurePreset": "ci-msvc",
-      "configuration": "Release",
       "output": {
         "outputOnFailure": true
       }
