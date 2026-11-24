@@ -14,6 +14,8 @@
 #include <string>
 #include <string_view>
 
+#include "Backend/VocoderKind.h"
+
 class lessConfigure {
 public:
     enum class F0_MODE {
@@ -24,6 +26,7 @@ public:
 
     std::string version;
     bool debug_mode = false;
+    lessbackend::VocoderKind vocoder = lessbackend::VocoderKind::world;
     double model_amp = 0.85;
     double audio_model_frame_period = (1000.0 * 256 / 44100);
     bool custom_fft_size = false;

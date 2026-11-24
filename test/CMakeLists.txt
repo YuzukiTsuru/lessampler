@@ -88,6 +88,13 @@ lessampler_add_test(ShineTest unit)
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/EndToEndBinary.h"
         CONTENT "#pragma once\n#define LESSAMPLER_BINARY_PATH R\"lessampler($<TARGET_FILE:lessampler>)lessampler\"\n")
 
+add_executable(BackendTest BackendTest.cpp)
+target_link_libraries(BackendTest PRIVATE Backend FileIO Shine UTAU ConfigUnit)
+if (LESSAMPLER_ENABLE_LLSM)
+    target_compile_definitions(BackendTest PRIVATE LESSAMPLER_ENABLE_LLSM=1)
+endif ()
+lessampler_add_test(BackendTest integration)
+
 add_executable(EndToEndTest EndToEndTest.cpp)
 target_link_libraries(EndToEndTest PRIVATE FileIO)
 target_include_directories(EndToEndTest PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")

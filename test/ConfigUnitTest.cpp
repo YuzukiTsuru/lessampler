@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 
 #include "ConfigUnit/ConfigUnit.h"
@@ -28,8 +29,15 @@ int main() {
     auto config = defaults.GetConfig();
     CHECK(std::filesystem::exists(defaults_dir / "lessampler.fex"));
     CHECK(!config.custom_fft_size);
+    CHECK_EQ(config.vocoder, lessbackend::VocoderKind::world);
     CHECK_EQ(config.f0_mode, lessConfigure::F0_MODE::F0_MODE_HARVEST);
     CHECK(config.audio_model_frame_period > 0.0);
+    {
+        std::ifstream default_config(defaults_dir / "lessampler.fex");
+        const std::string content((std::istreambuf_iterator<char>(default_config)),
+                                  std::istreambuf_iterator<char>());
+        CHECK(content.find("backend = \"world\"") != std::string::npos);
+    }
 
     const auto custom_dir = root / "custom";
     std::filesystem::create_directories(custom_dir);
@@ -38,6 +46,7 @@ version = "test"
 debug = true
 
 [audio_model]
+backend = "LLSM"
 frame_period = 5.0
 fft_size = 2048
 model_amp = 0.0
@@ -56,6 +65,7 @@ ap_threshold = 0.2
     ConfigUnit custom(custom_dir);
     config = custom.GetConfig();
     CHECK(config.debug_mode);
+    CHECK_EQ(config.vocoder, lessbackend::VocoderKind::llsm);
     CHECK(config.custom_fft_size);
     CHECK_EQ(config.fft_size, 2048);
     CHECK_NEAR(config.model_amp, 0.0, 1e-12);
@@ -89,6 +99,7 @@ ap_threshold=0.1
     config = legacy.GetConfig();
     CHECK(std::filesystem::exists(legacy_dir / "lessampler.fex.bak"));
     CHECK(config.debug_mode);
+    CHECK_EQ(config.vocoder, lessbackend::VocoderKind::world);
     CHECK_NEAR(config.audio_model_frame_period, 5.5, 1e-12);
     CHECK_NEAR(config.model_amp, 0.8, 1e-12);
     CHECK_EQ(config.f0_speed, 2);
@@ -108,6 +119,7 @@ ap_threshold=0.1
     };
 
     expect_invalid("bad-mode", "[f0]\nf0_mode = \"NOPE\"\n");
+    expect_invalid("bad-backend", "[audio_model]\nbackend = \"nope\"\n");
     expect_invalid("bad-fft", "[audio_model]\nfft_size = -1\n");
     expect_invalid("bad-ap", "[ap]\nap_threshold = 2.0\n");
 
@@ -128,6 +140,8 @@ f0_mode = "DIO"
     lessConfigure fingerprint_config;
     const auto before = fingerprint_config.fingerprint();
     CHECK(!before.empty());
+    CHECK_EQ(fingerprint_config.fingerprint(), before);
+    fingerprint_config.vocoder = lessbackend::VocoderKind::llsm;
     CHECK_EQ(fingerprint_config.fingerprint(), before);
     fingerprint_config.custom_fft_size = true;
     fingerprint_config.fft_size = 2048;

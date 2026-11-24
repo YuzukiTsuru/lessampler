@@ -9,12 +9,13 @@
  */
 
 #include <iostream>
+#include <string>
 #include <string_view>
 #include <vector>
 
-#include "AudioModel/Synthesis/Synthesis.h"
-#include "AudioProcess/AudioProcess.h"
+#include "AudioModel/AudioInfo.h"
 #include "AudioProcess/AutoAMP.h"
+#include "Backend/VocoderBackend.h"
 #include "ConfigUnit/ConfigVoiceBank.h"
 #include "Dialogs/Dialogs.h"
 #include "FileIO/GenerateAudioModel.h"
@@ -116,7 +117,6 @@ void lessampler::run() {
     // Parse CommandLine Args
     if (ParseArgs()) {
         YALL_INFO_ << "lessampler Copyright (c)  2018 - 2022, YuzukiTsuru, Version: " + std::string(PROJECT_GIT_HASH);
-        AudioModelIO audio_model_io(in_file_path);
         YALL_INFO_ << "Audio File: " + in_file_path.string();
 
         ConfigVoiceBank voice_bank_config(in_file_path, configure);
@@ -132,48 +132,35 @@ void lessampler::run() {
             std::vector<double> blank_audio(static_cast<std::size_t>(blank_audio_size), 0.0);
             WavIO::WriteWav(shine_para.output_file_name, blank_audio, default_fs);
         } else {
-            // Check if an audio model exists。 If it does not exist, generate new model
-            if (!audio_model_io.CheckAudioModel(configure)) {
-                YALL_INFO_ << "Generating Audio Model: " + in_file_path.string();
-                timer.SetTimer();
-                GenerateAudioModel::GenerateModelForFile(in_file_path, configure);
-                YALL_INFO_ << timer.GetTimer("Generate Audio Model: ");
-            } else {
-                YALL_INFO_ << "Found Audio Model, Processing...";
+            const auto wav_info = WavIO::ProbeWav(in_file_path);
+            const AudioInfo audio_info{wav_info.sample_rate, wav_info.frames,
+                                       configure.audio_model_frame_period};
+
+            Shine shine(argc, argv, audio_info, Shine::SHINE_MODE::UTAU);
+            const auto shine_para = shine.GetShine();
+
+            auto backend = lessbackend::CreateVocoderBackend(configure.vocoder);
+            YALL_INFO_ << "Backend: " + std::string(backend->name());
+
+            // WORLD uses its cached .lessaudio model and does not need the PCM.
+            // LLSM analyzes the waveform directly, so only then do we pay for
+            // loading it.
+            std::vector<double> samples;
+            if (backend->kind() == lessbackend::VocoderKind::llsm) {
+                samples = WavIO::ReadWav(in_file_path).samples;
             }
 
-            // Read audio model
             timer.SetTimer();
-            audio_model_io.ReadAudioModel(configure);
-            const auto &origin_audio_model = audio_model_io.GetAudioModel();
-            YALL_INFO_ << timer.GetTimer("Read Audio Model: ");
+            lessbackend::RenderRequest request{in_file_path, samples, wav_info.sample_rate,
+                                               shine_para, configure};
+            auto result = backend->Render(request);
+            YALL_INFO_ << timer.GetTimer("Render: ");
 
-            ShowAudioInfo(origin_audio_model);
-
-            // Generate Shine with audio model and parameters
-            Shine shine(argc, argv, origin_audio_model, Shine::SHINE_MODE::UTAU);
-            auto shine_para = shine.GetShine();
-
-            // Audio transform
             timer.SetTimer();
-            AudioProcess audioProcess(origin_audio_model, shine_para);
-            const auto &trans_audio_model = audioProcess.GetTransAudioModel();
-            const int output_fs = trans_audio_model.fs;
-            YALL_INFO_ << timer.GetTimer("Processing Model: ");
-
-            // Synthesize audio from a model
-            timer.SetTimer();
-            Synthesis synthesis(trans_audio_model, shine_para.output_samples);
-            auto &out_wav_data = synthesis.GetWavData();
-            YALL_INFO_ << timer.GetTimer("Synthesis Audio: ");
-
-            // Perform automatic amplification in place
-            timer.SetTimer();
-            AutoAMP::ApplyInPlace(out_wav_data, shine_para.volumes);
+            AutoAMP::ApplyInPlace(result.samples, shine_para.volumes);
             YALL_INFO_ << timer.GetTimer("Auto AMP Audio: ");
 
-            // Save to target wav file
-            WavIO::WriteWav(shine_para.output_file_name, out_wav_data, output_fs);
+            WavIO::WriteWav(shine_para.output_file_name, result.samples, result.fs);
         }
         YALL_OK_ << "All Process Done: " + timer.EndTimer();
     }

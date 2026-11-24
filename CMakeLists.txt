@@ -63,6 +63,7 @@ find_package(Threads REQUIRED)
 option(LESSAMPLER_BUILD_TESTS "Build the test executables and register them with CTest" ON)
 option(LESSAMPLER_BUILD_TOOLS "Build helper tools" ON)
 option(LESSAMPLER_ENABLE_SANITIZERS "Build with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
+option(LESSAMPLER_ENABLE_LLSM "Enable the GPLv3 libllsm2 vocoder backend" OFF)
 option(LESSAMPLER_DUMP_DATA "Enable verbose per-sample debug dumps" OFF)
 option(LESSAMPLER_TIME_EVAL "Print timing evaluation messages" OFF)
 option(LESSAMPLER_WERROR "Treat compiler warnings as errors" OFF)
@@ -80,6 +81,12 @@ else ()
 endif ()
 target_compile_definitions(lessampler_common INTERFACE $<$<CONFIG:Debug>:DEBUG_MODE=1>)
 
+if (WIN32)
+    # windows.h defines min/max as macros, which breaks the std::min/std::max
+    # calls used throughout the codebase.
+    target_compile_definitions(lessampler_common INTERFACE NOMINMAX WIN32_LEAN_AND_MEAN)
+endif ()
+
 if (LESSAMPLER_DUMP_DATA)
     target_compile_definitions(lessampler_common INTERFACE LESSAMPLER_DUMP_DATA=1)
 endif ()
@@ -93,6 +100,10 @@ else ()
     target_compile_options(lessampler_common INTERFACE
             -Wall -Wextra -Wpedantic -Wshadow -Wnon-virtual-dtor
     )
+endif ()
+
+if (LESSAMPLER_ENABLE_LLSM)
+    message(STATUS "LLSM backend enabled; the resulting lessampler binary is GPLv3")
 endif ()
 
 if (LESSAMPLER_WERROR)

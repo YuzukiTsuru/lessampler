@@ -30,6 +30,9 @@ namespace {
 }// namespace
 
 std::string lessConfigure::fingerprint() const {
+    // The vocoder backend is deliberately not part of the fingerprint: the
+    // cached .lessaudio holds WORLD analysis only, so switching between WORLD
+    // and LLSM must not invalidate an existing WORLD cache.
     const std::string data = std::format(
             "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
             audio_model_frame_period,

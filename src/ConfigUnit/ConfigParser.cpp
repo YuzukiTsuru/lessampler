@@ -122,6 +122,13 @@ void apply_config(const toml::table &table, lessConfigure &configure) {
     }
 
     if (const auto *section = table["audio_model"].as_table()) {
+        if (const auto value = (*section)["backend"].value<std::string>()) {
+            const auto backend = lessbackend::ParseVocoderKind(*value);
+            if (!backend) {
+                invalid_value("audio_model", "backend", "expected \"world\" or \"llsm\"");
+            }
+            configure.vocoder = *backend;
+        }
         configure.audio_model_frame_period = read_double(*section, "audio_model", "frame_period",
                                                          configure.audio_model_frame_period);
         configure.model_amp = read_double(*section, "audio_model", "model_amp", configure.model_amp);
@@ -195,6 +202,7 @@ version = {}
 debug = {}
 
 [audio_model]
+backend = "{}"           # "world" or "llsm"
 frame_period = {}
 fft_size = "auto"        # "auto" or an integer such as 1024
 model_amp = {}           # 0 disables AutoAMP before modeling
@@ -212,6 +220,7 @@ ap_threshold = {}
 )",
                        toml_quote(configure.version),
                        configure.debug_mode,
+                       lessbackend::VocoderKindName(configure.vocoder),
                        configure.audio_model_frame_period,
                        configure.model_amp,
                        lessConfigure::f0_mode_name(configure.f0_mode),
@@ -238,6 +247,7 @@ version = {}
 debug = {}
 
 [audio_model]
+backend = "{}"
 frame_period = {}
 fft_size = {}
 model_amp = {}
@@ -255,6 +265,7 @@ ap_threshold = {}
 )",
                        toml_quote(configure.version),
                        configure.debug_mode,
+                       lessbackend::VocoderKindName(configure.vocoder),
                        configure.audio_model_frame_period,
                        fft_size,
                        configure.model_amp,
@@ -315,7 +326,13 @@ bool parse_legacy_ini_file(const std::filesystem::path &path, lessConfigure &con
                 }
             }
         } else if (section == "audio_model") {
-            if (key == "frame_period") {
+            if (key == "backend") {
+                const auto backend = lessbackend::ParseVocoderKind(raw_value);
+                if (!backend) {
+                    return false;
+                }
+                configure.vocoder = *backend;
+            } else if (key == "frame_period") {
                 if (!parse_number(raw_value, configure.audio_model_frame_period)) {
                     return false;
                 }

@@ -1,4 +1,5 @@
 add_subdirectory(AudioModel)
+add_subdirectory(Backend)
 add_subdirectory(ConfigUnit)
 add_subdirectory(Dialogs)
 add_subdirectory(FileIO)
@@ -14,6 +15,7 @@ endif ()
 target_link_libraries(lessampler PRIVATE
         AudioModel
         AudioProcess
+        Backend
         FileIO
         Dialogs
         UTAU
