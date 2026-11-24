@@ -11,6 +11,7 @@
 #ifndef LESSAMPLER_WAVIO_H
 #define LESSAMPLER_WAVIO_H
 
+#include <cstddef>
 #include <filesystem>
 #include <span>
 #include <vector>
@@ -21,8 +22,19 @@ struct WavData {
     int channels = 0;
 };
 
+struct WavInfo {
+    int sample_rate = 0;
+    int channels = 0;
+    std::size_t frames = 0;
+};
+
 class WavIO {
 public:
+    /*
+     * Read the WAV header without loading the sample data.
+     */
+    static WavInfo ProbeWav(const std::filesystem::path &path);
+
     /*
      * Read a WAV file as mono. Multi-channel input is averaged per frame.
      */

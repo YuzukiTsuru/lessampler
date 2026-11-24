@@ -40,6 +40,21 @@ namespace {
 
 }// namespace
 
+WavInfo WavIO::ProbeWav(const std::filesystem::path &path) {
+    SF_INFO info{};
+    info.format = 0;
+
+    SndFilePtr file(open_file(path, SFM_READ, info));
+    if (!file) {
+        throw audio_file_error(path.string());
+    }
+    if (info.frames <= 0 || info.channels <= 0 || info.samplerate <= 0) {
+        throw audio_file_error("empty or invalid audio file: " + path.string());
+    }
+
+    return WavInfo{info.samplerate, info.channels, static_cast<std::size_t>(info.frames)};
+}
+
 WavData WavIO::ReadWav(const std::filesystem::path &path) {
     SF_INFO info{};
     info.format = 0;

@@ -23,6 +23,11 @@ int main() {
     }
 
     WavIO::WriteWav(mono_path, mono, 48000);
+    const auto mono_info = WavIO::ProbeWav(mono_path);
+    CHECK_EQ(mono_info.sample_rate, 48000);
+    CHECK_EQ(mono_info.channels, 1);
+    CHECK_EQ(mono_info.frames, mono.size());
+
     const auto mono_read = WavIO::ReadWav(mono_path);
     CHECK_EQ(mono_read.sample_rate, 48000);
     CHECK_EQ(mono_read.channels, 1);
@@ -44,6 +49,11 @@ int main() {
              static_cast<sf_count_t>(interleaved.size()));
     sf_close(file);
 
+    const auto stereo_info = WavIO::ProbeWav(stereo_path);
+    CHECK_EQ(stereo_info.sample_rate, 44100);
+    CHECK_EQ(stereo_info.channels, 2);
+    CHECK_EQ(stereo_info.frames, 4);
+
     const auto stereo_read = WavIO::ReadWav(stereo_path);
     CHECK_EQ(stereo_read.sample_rate, 44100);
     CHECK_EQ(stereo_read.channels, 2);
@@ -56,6 +66,14 @@ int main() {
     bool rejected = false;
     try {
         WavIO::ReadWav(root / "missing.wav");
+    } catch (const audio_file_error &) {
+        rejected = true;
+    }
+    CHECK(rejected);
+
+    rejected = false;
+    try {
+        WavIO::ProbeWav(root / "missing.wav");
     } catch (const audio_file_error &) {
         rejected = true;
     }
