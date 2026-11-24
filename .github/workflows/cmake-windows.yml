@@ -2,9 +2,9 @@ name: CMake Windows
 
 on:
   push:
-    branches: "*"
+    branches: "**"
   pull_request:
-    branches: "*"
+    branches: "**"
 
 env:
   BUILD_TYPE: Release
@@ -17,10 +17,14 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Show toolchain versions
+        shell: cmd
         run: |
           cmake --version
-          cl | findstr /C:"Version"
+          cl 2>&1 | findstr /C:"Version"
 
       - name: Configure
         run: cmake --preset ci-msvc

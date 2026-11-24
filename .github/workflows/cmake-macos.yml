@@ -2,9 +2,9 @@ name: CMake macOS
 
 on:
   push:
-    branches: "*"
+    branches: "**"
   pull_request:
-    branches: "*"
+    branches: "**"
 
 env:
   BUILD_TYPE: Release
