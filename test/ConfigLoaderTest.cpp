@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Config/ConfigLoader.h"
+#include "Config/ConfigResolver.h"
 #include "Config/VoicebankConfig.h"
 #include "Core/Exception.h"
 
@@ -138,6 +139,19 @@ f0_mode = "DIO"
     const auto voice_config = voice_bank.GetConfig();
     CHECK_NEAR(voice_config.audio_model_frame_period, 6.0, 1e-12);
     CHECK_EQ(voice_config.f0_mode, Config::F0_MODE::F0_MODE_DIO);
+
+    ConfigResolver resolver(base);
+    const auto resolved = resolver.Resolve(voice_dir / "a.wav");
+    CHECK_NEAR(resolved.audio_model_frame_period, 6.0, 1e-12);
+    CHECK_EQ(resolved.f0_mode, Config::F0_MODE::F0_MODE_DIO);
+
+    // A voicebank config is parsed once per session.
+    write_file(voice_dir / "lessvoice.fex", R"([audio_model]
+frame_period = 7.0
+)");
+    CHECK_NEAR(resolver.Resolve(voice_dir / "b.wav").audio_model_frame_period, 6.0, 1e-12);
+    ConfigResolver fresh_resolver(base);
+    CHECK_NEAR(fresh_resolver.Resolve(voice_dir / "b.wav").audio_model_frame_period, 7.0, 1e-12);
 
     Config fingerprint_config;
     const auto before = fingerprint_config.fingerprint();
