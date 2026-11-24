@@ -40,6 +40,16 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
 | --- | --- | --- |
 | [![CMake Ubuntu](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-ubuntu.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-ubuntu.yml) | [![CMake Windows](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-windows.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-windows.yml) | [![CMake macOS](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-macos.yml/badge.svg)](https://github.com/YuzukiTsuru/lessampler/actions/workflows/cmake-macos.yml) |
 
+## Architecture
+
+The source is organized into explicit layers: `App` → `Engine` → `Vocoder` →
+`Config`/`Audio` → `Core`, with `Host/UTAU` as an adapter at the edge. The
+engine separates note-independent analysis (`VocoderBackend::Prepare`, cached
+in memory and on disk) from per-note synthesis, so a session can reuse a sample
+without touching disk again. See [ARCHITECTURE.md](ARCHITECTURE.md) for the
+module map, cache contracts, threading rules, and the backend extension
+checklist.
+
 ## Build from source
 
 Requirements:
@@ -57,6 +67,8 @@ cmake --preset release-gcc
 cmake --build --preset release-gcc -j
 ctest --preset release-gcc
 ```
+
+The executable is written to `build/<preset>/bin/lessampler`; its `lessampler.fex` is created next to it.
 
 Other presets: `debug-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm` (GCC with the optional LLSM backend), `ci-clang`, `ci-msvc`. On Windows:
 

@@ -4,7 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-lessampler is a work-in-progress singing-voice synthesizer that implements the UTAU resampler command-line protocol on top of the WORLD vocoder. C++26, CMake, LGPL-3.0. A voicebank is a folder of WAV samples; analysis results are cached next to each sample as `.lessaudio` binary files.
+lessampler is a work-in-progress singing-voice synthesizer that implements the UTAU resampler command-line protocol. C++26, CMake, LGPL-3.0. A voicebank is a folder of WAV samples; note-independent analysis is cached next to each sample as binary sidecars (`.lessaudio` for WORLD, `.lessllsm` for LLSM).
+
+The code is organized as layered domains. See `ARCHITECTURE.md` for the full module map. The dependency direction is:
+
+```
+App -> Engine -> Vocoder -> Config/Audio -> Core
+                 ^ Host/UTAU and Platform are edge adapters
+```
 
 ## Build
 
@@ -28,18 +35,19 @@ ctest --preset release-gcc --output-on-failure
 
 - Requires CMake 3.30+ (3.31.x recommended; CMake 4.x works through the `CMAKE_POLICY_VERSION_MINIMUM` shim in the root `CMakeLists.txt`).
 - Requires GCC 15+, Clang 19+, or MSVC in `/std:c++latest` mode. CMake does not map `CXX_STANDARD 26` for MSVC or AppleClang; the Windows preset uses MSVC's latest mode, and the macOS preset uses Homebrew GCC 15.
-- Presets: `debug-gcc`, `release-gcc`, `asan-gcc`, `ci-gcc`, `ci-clang`, `ci-msvc`. The `build/<preset>` directories are gitignored.
-- CMakeLists use explicit source lists. Adding a source file requires editing the relevant `CMakeLists.txt`.
+- Presets: `debug-gcc`, `release-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm`, `ci-clang`, `ci-msvc`. The `build/<preset>` directories are gitignored.
+- CMakeLists use explicit source lists. Adding a source file requires editing the relevant domain `CMakeLists.txt`.
+- CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, `Platform`, and the `lessampler` executable.
 - `lessampler_common` is an INTERFACE target carrying C++26 features, include paths, warnings, and compile definitions. Link it through the library targets; do not add global `include_directories`.
 - `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_ENABLE_LLSM`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, and `LESSAMPLER_WERROR` are the project options.
-- `LESSAMPLER_ENABLE_LLSM=ON` builds the optional libllsm2 vocoder backend from the `lib/llsm` and `lib/ciglet` submodules. libllsm2 is GPLv3, so the resulting binary is GPLv3; the default WORLD-only binary stays LGPL-3.0.
+- `LESSAMPLER_ENABLE_LLSM=ON` builds the optional libllsm2 vocoder from the `lib/llsm` and `lib/ciglet` submodules. libllsm2 is GPLv3, so the resulting binary is GPLv3; the default WORLD-only binary stays LGPL-3.0.
 - `build/<preset>/lessconfig.h` is generated from `config.h.in`; `PROJECT_GIT_HASH` is the short commit hash.
 
 ## Running
 
-`lessampler.fex` (TOML) is created next to the executable on first run; delete it to regenerate defaults. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`. `[audio_model] backend` is `"world"` or `"llsm"`; selecting `"llsm"` in a build without `LESSAMPLER_ENABLE_LLSM` throws a `parameter_error`. Older INI files are migrated automatically and kept as `lessampler.fex.bak`. File names are defined in `src/Constants.h`.
+`lessampler.fex` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.fex`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`. `[audio_model] backend` is `"world"` or `"llsm"`; selecting `"llsm"` in a build without `LESSAMPLER_ENABLE_LLSM` throws a `parameter_error`. Older INI files are migrated automatically and kept as `lessampler.fex.bak`. File names are defined in `src/Core/Constants.h`.
 
-Invocation modes are decided in `lessampler::ParseArgs` (`src/lessampler.cpp`):
+Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 
 | Arguments | Behavior |
 | --- | --- |
@@ -48,7 +56,7 @@ Invocation modes are decided in `lessampler::ParseArgs` (`src/lessampler.cpp`):
 | `lessampler <dir>` | analysis-only: models every `.wav` in `<dir>` in parallel, writing `<name>.lessaudio` beside each WAV |
 | `lessampler <in.wav> <out.wav> <note> ...` (>= 4 args) | UTAU resampler mode: render `<in.wav>` to `<out.wav>` |
 
-UTAU argument positions, parsed by `src/Shine/Binding/libUTAU/UTAUParameterParser.cpp`:
+UTAU argument positions, parsed by `src/Host/UTAU/libUTAU/UTAUParameterParser.cpp`:
 
 ```
 argv[1] input wav      argv[2] output wav      argv[3] note (A4, A#3, ...)
@@ -58,41 +66,70 @@ argv[10] volume %      argv[11] modulation %   argv[12] tempo (e.g. !120)
 argv[13] pitchbend (UTAU 64-char encoding, optional)
 ```
 
-Example, from the repo root (the config file is written to `build/release-gcc/src/lessampler.fex`):
+Example, from the repo root:
 
 ```bash
-./build/release-gcc/src/lessampler test/vaiueo2d.wav /tmp/out.wav A4 100 "" 0 1000 100 0 100 0 '!120' ""
+./build/release-gcc/bin/lessampler test/vaiueo2d.wav /tmp/out.wav A4 100 "" 0 1000 100 0 100 0 '!120' ""
 ```
 
 If the input WAV does not exist, a silent WAV of the requested length is written instead (UTAU uses missing files such as `x.wav` for rests).
 
 ## Processing pipeline
 
-`lessampler::run` (`src/lessampler.cpp`) orchestrates:
+`Application` is a thin host. The rendering work is owned by `RenderEngine` (`src/Engine/RenderEngine.cpp`):
 
-1. **Config** — `ConfigUnit` loads or creates `lessampler.fex`; `ConfigVoiceBank` applies `lessvoice.fex` from the input sample's directory when present. `configure.vocoder` selects the backend.
-2. **Parameter translation** — `Shine` turns UTAU arguments into `ShinePara`: the note name becomes Hz via `ScaleConvert` (`std::expected` on invalid input), velocity is `2^(time%/100 - 1)`, and `PitchBendDecoder` decodes the pitchbend string (including `#N#` runs). `Shine::CheckPara` fills output length and frame counts from an `AudioInfo` rather than a model, so both backends can use the UTAU path.
-3. **Backend** — `CreateVocoderBackend(configure.vocoder)` returns a `VocoderBackend`; `RenderRequest` carries the input path, PCM, sample rate, `ShinePara`, and `lessConfigure`. Both backends share `F0Estimator` (DIO/Harvest + StoneMask).
-4. **WORLD path** — `AudioModelIO` maps the input WAV to a `.lessaudio` sidecar. If it is missing, version-mismatched, config-mismatched, or the source WAV size/mtime changed, `GenerateAudioModel` re-analyzes the WAV with `WorldModule` (DIO/Harvest + StoneMask, CheapTrick, D4C). D4C's frame loop is split across eight fixed chunks (`std::jthread`); the fixed partition makes the random-safeguard sequence reproducible. `AudioProcess` re-targets pitch/time into a new `lessAudioModel` with `ShinePara::required_frame` frames, and `Synthesis` drives WORLD's realtime API (`InitializeSynthesizer`/`AddParameters`/`Synthesis2`) with a 64-sample buffer. `DestroySynthesizer` is called by an RAII guard.
-5. **LLSM path** — `LlsmCache` first tries `<sample>.lessllsm`, a layer-1 sidecar keyed by the config fingerprint and source WAV size/mtime. A hit skips F0 estimation, `llsm_analyze`, and layer-1 conversion. On a miss, `LlsmBackend` estimates F0, runs `llsm_analyze`, converts to layer 1, applies the source phase propagation, and writes the cache. Either path then interpolates layer-1 frames along the UTAU time map, writes the target F0 per frame, converts back to layer 0, and calls `llsm_synthesize`. libllsm2 is compiled with its native `FP_TYPE=float`; input PCM and F0 are converted once from double. `srand(1)` before synthesis makes libllsm2's `rand()`-based noise excitation reproducible. The backend does not use or write `.lessaudio`.
-6. **Amplitude** — `AutoAMP` scales by `0.5 * (volume% / 100) / max(abs)` and clamps to [-1, 1]. A zero max produces silence.
-7. **Output** — `WavIO::WriteWav` writes mono 16-bit PCM via libsndfile. `WavIO::ReadWav` returns a mono `WavData` (multi-channel input is averaged per frame). `WavIO::ProbeWav` reads only the header; the CLI passes an empty sample span in `RenderRequest`, and `LlsmBackend` decodes the PCM itself only when its layer-1 cache miss forces analysis.
+1. **Config** — `ConfigLoader` loads or creates the global `lessampler.fex`. `ConfigResolver` resolves a per-sample `Config`, applying `<voicebank>/lessvoice.fex` and caching each voicebank directory for the session.
+2. **Source** — `SampleSource` probes the WAV header immediately and exposes the PCM lazily. A cache hit never decodes the waveform.
+3. **Analysis** — `RenderEngine::analysis_for` looks up an in-memory LRU keyed by backend kind/version, effective config fingerprint, canonical source path, and source size/mtime. On a miss it calls `VocoderBackend::Prepare`, which loads or creates the on-disk analysis.
+4. **Synthesis** — `VocoderBackend::Synthesize` renders one note from the note-independent analysis and `RenderParams`.
+5. **Amplitude** — `RenderEngine` applies `AutoAMP` in place (`0.5 * volume / max(abs)`, clamped to [-1, 1]).
+6. **Output** — `WavIO::WriteWav` writes mono 16-bit PCM via libsndfile. `WavIO::ReadWav` returns a mono `WavData` (multi-channel input is averaged per frame).
+
+The `VocoderBackend` contract deliberately separates the two operations:
+
+```cpp
+AnalysisPtr Prepare(const AnalysisRequest &);       // cacheable per sample
+RenderResult Synthesize(const SynthesisRequest &);  // per note
+```
+
+`Analysis` is an opaque shared handle. WORLD wraps `WorldModel`; LLSM wraps an `llsm_chunk` plus its F0 track. The engine and hosts never inspect backend-specific data.
+
+### WORLD path
+
+`Vocoder/World/WorldModelStore` returns a `.lessaudio` model when valid, otherwise decodes the PCM, applies the configured model amplitude, runs `WorldAnalyzer` (DIO/Harvest + StoneMask, CheapTrick, D4C), and saves the cache. `WorldTransform` re-targets pitch/time into a new `WorldModel` with `RenderParams::required_frame` frames. `WorldSynthesizer` drives WORLD's realtime API (`InitializeSynthesizer`/`AddParameters`/`Synthesis2`) with a 64-sample buffer.
+
+D4C uses a fixed eight-block frame partition. The partition and per-block random state are independent of the worker count, so output is reproducible; `max_workers` only controls concurrency.
+
+### LLSM path
+
+`LlsmBackend::Prepare` first tries `.lessllsm`, a layer-1 cache keyed by the config fingerprint and source size/mtime. A hit skips F0 estimation, `llsm_analyze`, and layer-1 conversion. On a miss it estimates F0 with the shared front end, runs `llsm_analyze`, converts to layer 1, applies source phase propagation, and saves the cache. `Synthesize` interpolates layer-1 frames along the UTAU time map, writes the target F0 per frame, converts back to layer 0, and calls `llsm_synthesize`.
+
+libllsm2 is compiled with its native `FP_TYPE=float`; input PCM and F0 are converted once from double. `srand(1)` before synthesis makes libllsm2's `rand()`-based noise excitation reproducible. LLSM never writes `.lessaudio`.
 
 ## Core data types
 
-- `lessAudioModel` (`src/AudioModel/lessAudioModel.h`) — the value-type WORLD model passed between stages: `f0`, `spectrogram[frame][bin]`, `aperiodicity[frame][bin]`, `fs`, `frame_period` (ms), `fft_size`, `w_length = fft_size / 2 + 1`, and `x_length` (the PCM is not retained). This is the serialized representation.
-- `WorldPara` (`src/AudioModel/WorldModule/WorldPara.h`) — vector/Matrix-owned WORLD result. `WorldModule` adapts to WORLD's C API with local row-pointer arrays; there is no manual `delete` and copies are safe.
-- `AudioInfo` (`src/AudioModel/AudioInfo.h`) — `{fs, x_length, frame_period}` used by `Shine::CheckPara` before either backend has produced a model.
-- `F0Track` / `EstimateF0` (`src/AudioModel/WorldModule/F0Estimator.h`) — shared DIO/Harvest + StoneMask F0 front end with the configured frame period.
-- `VocoderKind` (`src/Backend/VocoderKind.h`) — `world` / `llsm` and the case-insensitive config parser.
-- `VocoderBackend` (`src/Backend/VocoderBackend.h`) — abstract `Render(RenderRequest) -> RenderResult` interface. `WorldBackend` and `LlsmBackend` are the implementations; `CreateVocoderBackend` is the factory.
-- `LlsmCache` (`src/Backend/LlsmCache.h`) — RAII `llsm_chunk` owner plus the `.lessllsm` reader/writer. It serializes the layer-1 F0, RD, VSPHSE, VTMAGN, and noise model; the source HM is not needed after layer-1 conversion. Cache writes use a unique temporary file and rename; failures are non-fatal.
-- `lessConfigure` (`src/ConfigUnit/lessConfigure.h`) — all analysis options and `vocoder`. `fingerprint()` is an FNV-1a hash of the WORLD-analysis-affecting settings, stored in every `.lessaudio`; changing frame_period/fft_size/F0/AP settings invalidates cached models. The backend is not part of the fingerprint.
-- `ShinePara` (`src/Shine/ShinePara.h`) — derived UTAU rendering parameters: lengths in ms, pitch bend, volume (fraction, defaults to 1.0), modulation.
+- `WorldModel` (`src/Vocoder/World/WorldModel.h`) — the value-type WORLD analysis: `f0`, `spectrogram[frame][bin]`, `aperiodicity[frame][bin]`, `fs`, `frame_period` (ms), `fft_size`, `w_length = fft_size / 2 + 1`, and `x_length` (PCM is not retained). This is the serialized representation.
+- `WorldPara` (`src/Vocoder/World/WorldPara.h`) — internal vector/Matrix-owned result with `time_axis`.
+- `WorldAnalyzer` (`src/Vocoder/World/WorldAnalyzer.h`) — DIO/Harvest + StoneMask, CheapTrick, and D4C.
+- `WorldModelBuilder` / `BuildWorldModel` — converts analyzer output into a `WorldModel`.
+- `WorldModelStore` / `WorldModelCache` — disk-cache load/build/save for `.lessaudio`.
+- `WorldTransform` — UTAU time/pitch transform over a `WorldModel`.
+- `WorldSynthesizer` / `SynthesizeWorld` — WORLD render into a fixed output vector.
+- `AutoAMP` (`src/Audio/AutoAMP.h`) — amplitude normalization.
+- `F0Track` / `EstimateF0` (`src/Vocoder/Common/F0Estimator.h`) — shared DIO/Harvest + StoneMask front end.
+- `SampleSource` (`src/Audio/SampleSource.h`) — path, `WavInfo`, `SourceFingerprint`, lazy PCM.
+- `Config` (`src/Config/Config.h`) — all analysis options and `vocoder`. `fingerprint()` is an FNV-1a hash of the WORLD-analysis-affecting settings, stored in caches; the backend is not part of the fingerprint.
+- `ConfigResolver` (`src/Config/ConfigResolver.h`) — global config plus cached per-voicebank overrides.
+- `RenderParams` (`src/Core/RenderParams.h`) — derived UTAU rendering parameters: lengths in ms, pitch bend, volume (fraction), modulation.
+- `VocoderKind` (`src/Config/VocoderKind.h`) — `world` / `llsm` config enum and parser.
+- `VocoderBackend` (`src/Vocoder/VocoderBackend.h`) — backend factory and `Prepare`/`Synthesize` interface.
+- `LlsmCache` (`src/Vocoder/Llsm/LlsmCache.h`) — RAII `llsm_chunk` owner and `.lessllsm` reader/writer.
+- `RenderEngine` (`src/Engine/RenderEngine.h`) — config resolution, backend registry, analysis LRU, synthesis, and AutoAMP.
+- `VoicebankModeler` (`src/Engine/VoicebankModeler.*`) — batch `.lessaudio` generation with per-file config resolution and a bounded worker budget.
 
-## Model file format (`.lessaudio` v2)
+## Cache formats
 
-Custom binary, fixed-width little-endian:
+### `.lessaudio` v2
 
 ```
 magic "LSAM" + format_version uint32 = 2
@@ -105,11 +142,11 @@ aperiodicity frame count + per-frame row length + doubles
 trailer "END2"
 ```
 
-The PCM samples are not stored; only `x_length`, and a read model's `x` vector is resized but left zero-filled. Readers validate magic, version, checksum, source fingerprint, row widths, frame counts, and truncation. `CheckAudioModel()` returns false for any mismatch; `ReadAudioModel()` throws.
+PCM is not stored. Readers validate magic, version, checksum, source fingerprint, row widths, frame counts, and truncation. `CheckAudioModel()` returns false for any mismatch; `ReadAudioModel()` throws.
 
-## LLSM layer-1 cache (`.lessllsm` v1)
+### `.lessllsm` v1
 
-Custom binary, fixed-width little-endian. Only built and used when `LESSAMPLER_ENABLE_LLSM=ON`:
+LLSM layer-1 cache, built only with `LESSAMPLER_ENABLE_LLSM=ON`:
 
 ```
 magic "LSLL" + format_version uint32 = 1
@@ -126,16 +163,16 @@ per frame: f0 FP_TYPE + rd FP_TYPE + has_envelope uint8
 trailer "L1EN"
 ```
 
-Values are floats in libllsm2's native `FP_TYPE=float`. Readers validate magic, version, fingerprint, source fingerprint, dimensions, frame counts, harmonic counts, and truncation before allocating frames. `LoadLlsmCache()` returns nullptr for any stale or malformed file; `SaveLlsmCache()` writes through a unique temporary file and rename.
+Readers validate magic, version, fingerprint, source fingerprint, dimensions, frame counts, harmonic counts, and truncation before allocating frames. `LoadLlsmCache()` returns nullptr for stale/malformed files; `SaveLlsmCache()` writes through a unique temporary file and rename.
 
 ## Logging and debugging
 
-- Use the `YALL_*` macros from `src/Utils/LOG.h`: `YALL_INFO_`, `YALL_WARN_`, `YALL_ERROR_`, `YALL_OK_`, `YALL_EVAL_`, plus `YALL_DEBUG_`/`YALL_DUMP_`.
-- The logger namespace is `lessampler_log` (not `lessampler`) because the class `lessampler` occupies that name.
+- Use the `YALL_*` macros from `src/Core/Log.h`: `YALL_INFO_`, `YALL_WARN_`, `YALL_ERROR_`, `YALL_OK_`, `YALL_EVAL_`, plus `YALL_DEBUG_`/`YALL_DUMP_`.
+- The logger namespace is `lessampler::log`.
 - `YALL_DEBUG_` output is disabled unless `YALL_DEBUG_.EnableDebug()` is called; the Debug build's config defaults `debug=true`.
-- `LESSAMPLER_DUMP_DATA` and `LESSAMPLER_TIME_EVAL` are CMake options translated into compile definitions. `DUMP_DATA` also gates the per-sample dump file in `AudioProcess`. With `LESSAMPLER_TIME_EVAL=ON`, `YALL_EVAL_` prints stage timings for F0/CheapTrick/D4C, WORLD model read/transform/synthesis, and LLSM cache load/save, layer conversions, transform, and synthesis.
-- `tools/arg_parameter_export` is a dummy executable that appends its `argv` to `<its own path>.log`; use it to capture how an UTAU host invokes the resampler.
-- `ConfigVoiceBank` loads `<voice_dir>/lessvoice.fex` in TOML and overrides the global config.
+- `LESSAMPLER_DUMP_DATA` and `LESSAMPLER_TIME_EVAL` are CMake options translated into compile definitions. `DUMP_DATA` gates the per-sample dump file in `WorldTransform`. With `LESSAMPLER_TIME_EVAL=ON`, `YALL_EVAL_` prints stage timings for F0/CheapTrick/D4C, WORLD model prepare/transform/synthesis, and LLSM cache load/save, layer conversions, transform, and synthesis.
+- `tools/arg_parameter_export` is a dummy executable that appends its `argv` to `<its own path>.log`; use it to capture how a UTAU host invokes the resampler.
+- `ConfigResolver` loads `<voice_dir>/lessvoice.fex` in TOML and caches the result per directory.
 
 ## Tests
 
@@ -146,16 +183,16 @@ cmake --build --preset release-gcc -j
 ctest --preset release-gcc --output-on-failure
 ```
 
-- Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigUnitTest`, `LOGTest`, `TimerTest`, `AudioProcessUnitTest`, `AutoAMPTest`, `WavIOTest`, `ShineTest`.
-- Integration labels: `AudioModelBinTest`, `AudioModelBinVersionTest`, `WorldModuleTest`, `GenerateAudioModelTest`, `AudioProcessTest`, `AudioModelTest`, `SynthesisTest`, `BackendTest`, `EndToEndTest`.
-- `BackendTest` checks the factory, the WORLD render, and (when built with `LESSAMPLER_ENABLE_LLSM=ON`) the LLSM render: output length, finite samples, energy, autocorrelation pitch near A4/A#4, cold/warm sample equality, source-mtime and config-fingerprint invalidation, and corrupt-cache recovery. Without LLSM it checks that selecting `llsm` is rejected.
-- `WorldModuleTest` runs the fixture analysis twice and compares f0, spectrogram, and aperiodicity exactly, guarding the fixed D4C chunk partition.
+- Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigLoaderTest`, `LOGTest`, `TimerTest`, `WorldTransformTest`, `AutoAMPTest`, `WavIOTest`, `ShineTest`.
+- Integration labels: `WorldModelCacheTest`, `WorldModelCacheVersionTest`, `WorldAnalyzerTest`, `VoicebankModelerTest`, `WorldPipelineTest`, `WorldModelTest`, `WorldSynthesizerTest`, `RenderEngineTest`, `EndToEndTest`.
+- `RenderEngineTest` checks the backend factory, WORLD and LLSM renders, A4/A#4 pitch, in-memory analysis reuse, cold/warm LLSM cache equality, source-mtime and config-fingerprint invalidation, and corrupt-cache recovery. Without LLSM it checks that selecting `llsm` is rejected.
+- `WorldAnalyzerTest` runs the fixture analysis twice and compares f0, spectrogram, and aperiodicity exactly, guarding the fixed D4C chunk partition.
 - Test data path is passed as `LESSAMPLER_TEST_DATA_DIR`; tests read `vaiueo2d.wav` and write only to temporary directories.
-- Sanitizer run: `cmake --preset asan-gcc && cmake --build --preset asan-gcc -j && ctest --preset asan-gcc`. Add `-DLESSAMPLER_ENABLE_LLSM=ON` to sanitize the optional backend too; `src/Backend/CMakeLists.txt` instruments the vendored C sources with the same flags.
+- Sanitizer run: `cmake --preset asan-gcc && cmake --build --preset asan-gcc -j && ctest --preset asan-gcc`. Add `-DLESSAMPLER_ENABLE_LLSM=ON` to sanitize the optional backend too; `src/Vocoder/CMakeLists.txt` instruments the vendored C sources with the same flags.
 
 ## Conventions
 
 - `.clang-format` (LLVM base, 4-space indent, no column limit, `Standard: Latest`); format with `clang-format -i <file>`.
 - No test framework, linter, or package manager — CMake, CTest, and submodules only.
-- Optional backend dependencies: `lib/llsm` (Dreamtonics/libllsm2, GPLv3) and `lib/ciglet` (BSD). Their C sources are compiled directly by `src/Backend/CMakeLists.txt` with `FP_TYPE=float`; `src/Backend/compat/libihnm/ihnm.h` is an empty header for a stale libllsm2 include.
-- Removed dependencies: ColorCout (ANSI constants now live in `LOG.h`), FTXUI, rapidjson, inicpp, and the JSON export.
+- Optional backend dependencies: `lib/llsm` (Dreamtonics/libllsm2, GPLv3) and `lib/ciglet` (BSD). Their C sources are compiled directly by `src/Vocoder/CMakeLists.txt` with `FP_TYPE=float`; `src/Vocoder/Llsm/compat/libihnm/ihnm.h` is an empty header for a stale libllsm2 include.
+- Removed dependencies: ColorCout (ANSI constants now live in `Log.h`), FTXUI, rapidjson, inicpp, and the JSON export.
