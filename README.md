@@ -99,24 +99,6 @@ Then select it in `lessampler.less`:
 backend = "llsm"   # "world" or "llsm"
 ```
 
-### Release packages
-
-CI builds the maximal configuration on Ubuntu, macOS, and Windows: WORLD plus every optional backend compiled on that platform. Tagged pushes (`v*`) run `.github/workflows/release.yml`, which uploads `lessampler-<version>-<os>-<arch>` archives and SHA-256 checksums to GitHub Releases.
-
-Build the same archive locally with:
-
-```bash
-scripts/package-release.sh          # GCC preset max-gcc
-scripts/package-release.ps1         # MSVC preset ci-msvc-max
-```
-
-The archives contain the executable, ONNX Runtime when the neural backend is enabled, the required OpenMP runtime on Linux, README/LICENSE, and third-party license files. Model weights are not bundled. To download the latest release for the current machine:
-
-```bash
-scripts/download-release.sh
-```
-
-
 `libllsm2` is GPLv3, so a binary built with `LESSAMPLER_ENABLE_LLSM=ON` is GPLv3. The default build keeps the project's LGPL-3.0 licensing. The WORLD `.lessaudio` cache is only used by the WORLD backend; switching backends does not invalidate it.
 
 Both backends use the same `[f0]` settings. LLSM is not F0-free: its harmonic/noise model and synthesis all require an F0 contour. When the layer-1 cache misses, `LlsmBackend` runs the shared DIO/HARVEST + StoneMask front end and passes that contour to `llsm_analyze`; libllsm2's own refinement is disabled because StoneMask already ran. `f0_mode`, floors, speed, and frame period therefore affect both WORLD and LLSM, and changing them invalidates `.lessllsm`.
@@ -153,6 +135,23 @@ target_rms = 0.111
 ```
 
 The model is fixed at 44.1 kHz; other voicebank rates are resampled for feature extraction and back to the source rate. ONNX Runtime is used instead of ncnn because the exported NHVSing graph relies on dynamic `Scan`, `CumSum`, and random-excitation operators that `onnx2ncnn` does not import. I verified that both NHVSing and OpenVPI NSF-HiFiGAN ONNX graphs fail `onnx2ncnn` conversion for this reason; a ncnn path would need a feedforward model or a C++ port of the DSP excitation.
+
+### Release packages
+
+CI builds the maximal configuration on Ubuntu, macOS, and Windows: WORLD plus every optional backend compiled on that platform. Tagged pushes (`v*`) run `.github/workflows/release.yml`, which uploads `lessampler-<version>-<os>-<arch>` archives and SHA-256 checksums to GitHub Releases.
+
+Build the same archive locally with:
+
+```bash
+scripts/package-release.sh          # GCC preset max-gcc
+scripts/package-release.ps1         # MSVC preset ci-msvc-max
+```
+
+The archives contain the executable, ONNX Runtime when the neural backend is enabled, the required OpenMP runtime on Linux, README/LICENSE, and third-party license files. Model weights are not bundled. To download the latest release for the current machine:
+
+```bash
+scripts/download-release.sh
+```
 
 ## Configuration
 
