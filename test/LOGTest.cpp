@@ -4,7 +4,7 @@
 #include <thread>
 #include <vector>
 
-#include "Utils/LOG.h"
+#include "Core/Log.h"
 
 int main() {
     lessampler_log::debug_flag().store(false);

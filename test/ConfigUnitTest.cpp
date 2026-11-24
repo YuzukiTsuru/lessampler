@@ -5,9 +5,9 @@
 #include <iterator>
 #include <string>
 
-#include "ConfigUnit/ConfigUnit.h"
-#include "ConfigUnit/ConfigVoiceBank.h"
-#include "Utils/exception.h"
+#include "Config/ConfigLoader.h"
+#include "Config/VoicebankConfig.h"
+#include "Core/Exception.h"
 
 namespace {
 
@@ -25,12 +25,12 @@ int main() {
 
     const auto defaults_dir = root / "defaults";
     std::filesystem::create_directories(defaults_dir);
-    ConfigUnit defaults(defaults_dir);
+    ConfigLoader defaults(defaults_dir);
     auto config = defaults.GetConfig();
     CHECK(std::filesystem::exists(defaults_dir / "lessampler.fex"));
     CHECK(!config.custom_fft_size);
     CHECK_EQ(config.vocoder, lessbackend::VocoderKind::world);
-    CHECK_EQ(config.f0_mode, lessConfigure::F0_MODE::F0_MODE_HARVEST);
+    CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_HARVEST);
     CHECK(config.audio_model_frame_period > 0.0);
     {
         std::ifstream default_config(defaults_dir / "lessampler.fex");
@@ -62,14 +62,14 @@ f0_allow_range = 0.2
 [ap]
 ap_threshold = 0.2
 )");
-    ConfigUnit custom(custom_dir);
+    ConfigLoader custom(custom_dir);
     config = custom.GetConfig();
     CHECK(config.debug_mode);
     CHECK_EQ(config.vocoder, lessbackend::VocoderKind::llsm);
     CHECK(config.custom_fft_size);
     CHECK_EQ(config.fft_size, 2048);
     CHECK_NEAR(config.model_amp, 0.0, 1e-12);
-    CHECK_EQ(config.f0_mode, lessConfigure::F0_MODE::F0_MODE_DIO);
+    CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_DIO);
     CHECK_EQ(config.f0_speed, 2);
     CHECK_NEAR(config.ap_threshold, 0.2, 1e-12);
 
@@ -95,7 +95,7 @@ f0_allow_range=0.1
 [ap]
 ap_threshold=0.1
 )");
-    ConfigUnit legacy(legacy_dir);
+    ConfigLoader legacy(legacy_dir);
     config = legacy.GetConfig();
     CHECK(std::filesystem::exists(legacy_dir / "lessampler.fex.bak"));
     CHECK(config.debug_mode);
@@ -103,7 +103,7 @@ ap_threshold=0.1
     CHECK_NEAR(config.audio_model_frame_period, 5.5, 1e-12);
     CHECK_NEAR(config.model_amp, 0.8, 1e-12);
     CHECK_EQ(config.f0_speed, 2);
-    CHECK_EQ(config.f0_mode, lessConfigure::F0_MODE::F0_MODE_HARVEST);
+    CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_HARVEST);
 
     const auto expect_invalid = [&](const std::string &name, const std::string &content) {
         const auto dir = root / name;
@@ -111,7 +111,7 @@ ap_threshold=0.1
         write_file(dir / "lessampler.fex", content);
         bool rejected = false;
         try {
-            ConfigUnit unit(dir);
+            ConfigLoader unit(dir);
         } catch (const parameter_error &) {
             rejected = true;
         }
@@ -131,13 +131,13 @@ frame_period = 6.0
 [f0]
 f0_mode = "DIO"
 )");
-    lessConfigure base;
-    ConfigVoiceBank voice_bank(voice_dir / "missing.wav", base);
+    Config base;
+    VoicebankConfig voice_bank(voice_dir / "missing.wav", base);
     const auto voice_config = voice_bank.GetConfig();
     CHECK_NEAR(voice_config.audio_model_frame_period, 6.0, 1e-12);
-    CHECK_EQ(voice_config.f0_mode, lessConfigure::F0_MODE::F0_MODE_DIO);
+    CHECK_EQ(voice_config.f0_mode, Config::F0_MODE::F0_MODE_DIO);
 
-    lessConfigure fingerprint_config;
+    Config fingerprint_config;
     const auto before = fingerprint_config.fingerprint();
     CHECK(!before.empty());
     CHECK_EQ(fingerprint_config.fingerprint(), before);

@@ -4,14 +4,14 @@
 #include <filesystem>
 #include <vector>
 
-#include "ConfigUnit/lessConfigure.h"
-#include "FileIO/AudioModelIO.h"
-#include "FileIO/WavIO.h"
+#include "Config/Config.h"
+#include "Analysis/World/WorldModelCache.h"
+#include "Audio/WavIO.h"
 
 namespace {
 
-    lessAudioModel make_model() {
-        lessAudioModel model;
+    WorldModel make_model() {
+        WorldModel model;
         model.fs = 44100;
         model.frame_period = 5.0;
         model.fft_size = 1024;
@@ -33,14 +33,14 @@ int main() {
     const auto wav_path = root / "source.wav";
     WavIO::WriteWav(wav_path, std::vector<double>(1000, 0.1), 44100);
 
-    lessConfigure configure;
+    Config configure;
     const auto model = make_model();
 
-    AudioModelIO writer(wav_path, model, configure);
+    WorldModelCache writer(wav_path, model, configure);
     writer.SaveAudioModel();
     CHECK(std::filesystem::exists(root / "source.lessaudio"));
 
-    AudioModelIO reader(wav_path);
+    WorldModelCache reader(wav_path);
     CHECK(reader.CheckAudioModel(configure));
 
     const auto &read = reader.ReadAudioModel(configure);

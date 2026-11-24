@@ -6,13 +6,10 @@ add_library(Backend
         WorldBackend.h
 )
 target_link_libraries(Backend PUBLIC
-        lessampler_common
-        ConfigUnit
-        FileIO
-        AudioProcess
-        AudioModel
-        Shine
-        UTAU
+        Core
+        Config
+        Audio
+        Analysis
 )
 
 if (LESSAMPLER_ENABLE_LLSM)
@@ -54,6 +51,7 @@ if (LESSAMPLER_ENABLE_LLSM)
             "${LLSM_DIR}"
             "${PROJECT_SOURCE_DIR}/lib"
             "${CMAKE_CURRENT_SOURCE_DIR}/compat"
+            "${PROJECT_SOURCE_DIR}/src/Analysis/Llsm"
     )
     target_compile_definitions(llsm2 PUBLIC FP_TYPE=float)
     target_compile_features(llsm2 PRIVATE c_std_99)
@@ -87,7 +85,12 @@ if (LESSAMPLER_ENABLE_LLSM)
         endif ()
     endif ()
 
-    target_sources(Backend PRIVATE LlsmBackend.cpp LlsmBackend.h LlsmCache.cpp LlsmCache.h)
+    target_sources(Backend PRIVATE
+            LlsmBackend.cpp
+            LlsmBackend.h
+            "${PROJECT_SOURCE_DIR}/src/Analysis/Llsm/LlsmCache.cpp"
+            "${PROJECT_SOURCE_DIR}/src/Analysis/Llsm/LlsmCache.h"
+    )
     target_link_libraries(Backend PRIVATE llsm2)
     target_compile_definitions(Backend PRIVATE LESSAMPLER_ENABLE_LLSM=1)
 endif ()

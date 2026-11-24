@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "EndToEndBinary.h"
-#include "FileIO/WavIO.h"
+#include "Audio/WavIO.h"
 
 namespace {
 

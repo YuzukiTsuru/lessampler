@@ -2,9 +2,9 @@
 
 #include <filesystem>
 
-#include "ConfigUnit/lessConfigure.h"
-#include "FileIO/AudioModelIO.h"
-#include "FileIO/GenerateAudioModel.h"
+#include "Config/Config.h"
+#include "Analysis/World/WorldModelCache.h"
+#include "Engine/VoicebankModeler.h"
 
 int main() {
     const auto root = std::filesystem::temp_directory_path() / "lessampler-generate-model-test";
@@ -15,12 +15,12 @@ int main() {
     const auto target = root / "vaiueo2d.wav";
     std::filesystem::copy_file(source, target);
 
-    lessConfigure configure;
-    GenerateAudioModel generator(root, configure);
+    Config configure;
+    VoicebankModeler generator(root, configure);
 
     CHECK(std::filesystem::exists(root / "vaiueo2d.lessaudio"));
 
-    AudioModelIO reader(target);
+    WorldModelCache reader(target);
     CHECK(reader.CheckAudioModel(configure));
     const auto &model = reader.ReadAudioModel(configure);
     CHECK(!model.f0.empty());

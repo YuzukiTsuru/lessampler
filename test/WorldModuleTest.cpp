@@ -6,14 +6,14 @@
 #include <span>
 #include <vector>
 
-#include "AudioModel/AudioModel.h"
-#include "AudioModel/WorldModule/WorldModule.h"
-#include "ConfigUnit/lessConfigure.h"
-#include "FileIO/WavIO.h"
+#include "Analysis/World/WorldModelBuilder.h"
+#include "Analysis/World/WorldAnalyzer.h"
+#include "Config/Config.h"
+#include "Audio/WavIO.h"
 
 namespace {
 
-    void check_dimensions(const lessAudioModel &model, int expected_fs) {
+    void check_dimensions(const WorldModel &model, int expected_fs) {
         CHECK_EQ(model.fs, expected_fs);
         CHECK(!model.f0.empty());
         CHECK_EQ(model.spectrogram.rows(), model.f0.size());
@@ -22,7 +22,7 @@ namespace {
         CHECK(model.fft_size > 0);
     }
 
-    bool is_finite_model(const lessAudioModel &model) {
+    bool is_finite_model(const WorldModel &model) {
         bool finite = true;
         for (double value: model.f0) {
             finite = finite && std::isfinite(value);
@@ -62,17 +62,15 @@ int main() {
     const auto data_path = std::filesystem::path(LESSAMPLER_TEST_DATA_DIR) / "vaiueo2d.wav";
     const auto wav = WavIO::ReadWav(data_path);
 
-    lessConfigure configure;
-    AudioModel audio_model(wav.samples, wav.sample_rate, configure);
-    const auto &fixture_model = audio_model.GetAudioModel();
+    Config configure;
+    const auto fixture_model = BuildWorldModel(wav.samples, wav.sample_rate, configure);
 
     check_dimensions(fixture_model, wav.sample_rate);
     CHECK(is_finite_model(fixture_model));
     CHECK(average_voiced_f0(fixture_model.f0) > 0.0);
 
     // The fixed D4C chunk partition keeps analysis reproducible in-process.
-    AudioModel repeat_model(wav.samples, wav.sample_rate, configure);
-    const auto &repeated = repeat_model.GetAudioModel();
+    const auto repeated = BuildWorldModel(wav.samples, wav.sample_rate, configure);
     CHECK(repeated.f0 == fixture_model.f0);
     CHECK(repeated.spectrogram.values() == fixture_model.spectrogram.values());
     CHECK(repeated.aperiodicity.values() == fixture_model.aperiodicity.values());
@@ -85,13 +83,13 @@ int main() {
         sine[i] = 0.4 * std::sin(phase) + 0.2 * std::sin(2.0 * phase) + 0.1 * std::sin(3.0 * phase);
     }
 
-    for (const auto mode: {lessConfigure::F0_MODE::F0_MODE_DIO,
-                           lessConfigure::F0_MODE::F0_MODE_HARVEST}) {
-        lessConfigure sine_config;
+    for (const auto mode: {Config::F0_MODE::F0_MODE_DIO,
+                           Config::F0_MODE::F0_MODE_HARVEST}) {
+        Config sine_config;
         sine_config.f0_mode = mode;
         sine_config.f0_harvest_floor = 71.0;
         sine_config.f0_dio_floor = 71.0;
-        WorldModule module(sine, fs, sine_config);
+        WorldAnalyzer module(sine, fs, sine_config);
         auto world = module.TakeModule();
 
         CHECK_EQ(world.fs, fs);

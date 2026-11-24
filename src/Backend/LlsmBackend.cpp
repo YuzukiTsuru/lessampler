@@ -20,12 +20,12 @@
 #include <utility>
 #include <vector>
 
-#include "AudioModel/WorldModule/F0Estimator.h"
-#include "FileIO/WavIO.h"
-#include "LlsmCache.h"
-#include "Utils/LOG.h"
-#include "Utils/Timer.h"
-#include "Utils/exception.h"
+#include "Analysis/F0Estimator.h"
+#include "Audio/WavIO.h"
+#include "Analysis/Llsm/LlsmCache.h"
+#include "Core/Log.h"
+#include "Core/Timer.h"
+#include "Core/Exception.h"
 
 namespace lessbackend {
 
@@ -244,7 +244,7 @@ namespace lessbackend {
             return weight > 0.0 ? sum / weight : 0.0;
         }
 
-        void EqualizePitch(std::span<double> f0, const ShinePara &shine) {
+        void EqualizePitch(std::span<double> f0, const RenderParams &shine) {
             const double average = GetAverageF0(f0);
             for (double &value: f0) {
                 if (value == 0.0) {

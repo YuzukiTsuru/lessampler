@@ -1,25 +1,9 @@
-add_subdirectory(AudioModel)
+add_subdirectory(Core)
+add_subdirectory(Config)
+add_subdirectory(Audio)
+add_subdirectory(Analysis)
 add_subdirectory(Backend)
-add_subdirectory(ConfigUnit)
-add_subdirectory(Dialogs)
-add_subdirectory(FileIO)
-add_subdirectory(Shine)
-add_subdirectory(AudioProcess)
-
-add_executable(lessampler main.cpp lessampler.cpp lessampler.h)
-
-if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_sources(lessampler PRIVATE ${PROJECT_BINARY_DIR}/lessampler.rc)
-endif ()
-
-target_link_libraries(lessampler PRIVATE
-        AudioModel
-        AudioProcess
-        Backend
-        FileIO
-        Dialogs
-        UTAU
-        ConfigUnit
-        lessampler_common
-        Threads::Threads
-)
+add_subdirectory(Engine)
+add_subdirectory(Host/UTAU)
+add_subdirectory(Platform)
+add_subdirectory(App)

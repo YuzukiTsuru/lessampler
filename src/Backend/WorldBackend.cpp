@@ -13,12 +13,12 @@
 #include <format>
 #include <utility>
 
-#include "AudioModel/Synthesis/Synthesis.h"
-#include "AudioProcess/AudioProcess.h"
-#include "FileIO/AudioModelIO.h"
-#include "FileIO/GenerateAudioModel.h"
-#include "Utils/LOG.h"
-#include "Utils/Timer.h"
+#include "Analysis/World/WorldSynthesizer.h"
+#include "Analysis/World/WorldTransform.h"
+#include "Analysis/World/WorldModelCache.h"
+#include "Engine/VoicebankModeler.h"
+#include "Core/Log.h"
+#include "Core/Timer.h"
 
 namespace lessbackend {
 
@@ -32,11 +32,11 @@ namespace lessbackend {
 
             [[nodiscard]] RenderResult Render(const RenderRequest &request) override {
                 Timer timer;
-                AudioModelIO model_io(request.input_path);
+                WorldModelCache model_io(request.input_path);
                 timer.SetTimer();
                 if (!model_io.CheckAudioModel(request.configure)) {
                     YALL_INFO_ << "Generating WORLD audio model: " + request.input_path.string();
-                    GenerateAudioModel::GenerateModelForFile(request.input_path, request.configure);
+                    VoicebankModeler::GenerateModelForFile(request.input_path, request.configure);
                 }
                 YALL_EVAL_ << timer.GetTimer("WORLD Model Check/Generate: ");
 
@@ -48,15 +48,15 @@ namespace lessbackend {
                 YALL_INFO_ << std::format("Model FFT Size: {}", model.fft_size);
 
                 timer.SetTimer();
-                AudioProcess process(model, request.shine);
+                WorldTransform process(model, request.shine);
                 const auto &transformed = process.GetTransAudioModel();
                 YALL_EVAL_ << timer.GetTimer("WORLD Transform: ");
 
                 timer.SetTimer();
-                Synthesis synthesis(transformed, request.shine.output_samples);
+                auto output = SynthesizeWorld(transformed, request.shine.output_samples);
                 YALL_EVAL_ << timer.GetTimer("WORLD Synthesis: ");
 
-                return {std::move(synthesis.GetWavData()), transformed.fs};
+                return {std::move(output), transformed.fs};
             }
         };
 

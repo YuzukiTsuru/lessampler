@@ -1,0 +1,24 @@
+add_library(Analysis
+        F0Estimator.cpp
+        F0Estimator.h
+        World/AutoAMP.cpp
+        World/AutoAMP.h
+        World/WorldAnalyzer.cpp
+        World/WorldAnalyzer.h
+        World/WorldModel.h
+        World/WorldModelBuilder.cpp
+        World/WorldModelBuilder.h
+        World/WorldModelCache.cpp
+        World/WorldModelCache.h
+        World/WorldPara.h
+        World/WorldSynthesizer.cpp
+        World/WorldSynthesizer.h
+        World/WorldTransform.cpp
+        World/WorldTransform.h
+)
+target_link_libraries(Analysis PUBLIC
+        Core
+        Config
+        world::core
+        Threads::Threads
+)

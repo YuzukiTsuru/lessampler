@@ -3,8 +3,8 @@
 #include <array>
 #include <string_view>
 
-#include "AudioModel/lessAudioModel.h"
-#include "Shine/Binding/libUTAU/libUTAU.h"
+#include "Analysis/World/WorldModel.h"
+#include "Host/UTAU/libUTAU/libUTAU.h"
 
 int main() {
     const std::array<std::string_view, 14> args{
@@ -21,7 +21,7 @@ int main() {
     CHECK_EQ(para.tempo_num, 120);
     CHECK(para.is_custom_pitch);
 
-    lessAudioModel model;
+    WorldModel model;
     model.fs = 44100;
     model.x_length = 44100;
     utau.CheckPara(model);

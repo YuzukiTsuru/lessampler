@@ -1,6 +1,6 @@
 #include "TestSupport.h"
 
-#include "Shine/Binding/libUTAU/ScaleConvert.h"
+#include "Host/UTAU/libUTAU/ScaleConvert.h"
 
 int main() {
     const auto a4 = ScaleConvert("A4").GetScaleNum();

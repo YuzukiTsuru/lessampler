@@ -5,9 +5,9 @@
 #include <numbers>
 #include <vector>
 
-#include "AudioModel/AudioModel.h"
-#include "AudioModel/Synthesis/Synthesis.h"
-#include "ConfigUnit/lessConfigure.h"
+#include "Analysis/World/WorldModelBuilder.h"
+#include "Analysis/World/WorldSynthesizer.h"
+#include "Config/Config.h"
 
 int main() {
     constexpr int fs = 44100;
@@ -19,12 +19,10 @@ int main() {
         samples[i] = 0.5 * std::sin(2.0 * std::numbers::pi * frequency * static_cast<double>(i) / static_cast<double>(fs));
     }
 
-    lessConfigure configure;
-    AudioModel audio_model(samples, fs, configure);
-    const auto &model = audio_model.GetAudioModel();
+    Config configure;
+    const auto model = BuildWorldModel(samples, fs, configure);
 
-    Synthesis synthesis(model, 4410);
-    const auto &output = synthesis.GetWavData();
+    const auto output = SynthesizeWorld(model, 4410);
     CHECK_EQ(output.size(), static_cast<std::size_t>(4410));
 
     bool finite = true;
@@ -36,11 +34,8 @@ int main() {
     CHECK(finite);
     CHECK(peak > 0.0);
 
-    Synthesis repeated(model, 4410);
-    CHECK(repeated.GetWavData() == output);
-
-    Synthesis empty(model, 0);
-    CHECK(empty.GetWavData().empty());
+    CHECK(SynthesizeWorld(model, 4410) == output);
+    CHECK(SynthesizeWorld(model, 0).empty());
 
     return test::finish();
 }

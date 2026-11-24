@@ -4,7 +4,7 @@
 #include <limits>
 #include <vector>
 
-#include "AudioProcess/AutoAMP.h"
+#include "Analysis/World/AutoAMP.h"
 
 int main() {
     std::vector<double> input{0.5, -0.25, std::numeric_limits<double>::quiet_NaN()};

@@ -10,7 +10,7 @@
 
 #include "VocoderBackend.h"
 
-#include "Utils/exception.h"
+#include "Core/Exception.h"
 #include "WorldBackend.h"
 
 #if defined(LESSAMPLER_ENABLE_LLSM)

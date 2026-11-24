@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <string>
 
-#include "Shine/Binding/libUTAU/PitchBendDecoder.h"
+#include "Host/UTAU/libUTAU/PitchBendDecoder.h"
 
 int main() {
     const std::string pitch = R"(1E#40#1F1H1J1N1R1W1b1i1p1w152C2M2W2h2s243F3S3g3t384K4Z4p445I5Y5o556J6a6q677L7b7r778L8"

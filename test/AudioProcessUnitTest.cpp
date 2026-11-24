@@ -2,14 +2,14 @@
 
 #include <vector>
 
-#include "AudioProcess/AudioProcess.h"
-#include "ConfigUnit/lessConfigure.h"
-#include "Shine/ShinePara.h"
+#include "Analysis/World/WorldTransform.h"
+#include "Config/Config.h"
+#include "Core/RenderParams.h"
 
 namespace {
 
-    lessAudioModel make_model() {
-        lessAudioModel model;
+    WorldModel make_model() {
+        WorldModel model;
         model.fs = 44100;
         model.frame_period = 5.0;
         model.fft_size = 1024;
@@ -21,8 +21,8 @@ namespace {
         return model;
     }
 
-    ShinePara make_shine() {
-        ShinePara shine;
+    RenderParams make_shine() {
+        RenderParams shine;
         shine.scale_num = 440.0;
         shine.offset = 0.0;
         shine.velocity = 1.0;
@@ -49,7 +49,7 @@ int main() {
     const auto model = make_model();
     const auto shine = make_shine();
 
-    AudioProcess process(model, shine);
+    WorldTransform process(model, shine);
     const auto &transformed = process.GetTransAudioModel();
 
     CHECK_EQ(transformed.f0.size(), static_cast<std::size_t>(shine.required_frame));
@@ -67,7 +67,7 @@ int main() {
 
     auto bent = shine;
     bent.pitch_bend.assign(bent.pitch_bend.size(), 1200);
-    AudioProcess bent_process(model, bent);
+    WorldTransform bent_process(model, bent);
     const auto &bent_model = bent_process.GetTransAudioModel();
     for (double value: bent_model.f0) {
         CHECK_NEAR(value, 880.0, 1e-9);
@@ -75,7 +75,7 @@ int main() {
 
     auto short_bend = shine;
     short_bend.pitch_bend.assign(2, 0);
-    AudioProcess short_bend_process(model, short_bend);
+    WorldTransform short_bend_process(model, short_bend);
     CHECK_EQ(short_bend_process.GetTransAudioModel().f0.size(),
              static_cast<std::size_t>(shine.required_frame));
 

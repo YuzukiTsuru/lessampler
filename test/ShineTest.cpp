@@ -3,11 +3,11 @@
 #include <array>
 #include <string_view>
 
-#include "AudioModel/lessAudioModel.h"
-#include "Shine/Shine.h"
+#include "Analysis/World/WorldModel.h"
+#include "Host/UTAU/Shine.h"
 
 int main() {
-    lessAudioModel model;
+    WorldModel model;
     model.fs = 44100;
     model.frame_period = 5.0;
     model.fft_size = 1024;

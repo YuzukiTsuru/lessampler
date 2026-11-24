@@ -6,10 +6,10 @@
 #include <fstream>
 #include <vector>
 
-#include "ConfigUnit/lessConfigure.h"
-#include "FileIO/AudioModelIO.h"
-#include "FileIO/WavIO.h"
-#include "Utils/exception.h"
+#include "Config/Config.h"
+#include "Analysis/World/WorldModelCache.h"
+#include "Audio/WavIO.h"
+#include "Core/Exception.h"
 
 int main() {
     const auto root = std::filesystem::temp_directory_path() / "lessampler-model-version-test";
@@ -20,7 +20,7 @@ int main() {
     WavIO::WriteWav(wav_path, std::vector<double>(1000, 0.1), 44100);
 
     const auto model_path = root / "source.lessaudio";
-    lessConfigure configure;
+    Config configure;
 
     {
         std::ofstream out(model_path, std::ios::binary);
@@ -30,7 +30,7 @@ int main() {
         out.write(reinterpret_cast<const char *>(&version), sizeof(version));
     }
 
-    AudioModelIO reader(wav_path);
+    WorldModelCache reader(wav_path);
     CHECK(!reader.CheckAudioModel(configure));
 
     bool rejected = false;

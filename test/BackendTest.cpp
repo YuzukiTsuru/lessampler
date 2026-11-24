@@ -11,16 +11,16 @@
 #include <string_view>
 #include <vector>
 
-#include "AudioModel/AudioInfo.h"
+#include "Core/AudioInfo.h"
 #include "Backend/VocoderBackend.h"
 #include "Backend/VocoderKind.h"
 #if defined(LESSAMPLER_ENABLE_LLSM)
-#include "Backend/LlsmCache.h"
+#include "Analysis/Llsm/LlsmCache.h"
 #endif
-#include "ConfigUnit/lessConfigure.h"
-#include "FileIO/WavIO.h"
-#include "Shine/Shine.h"
-#include "Utils/exception.h"
+#include "Config/Config.h"
+#include "Audio/WavIO.h"
+#include "Host/UTAU/Shine.h"
+#include "Core/Exception.h"
 
 namespace {
 
@@ -69,7 +69,7 @@ namespace {
         return best_lag > 0 ? static_cast<double>(fs) / static_cast<double>(best_lag) : 0.0;
     }
 
-    ShinePara make_shine(const std::filesystem::path &input, const WavData &wav) {
+    RenderParams make_shine(const std::filesystem::path &input, const WavData &wav) {
         const auto output = input.parent_path() / "backend-test-out.wav";
         std::array<std::string, 14> storage{
                 "lessampler", input.string(), output.string(), "A4", "100", "", "0", "1000",
@@ -77,7 +77,7 @@ namespace {
         std::array<std::string_view, 14> args{};
         std::ranges::transform(storage, args.begin(), [](const std::string &value) { return std::string_view(value); });
 
-        const AudioInfo info{wav.sample_rate, wav.samples.size(), lessConfigure{}.audio_model_frame_period};
+        const AudioInfo info{wav.sample_rate, wav.samples.size(), Config{}.audio_model_frame_period};
         Shine shine(args, info, Shine::SHINE_MODE::UTAU);
         return shine.GetShine();
     }
@@ -114,7 +114,7 @@ int main() {
     REQUIRE(shine.required_frame > 0);
     REQUIRE(shine.pitch_bend.size() >= 2);
 
-    lessConfigure configure;
+    Config configure;
     lessbackend::RenderRequest request{input, wav.samples, wav.sample_rate, shine, configure};
 
     auto world_backend = lessbackend::CreateVocoderBackend(lessbackend::VocoderKind::world);
@@ -173,7 +173,7 @@ int main() {
     CHECK(std::filesystem::exists(cache_path));
 
     // The F0/analysis settings are part of the cache key.
-    lessConfigure changed = configure;
+    Config changed = configure;
     changed.f0_speed = 2;
     CHECK(lessbackend::LoadLlsmCache(input, changed) == nullptr);
 

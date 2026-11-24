@@ -4,8 +4,8 @@
 #include <numbers>
 #include <vector>
 
-#include "AudioModel/AudioModel.h"
-#include "ConfigUnit/lessConfigure.h"
+#include "Analysis/World/WorldModelBuilder.h"
+#include "Config/Config.h"
 
 int main() {
     constexpr int fs = 44100;
@@ -17,10 +17,9 @@ int main() {
         samples[i] = 0.5 * std::sin(2.0 * std::numbers::pi * frequency * static_cast<double>(i) / static_cast<double>(fs));
     }
 
-    lessConfigure configure;
-    configure.f0_mode = lessConfigure::F0_MODE::F0_MODE_DIO;
-    AudioModel audio_model(samples, fs, configure);
-    const auto &model = audio_model.GetAudioModel();
+    Config configure;
+    configure.f0_mode = Config::F0_MODE::F0_MODE_DIO;
+    const auto model = BuildWorldModel(samples, fs, configure);
 
     CHECK_EQ(model.fs, fs);
     CHECK_EQ(model.x_length, samples.size());

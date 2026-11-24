@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <vector>
 
-#include "FileIO/WavIO.h"
-#include "Utils/exception.h"
+#include "Audio/WavIO.h"
+#include "Core/Exception.h"
 
 extern "C" {
 #include <sndfile.h>

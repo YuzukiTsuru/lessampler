@@ -24,7 +24,7 @@ target_link_libraries(libUTAUTest PRIVATE UTAU)
 lessampler_add_test(libUTAUTest unit)
 
 add_executable(ConfigUnitTest ConfigUnitTest.cpp)
-target_link_libraries(ConfigUnitTest PRIVATE ConfigUnit)
+target_link_libraries(ConfigUnitTest PRIVATE Config)
 lessampler_add_test(ConfigUnitTest unit)
 
 add_executable(LOGTest LOGTest.cpp)
@@ -34,51 +34,49 @@ add_executable(TimerTest TimerTest.cpp)
 lessampler_add_test(TimerTest unit)
 
 add_executable(AudioModelBinTest AudioModelBinTest.cpp)
-target_link_libraries(AudioModelBinTest PRIVATE FileIO)
+target_link_libraries(AudioModelBinTest PRIVATE Analysis Audio)
 lessampler_add_test(AudioModelBinTest integration)
 
 add_executable(AudioModelBinVersionTest AudioModelBinVersionTest.cpp)
-target_link_libraries(AudioModelBinVersionTest PRIVATE FileIO)
+target_link_libraries(AudioModelBinVersionTest PRIVATE Analysis Audio)
 lessampler_add_test(AudioModelBinVersionTest integration)
 
 add_executable(WorldModuleTest WorldModuleTest.cpp)
-target_link_libraries(WorldModuleTest PRIVATE AudioModel FileIO)
+target_link_libraries(WorldModuleTest PRIVATE Analysis Audio)
 lessampler_add_test(WorldModuleTest integration)
 
 add_executable(GenerateAudioModelTest GenerateAudioModelTest.cpp)
-target_link_libraries(GenerateAudioModelTest PRIVATE FileIO ConfigUnit)
+target_link_libraries(GenerateAudioModelTest PRIVATE Engine Analysis Audio Config)
 lessampler_add_test(GenerateAudioModelTest integration)
 
 add_executable(AudioProcessTest AudioProcessTest.cpp)
 target_link_libraries(AudioProcessTest PRIVATE
-        AudioProcess
-        AudioModel
-        AudioModelSynthesis
-        FileIO
+        Analysis
+        Audio
+        Config
         Shine
         UTAU
-        ConfigUnit
 )
 lessampler_add_test(AudioProcessTest integration)
 
 add_executable(AudioModelTest AudioModelTest.cpp)
-target_link_libraries(AudioModelTest PRIVATE AudioModel)
+target_link_libraries(AudioModelTest PRIVATE Analysis)
 lessampler_add_test(AudioModelTest integration)
 
 add_executable(AudioProcessUnitTest AudioProcessUnitTest.cpp)
-target_link_libraries(AudioProcessUnitTest PRIVATE AudioProcess)
+target_link_libraries(AudioProcessUnitTest PRIVATE Analysis)
 lessampler_add_test(AudioProcessUnitTest unit)
 
 add_executable(AutoAMPTest AutoAMPTest.cpp)
-target_link_libraries(AutoAMPTest PRIVATE AudioProcess)
+target_link_libraries(AutoAMPTest PRIVATE Analysis)
 lessampler_add_test(AutoAMPTest unit)
 
 add_executable(SynthesisTest SynthesisTest.cpp)
-target_link_libraries(SynthesisTest PRIVATE AudioModel)
+target_link_libraries(SynthesisTest PRIVATE Analysis)
 lessampler_add_test(SynthesisTest integration)
 
 add_executable(WavIOTest WavIOTest.cpp)
-target_link_libraries(WavIOTest PRIVATE FileIO)
+target_link_libraries(WavIOTest PRIVATE Audio)
 lessampler_add_test(WavIOTest unit)
 
 add_executable(ShineTest ShineTest.cpp)
@@ -89,7 +87,7 @@ file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/EndToEndBinary.h"
         CONTENT "#pragma once\n#define LESSAMPLER_BINARY_PATH R\"lessampler($<TARGET_FILE:lessampler>)lessampler\"\n")
 
 add_executable(BackendTest BackendTest.cpp)
-target_link_libraries(BackendTest PRIVATE Backend FileIO Shine UTAU ConfigUnit)
+target_link_libraries(BackendTest PRIVATE Backend Engine Analysis Audio Config Shine UTAU)
 if (LESSAMPLER_ENABLE_LLSM)
     target_compile_definitions(BackendTest PRIVATE LESSAMPLER_ENABLE_LLSM=1)
     target_link_libraries(BackendTest PRIVATE llsm2)
@@ -97,7 +95,7 @@ endif ()
 lessampler_add_test(BackendTest integration)
 
 add_executable(EndToEndTest EndToEndTest.cpp)
-target_link_libraries(EndToEndTest PRIVATE FileIO)
+target_link_libraries(EndToEndTest PRIVATE Audio)
 target_include_directories(EndToEndTest PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(EndToEndTest lessampler)
 lessampler_add_test(EndToEndTest integration)

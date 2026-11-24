@@ -18,8 +18,8 @@
 #include <vector>
 
 #include "Backend/VocoderKind.h"
-#include "ConfigUnit/lessConfigure.h"
-#include "Shine/ShinePara.h"
+#include "Config/Config.h"
+#include "Core/RenderParams.h"
 
 namespace lessbackend {
 
@@ -29,8 +29,8 @@ namespace lessbackend {
         // backend that only uses a cached model may receive an empty span.
         std::span<const double> samples;
         int fs = 0;
-        const ShinePara &shine;
-        const lessConfigure &configure;
+        const RenderParams &shine;
+        const Config &configure;
     };
 
     struct RenderResult {
