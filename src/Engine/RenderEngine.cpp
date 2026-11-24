@@ -11,6 +11,7 @@
 #include "Engine/RenderEngine.h"
 
 #include <functional>
+#include <string>
 #include <system_error>
 #include <utility>
 
@@ -32,12 +33,42 @@ namespace lessampler {
             return error ? path.lexically_normal().string() : absolute.string();
         }
 
+        /*
+     * Backend-specific state that is not part of the WORLD analysis
+     * fingerprint (for example, which neural model is loaded).
+     */
+        std::string backend_data_identity(const Config &configure) {
+            if (configure.vocoder != VocoderKind::neural) {
+                return {};
+            }
+
+            std::string identity = configure.neural_model_path;
+            if (identity.empty()) {
+                return identity;
+            }
+            identity += "|" + std::to_string(configure.neural_target_rms);
+
+            const std::filesystem::path model_path(identity);
+            std::error_code error;
+            const auto size = std::filesystem::file_size(model_path, error);
+            if (!error) {
+                identity += "|" + std::to_string(size);
+            }
+            error.clear();
+            const auto mtime = std::filesystem::last_write_time(model_path, error);
+            if (!error) {
+                identity += "|" + std::to_string(mtime.time_since_epoch().count());
+            }
+            return identity;
+        }
+
     }// namespace
 
     std::size_t AnalysisKeyHash::operator()(const AnalysisKey &key) const noexcept {
         std::size_t seed = std::hash<int>{}(static_cast<int>(key.kind));
         hash_combine(seed, std::hash<std::uint32_t>{}(key.version));
         hash_combine(seed, std::hash<std::string>{}(key.config_fingerprint));
+        hash_combine(seed, std::hash<std::string>{}(key.backend_data));
         hash_combine(seed, std::hash<std::string>{}(key.source_path));
         hash_combine(seed, std::hash<std::uint64_t>{}(key.source.size));
         hash_combine(seed, std::hash<std::int64_t>{}(key.source.mtime));
@@ -65,6 +96,7 @@ namespace lessampler {
                 configure.vocoder,
                 backend.analysis_version(),
                 configure.fingerprint(),
+                backend_data_identity(configure),
                 source_identity(source.path()),
                 source.fingerprint(),
         };

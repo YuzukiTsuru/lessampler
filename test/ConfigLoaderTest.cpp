@@ -35,11 +35,15 @@ int main() {
     CHECK_EQ(config.vocoder, VocoderKind::world);
     CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_HARVEST);
     CHECK(config.audio_model_frame_period > 0.0);
+    CHECK(config.neural_model_path.empty());
+    CHECK_EQ(config.neural_threads, 0);
+    CHECK_NEAR(config.neural_target_rms, 0.111, 1e-12);
     {
         std::ifstream default_config(defaults_dir / "lessampler.less");
         const std::string content((std::istreambuf_iterator<char>(default_config)),
                                   std::istreambuf_iterator<char>());
         CHECK(content.find("backend = \"world\"") != std::string::npos);
+        CHECK(content.find("[neural]") != std::string::npos);
     }
 
     const auto custom_dir = root / "custom";
@@ -64,6 +68,11 @@ f0_allow_range = 0.2
 
 [ap]
 ap_threshold = 0.2
+
+[neural]
+model_path = "model.onnx"
+threads = 2
+target_rms = 0.1
 )");
     ConfigLoader custom(custom_dir);
     config = custom.GetConfig();
@@ -75,6 +84,9 @@ ap_threshold = 0.2
     CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_DIO);
     CHECK_EQ(config.f0_speed, 2);
     CHECK_NEAR(config.ap_threshold, 0.2, 1e-12);
+    CHECK_EQ(config.neural_model_path, (custom_dir / "model.onnx").string());
+    CHECK_EQ(config.neural_threads, 2);
+    CHECK_NEAR(config.neural_target_rms, 0.1, 1e-12);
 
     const auto legacy_dir = root / "legacy";
     std::filesystem::create_directories(legacy_dir);
@@ -143,6 +155,8 @@ frame_period = 5.7
     expect_invalid("bad-backend", "[audio_model]\nbackend = \"nope\"\n");
     expect_invalid("bad-fft", "[audio_model]\nfft_size = -1\n");
     expect_invalid("bad-ap", "[ap]\nap_threshold = 2.0\n");
+    expect_invalid("bad-threads", "[neural]\nthreads = -1\n");
+    expect_invalid("bad-rms", "[neural]\ntarget_rms = 0.0\n");
 
     const auto voice_dir = root / "voice";
     std::filesystem::create_directories(voice_dir);
@@ -184,6 +198,8 @@ frame_period = 6.5
     CHECK(!before.empty());
     CHECK_EQ(fingerprint_config.fingerprint(), before);
     fingerprint_config.vocoder = VocoderKind::llsm;
+    CHECK_EQ(fingerprint_config.fingerprint(), before);
+    fingerprint_config.neural_model_path = "some-model.onnx";
     CHECK_EQ(fingerprint_config.fingerprint(), before);
     fingerprint_config.custom_fft_size = true;
     fingerprint_config.fft_size = 2048;

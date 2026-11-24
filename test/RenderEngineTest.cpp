@@ -4,6 +4,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <span>
@@ -99,16 +100,22 @@ namespace {
 int main() {
     CHECK_EQ(VocoderKindName(VocoderKind::world), "world");
     CHECK_EQ(VocoderKindName(VocoderKind::llsm), "llsm");
+    CHECK_EQ(VocoderKindName(VocoderKind::neural), "neural");
 
     const auto world_name = ParseVocoderKind("WORLD");
     const auto llsm_name = ParseVocoderKind("Llsm");
+    const auto neural_name = ParseVocoderKind("Neural");
     CHECK(world_name.has_value());
     CHECK(llsm_name.has_value());
+    CHECK(neural_name.has_value());
     if (world_name) {
         CHECK_EQ(*world_name, VocoderKind::world);
     }
     if (llsm_name) {
         CHECK_EQ(*llsm_name, VocoderKind::llsm);
+    }
+    if (neural_name) {
+        CHECK_EQ(*neural_name, VocoderKind::neural);
     }
     CHECK(!ParseVocoderKind("nope").has_value());
 
@@ -214,6 +221,49 @@ int main() {
         rejected = true;
     }
     CHECK(rejected);
+#endif
+
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+    auto neural_backend = backend::CreateVocoderBackend(VocoderKind::neural);
+    REQUIRE(neural_backend != nullptr);
+    CHECK_EQ(neural_backend->kind(), VocoderKind::neural);
+    CHECK_EQ(neural_backend->name(), "neural");
+    CHECK(neural_backend->analysis_version() > 0);
+    {
+        // The backend is built, but the model is deliberately user supplied.
+        bool no_model_rejected = false;
+        try {
+            static_cast<void>(neural_backend->Prepare({source, Config{}}));
+        } catch (const parameter_error &) {
+            no_model_rejected = true;
+        }
+        CHECK(no_model_rejected);
+    }
+
+    // A real model is optional because its weights are not distributed with
+    // lessampler. Set LESSAMPLER_NEURAL_MODEL to an NHVSing ONNX file to run
+    // the full render path.
+    if (const char *model_path = std::getenv("LESSAMPLER_NEURAL_MODEL"); model_path != nullptr && *model_path != '\0') {
+        Config neural_config;
+        neural_config.vocoder = VocoderKind::neural;
+        neural_config.neural_model_path = model_path;
+        neural_config.neural_threads = 2;
+        const auto neural_analysis = neural_backend->Prepare({source, neural_config});
+        REQUIRE(neural_analysis != nullptr);
+        CHECK_EQ(neural_analysis->kind(), VocoderKind::neural);
+        check_render(neural_backend->Synthesize({*neural_analysis, params}), params,
+                     source.info().sample_rate, 440.0);
+        check_render(neural_backend->Synthesize({*neural_analysis, shifted}), shifted,
+                     source.info().sample_rate, 466.16);
+    }
+#else
+    bool neural_rejected = false;
+    try {
+        static_cast<void>(backend::CreateVocoderBackend(VocoderKind::neural));
+    } catch (const parameter_error &) {
+        neural_rejected = true;
+    }
+    CHECK(neural_rejected);
 #endif
 
     std::filesystem::remove_all(root);

@@ -23,3 +23,7 @@ target_link_libraries(lessampler PRIVATE
         Platform
         Threads::Threads
 )
+
+if (LESSAMPLER_ENABLE_NEURAL)
+    lessampler_copy_onnxruntime_dll(lessampler)
+endif ()

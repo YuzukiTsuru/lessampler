@@ -17,6 +17,10 @@
 #include "Vocoder/Llsm/LlsmBackend.h"
 #endif
 
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+#include "Vocoder/Neural/NeuralBackend.h"
+#endif
+
 namespace lessampler {
 
     namespace backend {
@@ -30,6 +34,12 @@ namespace lessampler {
                     return CreateLlsmBackend();
 #else
                     throw parameter_error("The LLSM backend is not enabled in this build");
+#endif
+                case VocoderKind::neural:
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+                    return CreateNeuralBackend();
+#else
+                    throw parameter_error("The neural backend is not enabled in this build");
 #endif
             }
             throw parameter_error("Unknown vocoder backend");

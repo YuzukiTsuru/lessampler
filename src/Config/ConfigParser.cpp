@@ -127,7 +127,7 @@ namespace lessampler {
             if (const auto value = (*section)["backend"].value<std::string>()) {
                 const auto backend = ParseVocoderKind(*value);
                 if (!backend) {
-                    invalid_value("audio_model", "backend", "expected \"world\" or \"llsm\"");
+                    invalid_value("audio_model", "backend", "expected \"world\", \"llsm\", or \"neural\"");
                 }
                 configure.vocoder = *backend;
             }
@@ -172,6 +172,14 @@ namespace lessampler {
             configure.ap_threshold = read_double(*section, "ap", "ap_threshold", configure.ap_threshold);
         }
 
+        if (const auto *section = table["neural"].as_table()) {
+            if (const auto value = (*section)["model_path"].value<std::string>()) {
+                configure.neural_model_path = *value;
+            }
+            configure.neural_threads = static_cast<int>(read_int(*section, "neural", "threads", configure.neural_threads));
+            configure.neural_target_rms = read_double(*section, "neural", "target_rms", configure.neural_target_rms);
+        }
+
         require_positive(configure.audio_model_frame_period, "audio_model", "frame_period");
         if (configure.model_amp < 0.0) {
             invalid_value("audio_model", "model_amp", "must be zero or greater");
@@ -191,6 +199,10 @@ namespace lessampler {
         if (configure.ap_threshold < 0.0 || configure.ap_threshold > 1.0) {
             invalid_value("ap", "ap_threshold", "must be between 0 and 1");
         }
+        if (configure.neural_threads < 0) {
+            invalid_value("neural", "threads", "must be zero or greater");
+        }
+        require_positive(configure.neural_target_rms, "neural", "target_rms");
     }
 
     std::string default_config_toml() {
@@ -204,7 +216,7 @@ version = {}
 debug = {}
 
 [audio_model]
-backend = "{}"           # "world" or "llsm"
+backend = "{}"           # "world", "llsm", or "neural"
 frame_period = {}
 fft_size = "auto"        # "auto" or an integer such as 1024
 model_amp = {}           # 0 disables AutoAMP before modeling
@@ -219,6 +231,12 @@ f0_allow_range = {}
 
 [ap]
 ap_threshold = {}
+
+[neural]
+# NHVSing-compatible ONNX model used by backend = "neural".
+model_path = {}
+threads = {}           # 0 lets ONNX Runtime choose
+target_rms = {}        # feature normalization used during training
 )",
                            toml_quote(configure.version),
                            configure.debug_mode,
@@ -231,7 +249,10 @@ ap_threshold = {}
                            configure.f0_harvest_floor,
                            configure.f0_cheap_trick_floor,
                            configure.f0_allow_range,
-                           configure.ap_threshold);
+                           configure.ap_threshold,
+                           toml_quote(configure.neural_model_path),
+                           configure.neural_threads,
+                           configure.neural_target_rms);
     }
 
     void write_config_toml(const std::filesystem::path &path, const Config &configure) {
@@ -264,6 +285,11 @@ f0_allow_range = {}
 
 [ap]
 ap_threshold = {}
+
+[neural]
+model_path = {}
+threads = {}
+target_rms = {}
 )",
                            toml_quote(configure.version),
                            configure.debug_mode,
@@ -277,7 +303,10 @@ ap_threshold = {}
                            configure.f0_harvest_floor,
                            configure.f0_cheap_trick_floor,
                            configure.f0_allow_range,
-                           configure.ap_threshold);
+                           configure.ap_threshold,
+                           toml_quote(configure.neural_model_path),
+                           configure.neural_threads,
+                           configure.neural_target_rms);
 
         if (!out) {
             throw file_open_error(path.string());

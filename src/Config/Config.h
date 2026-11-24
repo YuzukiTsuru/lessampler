@@ -42,6 +42,15 @@ namespace lessampler {
         double ap_threshold = 0.10;
 
         /*
+     * Optional neural vocoder. The model is an NHVSing-compatible ONNX graph
+     * (mel/f0/uv -> waveform). Paths are resolved relative to the config file
+     * that defines them.
+     */
+        std::string neural_model_path;
+        int neural_threads = 0;
+        double neural_target_rms = 0.111;
+
+        /*
      * Hash of every setting that changes WORLD analysis. It is stored in
      * .lessaudio files so a configuration change invalidates cached models.
      */

@@ -35,6 +35,27 @@ target_link_libraries(VocoderWorld PUBLIC
         Threads::Threads
 )
 
+if (LESSAMPLER_ENABLE_NEURAL)
+    lessampler_setup_onnxruntime()
+
+    add_library(VocoderNeural STATIC
+            Neural/MelSpectrogram.cpp
+            Neural/MelSpectrogram.h
+            Neural/NeuralBackend.cpp
+            Neural/NeuralBackend.h
+            Neural/NeuralModel.cpp
+            Neural/NeuralModel.h
+    )
+    lessampler_link_onnxruntime(VocoderNeural)
+    target_link_libraries(VocoderNeural PUBLIC
+            VocoderWorld
+            Core
+            Config
+            Audio
+    )
+    target_compile_definitions(VocoderNeural PRIVATE LESSAMPLER_ENABLE_NEURAL=1)
+endif ()
+
 if (LESSAMPLER_ENABLE_LLSM)
     set(CIGLET_DIR "${PROJECT_SOURCE_DIR}/lib/ciglet")
     set(LLSM_DIR "${PROJECT_SOURCE_DIR}/lib/llsm")
@@ -131,4 +152,8 @@ target_link_libraries(Vocoder PUBLIC
 if (LESSAMPLER_ENABLE_LLSM)
     target_link_libraries(Vocoder PUBLIC VocoderLlsm)
     target_compile_definitions(Vocoder PRIVATE LESSAMPLER_ENABLE_LLSM=1)
+endif ()
+if (LESSAMPLER_ENABLE_NEURAL)
+    target_link_libraries(Vocoder PUBLIC VocoderNeural)
+    target_compile_definitions(Vocoder PRIVATE LESSAMPLER_ENABLE_NEURAL=1)
 endif ()

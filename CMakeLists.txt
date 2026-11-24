@@ -57,9 +57,12 @@ option(LESSAMPLER_BUILD_TESTS "Build the test executables and register them with
 option(LESSAMPLER_BUILD_TOOLS "Build helper tools" ON)
 option(LESSAMPLER_ENABLE_SANITIZERS "Build with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 option(LESSAMPLER_ENABLE_LLSM "Enable the GPLv3 libllsm2 vocoder backend" OFF)
+option(LESSAMPLER_ENABLE_NEURAL "Enable the optional ONNX Runtime neural vocoder backend" OFF)
 option(LESSAMPLER_DUMP_DATA "Enable verbose per-sample debug dumps" OFF)
 option(LESSAMPLER_TIME_EVAL "Print timing evaluation messages" OFF)
 option(LESSAMPLER_WERROR "Treat compiler warnings as errors" OFF)
+
+include("${PROJECT_SOURCE_DIR}/cmake/OnnxRuntime.cmake")
 
 # Common settings shared by every first-party target.
 add_library(lessampler_common INTERFACE)
@@ -97,6 +100,9 @@ endif ()
 
 if (LESSAMPLER_ENABLE_LLSM)
     message(STATUS "LLSM backend enabled; the resulting lessampler binary is GPLv3")
+endif ()
+if (LESSAMPLER_ENABLE_NEURAL)
+    message(STATUS "Neural backend enabled; ONNX Runtime (MIT) is downloaded at configure time")
 endif ()
 
 if (LESSAMPLER_WERROR)

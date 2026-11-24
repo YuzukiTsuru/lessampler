@@ -37,6 +37,8 @@ namespace lessampler {
         void migrate_legacy_ini();
 
         void migrate_legacy_config(const std::filesystem::path &source_path);
+
+        static void resolve_neural_model_path(Config &configure, const std::filesystem::path &base);
     };
 
 }// namespace lessampler

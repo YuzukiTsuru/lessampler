@@ -71,9 +71,20 @@ namespace lessampler {
         }
 
         apply_config(table, configure);
+        resolve_neural_model_path(configure, config_file_path.parent_path());
 
         if (!configure.version.empty() && configure.version != PROJECT_GIT_HASH) {
             LOG_WARN << "Configure file version does not match software version.";
+        }
+    }
+
+    void ConfigLoader::resolve_neural_model_path(Config &configure, const std::filesystem::path &base) {
+        if (configure.neural_model_path.empty()) {
+            return;
+        }
+        const std::filesystem::path model_path(configure.neural_model_path);
+        if (model_path.is_relative()) {
+            configure.neural_model_path = (base / model_path).lexically_normal().string();
         }
     }
 

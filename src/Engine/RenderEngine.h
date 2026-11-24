@@ -33,6 +33,7 @@ namespace lessampler {
         VocoderKind kind = VocoderKind::world;
         std::uint32_t version = 0;
         std::string config_fingerprint;
+        std::string backend_data;
         std::string source_path;
         SourceFingerprint source;
 

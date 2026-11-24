@@ -61,6 +61,15 @@
       }
     },
     {
+      "name": "neural-gcc",
+      "displayName": "Release with GCC 15 and the optional neural backend",
+      "inherits": "release-gcc",
+      "binaryDir": "${sourceDir}/build/neural-gcc",
+      "cacheVariables": {
+        "LESSAMPLER_ENABLE_NEURAL": "ON"
+      }
+    },
+    {
       "name": "ci-clang",
       "displayName": "CI release build with Clang 21",
       "inherits": "base",
@@ -81,6 +90,15 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_C_COMPILER": "cl",
         "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
+    {
+      "name": "ci-msvc-neural",
+      "displayName": "CI release build with MSVC and the neural backend",
+      "inherits": "ci-msvc",
+      "binaryDir": "${sourceDir}/build/ci-msvc-neural",
+      "cacheVariables": {
+        "LESSAMPLER_ENABLE_NEURAL": "ON"
       }
     }
   ],
@@ -107,12 +125,20 @@
       "configurePreset": "ci-llsm"
     },
     {
+      "name": "neural-gcc",
+      "configurePreset": "neural-gcc"
+    },
+    {
       "name": "ci-clang",
       "configurePreset": "ci-clang"
     },
     {
       "name": "ci-msvc",
       "configurePreset": "ci-msvc"
+    },
+    {
+      "name": "ci-msvc-neural",
+      "configurePreset": "ci-msvc-neural"
     }
   ],
   "testPresets": [
@@ -153,6 +179,13 @@
       }
     },
     {
+      "name": "neural-gcc",
+      "configurePreset": "neural-gcc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "ci-clang",
       "configurePreset": "ci-clang",
       "output": {
@@ -162,6 +195,13 @@
     {
       "name": "ci-msvc",
       "configurePreset": "ci-msvc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-msvc-neural",
+      "configurePreset": "ci-msvc-neural",
       "output": {
         "outputOnFailure": true
       }

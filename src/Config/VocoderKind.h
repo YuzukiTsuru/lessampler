@@ -22,12 +22,15 @@ namespace lessampler {
     enum class VocoderKind {
         world,
         llsm,
+        neural,
     };
 
     inline std::string_view VocoderKindName(VocoderKind kind) {
         switch (kind) {
             case VocoderKind::llsm:
                 return "llsm";
+            case VocoderKind::neural:
+                return "neural";
             case VocoderKind::world:
             default:
                 return "world";
@@ -45,6 +48,9 @@ namespace lessampler {
         }
         if (lower == "llsm") {
             return VocoderKind::llsm;
+        }
+        if (lower == "neural") {
+            return VocoderKind::neural;
         }
         return std::nullopt;
     }

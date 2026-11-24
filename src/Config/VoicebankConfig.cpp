@@ -68,6 +68,12 @@ namespace lessampler {
         }
 
         apply_config(table, configure);
+        if (!configure.neural_model_path.empty()) {
+            const std::filesystem::path model_path(configure.neural_model_path);
+            if (model_path.is_relative()) {
+                configure.neural_model_path = (voice_path / model_path).lexically_normal().string();
+            }
+        }
         LOG_DEBUG << std::format("Loaded voicebank config: {}", voice_config_path.string());
     }
 

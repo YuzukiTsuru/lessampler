@@ -9,6 +9,10 @@ function(lessampler_add_test target label)
             LABELS "${label}"
             TIMEOUT 180
     )
+    if (WIN32 AND LESSAMPLER_ENABLE_NEURAL AND LESSAMPLER_ONNXRUNTIME_DLL_DIR)
+        set_tests_properties(${target} PROPERTIES
+                ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${LESSAMPLER_ONNXRUNTIME_DLL_DIR}")
+    endif ()
 endfunction()
 
 add_executable(PitchBendTest PitchBendTest.cpp)
@@ -83,6 +87,12 @@ add_executable(ShineTest ShineTest.cpp)
 target_link_libraries(ShineTest PRIVATE Shine UTAU)
 lessampler_add_test(ShineTest unit)
 
+if (LESSAMPLER_ENABLE_NEURAL)
+    add_executable(NeuralFeatureTest NeuralFeatureTest.cpp)
+    target_link_libraries(NeuralFeatureTest PRIVATE VocoderNeural)
+    lessampler_add_test(NeuralFeatureTest unit)
+endif ()
+
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/EndToEndBinary.h"
         CONTENT "#pragma once\n#define LESSAMPLER_BINARY_PATH R\"lessampler($<TARGET_FILE:lessampler>)lessampler\"\n")
 
@@ -91,6 +101,9 @@ target_link_libraries(RenderEngineTest PRIVATE Vocoder Engine Audio Config Shine
 if (LESSAMPLER_ENABLE_LLSM)
     target_compile_definitions(RenderEngineTest PRIVATE LESSAMPLER_ENABLE_LLSM=1)
     target_link_libraries(RenderEngineTest PRIVATE llsm2)
+endif ()
+if (LESSAMPLER_ENABLE_NEURAL)
+    target_compile_definitions(RenderEngineTest PRIVATE LESSAMPLER_ENABLE_NEURAL=1)
 endif ()
 lessampler_add_test(RenderEngineTest integration)
 

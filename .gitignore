@@ -366,3 +366,6 @@ $RECYCLE.BIN/
 *.lnk
 
 docd/
+
+# ONNX Runtime prebuilt package managed by CMake (LESSAMPLER_ENABLE_NEURAL)
+/lib/onnxruntime/
