@@ -129,6 +129,7 @@ The LLSM backend has its own `.lessllsm` layer-1 cache. It is keyed by the same 
 - `WavIO::ProbeWav` reads only the WAV header for UTAU length calculations; the CLI never loads the PCM. LLSM decodes it only when its layer-1 cache misses.
 - `[f0] f0_mode = "DIO"` is substantially faster than `"HARVEST"` for first-time analysis. The default remains `HARVEST` for quality.
 - Enable compile-time stage timings with `-DLESSAMPLER_TIME_EVAL=ON`; the `[TIME]` lines report every analysis, cache, transform, and synthesis stage.
+- GPU offload was evaluated and is not used. UTAU starts a fresh resampler process for every note; Vulkan context creation alone measured about 0.7 s on the reference machine, far above the tens-of-milliseconds warm render. GPU compute would require a persistent batch/server process or a different host protocol.
 
 ## Tests
 
