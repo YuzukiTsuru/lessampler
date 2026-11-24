@@ -65,7 +65,7 @@ namespace lessampler {
         stream << "\nTempo:                  " << utauPara.tempo;
         stream << "\nTempo Number:           " << utauPara.tempo_num;
         stream << "\nPitch String:           " << utauPara.pitch;
-        YALL_DEBUG_ << stream.str();
+        LOG_DEBUG << stream.str();
     }
 
     UTAUPara libUTAU::GetUTAUPara() const {

@@ -73,7 +73,7 @@ namespace lessampler {
             std::lock_guard<std::mutex> lock(cache_mutex_);
             if (auto cached = analyses_.Get(key)) {
                 ++stats_.analysis_hits;
-                YALL_DEBUG_ << "Analysis memory cache hit";
+                LOG_DEBUG << "Analysis memory cache hit";
                 return *cached;
             }
             ++stats_.analysis_misses;
@@ -96,7 +96,7 @@ namespace lessampler {
         const auto configure = configs_.Resolve(source.path());
         auto analysis = analysis_for(source, configure);
         auto &backend = backend_for(configure.vocoder);
-        YALL_INFO_ << "Backend: " + std::string(backend.name());
+        LOG_INFO << "Backend: " + std::string(backend.name());
 
         auto result = backend.Synthesize(backend::SynthesisRequest{*analysis, params});
         AutoAMP::ApplyInPlace(result.samples, params.volumes);

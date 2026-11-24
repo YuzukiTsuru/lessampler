@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
         Application application(argc, argv);
         application.run();
     } catch (const std::exception &error) {
-        YALL_ERROR_ << error.what();
+        LOG_ERROR << error.what();
         return -1;
     }
     return 0;

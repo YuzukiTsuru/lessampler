@@ -66,6 +66,14 @@ namespace lessampler {
             return enabled;
         }
 
+        inline void SetDebug(bool enabled) {
+            debug_flag().store(enabled, std::memory_order_relaxed);
+        }
+
+        [[nodiscard]] inline bool DebugEnabled() {
+            return debug_flag().load(std::memory_order_relaxed);
+        }
+
         inline std::mutex &log_mutex() {
             static std::mutex mutex;
             return mutex;
@@ -189,11 +197,7 @@ namespace lessampler {
         class DebugLine : public Line {
         public:
             DebugLine(std::string_view file, std::string_view function, int line)
-                : Line(Level::debug, debug_flag().load(std::memory_order_relaxed), file, function, line) {}
-
-            static void EnableDebug() { debug_flag().store(true, std::memory_order_relaxed); }
-
-            static void DisableDebug() { debug_flag().store(false, std::memory_order_relaxed); }
+                : Line(Level::debug, DebugEnabled(), file, function, line) {}
         };
 
         inline Line dump_line(std::string_view file, std::string_view function, int line) {
@@ -220,18 +224,18 @@ namespace lessampler {
 }// namespace lessampler
 
 #if defined(__GNUC__) || defined(__clang__)
-#define YALL_FUNC_ __PRETTY_FUNCTION__
+#define LOG_FUNCTION_ __PRETTY_FUNCTION__
 #else
-#define YALL_FUNC_ __func__
+#define LOG_FUNCTION_ __func__
 #endif
 
-#define YALL_DUMP_ ::lessampler::log::dump_line(__FILE__, YALL_FUNC_, __LINE__)
-#define YALL_EVAL_ ::lessampler::log::eval_line(__FILE__, YALL_FUNC_, __LINE__)
-#define YALL_DEBUG_ ::lessampler::log::DebugLine(__FILE__, YALL_FUNC_, __LINE__)
-#define YALL_OK_ ::lessampler::log::make_line(::lessampler::log::Level::ok, __FILE__, YALL_FUNC_, __LINE__)
-#define YALL_INFO_ ::lessampler::log::make_line(::lessampler::log::Level::info, __FILE__, YALL_FUNC_, __LINE__)
-#define YALL_WARN_ ::lessampler::log::make_line(::lessampler::log::Level::warn, __FILE__, YALL_FUNC_, __LINE__)
-#define YALL_ERROR_ ::lessampler::log::make_line(::lessampler::log::Level::error, __FILE__, YALL_FUNC_, __LINE__)
-#define YALL_CRITICAL_ ::lessampler::log::make_line(::lessampler::log::Level::critical, __FILE__, YALL_FUNC_, __LINE__)
+#define LOG_DUMP ::lessampler::log::dump_line(__FILE__, LOG_FUNCTION_, __LINE__)
+#define LOG_EVAL ::lessampler::log::eval_line(__FILE__, LOG_FUNCTION_, __LINE__)
+#define LOG_DEBUG ::lessampler::log::DebugLine(__FILE__, LOG_FUNCTION_, __LINE__)
+#define LOG_OK ::lessampler::log::make_line(::lessampler::log::Level::ok, __FILE__, LOG_FUNCTION_, __LINE__)
+#define LOG_INFO ::lessampler::log::make_line(::lessampler::log::Level::info, __FILE__, LOG_FUNCTION_, __LINE__)
+#define LOG_WARN ::lessampler::log::make_line(::lessampler::log::Level::warn, __FILE__, LOG_FUNCTION_, __LINE__)
+#define LOG_ERROR ::lessampler::log::make_line(::lessampler::log::Level::error, __FILE__, LOG_FUNCTION_, __LINE__)
+#define LOG_CRITICAL ::lessampler::log::make_line(::lessampler::log::Level::critical, __FILE__, LOG_FUNCTION_, __LINE__)
 
 #endif//LESSAMPLER_LOG_H

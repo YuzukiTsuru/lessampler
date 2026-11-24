@@ -8,27 +8,27 @@
 
 
 int main() {
-    lessampler::log::debug_flag().store(false);
-    YALL_DEBUG_ << "This debug message must stay hidden";
-    CHECK(!lessampler::log::debug_flag().load());
+    lessampler::log::SetDebug(false);
+    LOG_DEBUG << "This debug message must stay hidden";
+    CHECK(!lessampler::log::DebugEnabled());
 
-    YALL_DEBUG_.EnableDebug();
-    CHECK(lessampler::log::debug_flag().load());
-    YALL_DEBUG_ << "Debug is enabled";
+    lessampler::log::SetDebug(true);
+    CHECK(lessampler::log::DebugEnabled());
+    LOG_DEBUG << "Debug is enabled";
 
-    YALL_DEBUG_.DisableDebug();
-    CHECK(!lessampler::log::debug_flag().load());
+    lessampler::log::SetDebug(false);
+    CHECK(!lessampler::log::DebugEnabled());
 
-    YALL_INFO_ << std::format("Formatted value: {}", 42);
-    YALL_WARN_ << "Warning message";
-    YALL_ERROR_ << "Error message";
-    YALL_OK_ << "OK message";
+    LOG_INFO << std::format("Formatted value: {}", 42);
+    LOG_WARN << "Warning message";
+    LOG_ERROR << "Error message";
+    LOG_OK << "OK message";
 
     std::vector<std::jthread> threads;
     for (int i = 0; i < 4; ++i) {
         threads.emplace_back([i] {
             for (int j = 0; j < 20; ++j) {
-                YALL_INFO_ << std::format("thread {} message {}", i, j);
+                LOG_INFO << std::format("thread {} message {}", i, j);
             }
         });
     }

@@ -323,7 +323,7 @@ namespace lessampler {
                     }
 
                     if (source) {
-                        YALL_EVAL_ << timer.GetTimer("LLSM Cache Load: ");
+                        LOG_EVAL << timer.GetTimer("LLSM Cache Load: ");
                         return std::make_shared<LlsmAnalysis>(std::move(source), std::move(f0), frame_period, fs);
                     }
 
@@ -338,7 +338,7 @@ namespace lessampler {
                         throw parameter_error("LLSM F0 estimation produced no frames");
                     }
                     frame_period = track.frame_period;
-                    YALL_INFO_ << timer.GetTimer("LLSM F0 Estimation: ");
+                    LOG_INFO << timer.GetTimer("LLSM F0 Estimation: ");
 
                     AOptionsPtr analysis_options(llsm_create_aoptions());
                     if (!analysis_options) {
@@ -360,7 +360,7 @@ namespace lessampler {
                     std::vector<FP_TYPE> analysis_f0(track.f0.size());
                     std::ranges::transform(track.f0, analysis_f0.begin(),
                                            [](double value) { return static_cast<FP_TYPE>(value); });
-                    YALL_EVAL_ << timer.GetTimer("LLSM Conversion: ");
+                    LOG_EVAL << timer.GetTimer("LLSM Conversion: ");
 
                     timer.SetTimer();
                     source.reset(llsm_analyze(analysis_options.get(),
@@ -370,7 +370,7 @@ namespace lessampler {
                     if (!source) {
                         throw std::runtime_error("LLSM analysis failed");
                     }
-                    YALL_INFO_ << timer.GetTimer("LLSM Analysis: ");
+                    LOG_INFO << timer.GetTimer("LLSM Analysis: ");
 
                     // llsm_analyze() does not retain either buffer; release the
                     // float copies before the transform allocates its chunks.
@@ -379,19 +379,19 @@ namespace lessampler {
 
                     timer.SetTimer();
                     llsm_chunk_tolayer1(source.get(), kLayer1FftSize);
-                    YALL_EVAL_ << timer.GetTimer("LLSM Layer 1: ");
+                    LOG_EVAL << timer.GetTimer("LLSM Layer 1: ");
 
                     timer.SetTimer();
                     llsm_chunk_phasepropagate(source.get(), -1);
-                    YALL_EVAL_ << timer.GetTimer("LLSM Source Phase Propagation: ");
+                    LOG_EVAL << timer.GetTimer("LLSM Source Phase Propagation: ");
 
                     f0 = std::move(track.f0);
                     timer.SetTimer();
                     try {
                         SaveLlsmCache(request.source.path(), request.configure, source.get());
-                        YALL_EVAL_ << timer.GetTimer("LLSM Cache Save: ");
+                        LOG_EVAL << timer.GetTimer("LLSM Cache Save: ");
                     } catch (const std::exception &error) {
-                        YALL_DEBUG_ << std::format("Cannot save LLSM cache: {}", error.what());
+                        LOG_DEBUG << std::format("Cannot save LLSM cache: {}", error.what());
                     }
 
                     return std::make_shared<LlsmAnalysis>(std::move(source), std::move(f0), frame_period, fs);
@@ -510,15 +510,15 @@ namespace lessampler {
                             frame_f0[0] = target_f0;
                         }
                     }
-                    YALL_INFO_ << timer.GetTimer("LLSM Transform: ");
+                    LOG_INFO << timer.GetTimer("LLSM Transform: ");
 
                     timer.SetTimer();
                     llsm_chunk_tolayer0(transformed.get());
-                    YALL_EVAL_ << timer.GetTimer("LLSM Layer 0: ");
+                    LOG_EVAL << timer.GetTimer("LLSM Layer 0: ");
 
                     timer.SetTimer();
                     llsm_chunk_phasepropagate(transformed.get(), 1);
-                    YALL_EVAL_ << timer.GetTimer("LLSM Target Phase Propagation: ");
+                    LOG_EVAL << timer.GetTimer("LLSM Target Phase Propagation: ");
 
                     SOptionsPtr synthesis_options(llsm_create_soptions(fs));
                     if (!synthesis_options) {
@@ -535,7 +535,7 @@ namespace lessampler {
                     if (!output) {
                         throw std::runtime_error("LLSM synthesis failed");
                     }
-                    YALL_INFO_ << timer.GetTimer("LLSM Synthesis: ");
+                    LOG_INFO << timer.GetTimer("LLSM Synthesis: ");
 
                     std::vector<double> result(static_cast<std::size_t>(params.output_samples), 0.0);
                     const auto copy_count = std::min<std::size_t>(result.size(),

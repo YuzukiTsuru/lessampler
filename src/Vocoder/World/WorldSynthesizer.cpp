@@ -74,7 +74,7 @@ namespace lessampler {
             }
 
             if (IsLocked(&guard.synthesizer) == 1) {
-                YALL_WARN_ << "Synthesis Buffer Locked";
+                LOG_WARN << "Synthesis Buffer Locked";
                 break;
             }
         }

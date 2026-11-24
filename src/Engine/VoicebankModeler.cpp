@@ -46,23 +46,23 @@ namespace lessampler {
             throw parameter_error("Modeling input is not a directory: " + target_voice_path_.string());
         }
 
-        YALL_INFO_ << "Get the audio files in the directory";
+        LOG_INFO << "Get the audio files in the directory";
         GetWavFileLists();
 #ifdef DEBUG_MODE
         PrintWavFiles();
 #endif
-        YALL_INFO_ << "Now Generating the Model";
+        LOG_INFO << "Now Generating the Model";
         GenerateModelFromFile();
     }
 
     void VoicebankModeler::PrintWavFiles() const {
         for (const auto &file: wav_files_) {
-            YALL_DEBUG_ << file.string();
+            LOG_DEBUG << file.string();
         }
     }
 
     void VoicebankModeler::GetWavFileLists() {
-        YALL_INFO_ << "Working on folder: " + target_voice_path_.string();
+        LOG_INFO << "Working on folder: " + target_voice_path_.string();
         for (const auto &entry: std::filesystem::directory_iterator(target_voice_path_)) {
             if (entry.is_regular_file() && has_wav_extension(entry.path())) {
                 wav_files_.push_back(entry.path());
@@ -78,7 +78,7 @@ namespace lessampler {
                                                         std::max<std::size_t>(1, wav_files_.size()));
         const auto hardware = std::max(1U, hardware_threads == 0 ? 1U : hardware_threads);
         const auto workers_per_file = std::max(1U, hardware / static_cast<unsigned>(thread_count));
-        YALL_INFO_ << std::format("Modeling with {} threads, {} analysis workers each", thread_count, workers_per_file);
+        LOG_INFO << std::format("Modeling with {} threads, {} analysis workers each", thread_count, workers_per_file);
 
         std::atomic<std::size_t> next{0};
         std::mutex error_mutex;

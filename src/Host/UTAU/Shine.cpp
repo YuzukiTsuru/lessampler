@@ -95,7 +95,7 @@ namespace lessampler {
         }
         shine_para.pitch_length = shine_para.output_samples / shine_para.pitch_step + 1;
 
-        YALL_DEBUG_ << "The Pitch Length is: " + std::to_string(shine_para.pitch_length);
+        LOG_DEBUG << "The Pitch Length is: " + std::to_string(shine_para.pitch_length);
 
         if (shine_para.is_custom_pitch) {
             PitchBendDecoder pitch_bend_decoder(pitch, shine_para.pitch_length + 1);
@@ -105,7 +105,7 @@ namespace lessampler {
         }
 
         shine_para.required_frame = static_cast<int>(1000.0 * shine_para.output_samples / fs / frame_period) + 1;
-        YALL_DEBUG_ << "The required frame is: " + std::to_string(shine_para.required_frame);
+        LOG_DEBUG << "The required frame is: " + std::to_string(shine_para.required_frame);
     }
 
 }// namespace lessampler

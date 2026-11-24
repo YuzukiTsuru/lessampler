@@ -37,7 +37,7 @@ namespace lessampler {
 
     Application::Application(int argc, char **argv) : argc_(argc), argv_(argv) {
         exec_path_ = std::filesystem::weakly_canonical(std::filesystem::path(argv_[0])).parent_path();
-        YALL_DEBUG_ << "exec path: " + exec_path_.string();
+        LOG_DEBUG << "exec path: " + exec_path_.string();
 
         ConfigLoader loader(exec_path_);
         configure_ = loader.GetConfig();
@@ -107,7 +107,7 @@ namespace lessampler {
         if (argc_ == 2) {
             show_logo();
             if (!std::filesystem::is_directory(first)) {
-                YALL_ERROR_ << "Modeling input is not a directory: " + std::string(first);
+                LOG_ERROR << "Modeling input is not a directory: " + std::string(first);
                 show_usage();
                 return Command::usage;
             }
@@ -129,7 +129,7 @@ namespace lessampler {
         if (!std::filesystem::exists(argv_[1])) {
             // UTAU uses missing files such as x.wav for rests.
             render_blank(argc_, argv_);
-            YALL_OK_ << "All Process Done: " + timer.EndTimer();
+            LOG_OK << "All Process Done: " + timer.EndTimer();
             return;
         }
 
@@ -143,17 +143,17 @@ namespace lessampler {
 
         timer.SetTimer();
         auto result = engine.Render(source, params);
-        YALL_INFO_ << timer.GetTimer("Render: ");
+        LOG_INFO << timer.GetTimer("Render: ");
 
         timer.SetTimer();
         WavIO::WriteWav(params.output_file_name, result.samples, result.fs);
-        YALL_EVAL_ << timer.GetTimer("Write WAV: ");
+        LOG_EVAL << timer.GetTimer("Write WAV: ");
 
-        YALL_OK_ << "All Process Done: " + timer.EndTimer();
+        LOG_OK << "All Process Done: " + timer.EndTimer();
     }
 
     void Application::render_blank(int argc, char **argv) {
-        YALL_WARN_ << "No Audio File input. Generate Blank Audio";
+        LOG_WARN << "No Audio File input. Generate Blank Audio";
         Shine shine(argc, argv, Shine::SHINE_MODE::UTAU);
         const auto params = shine.GetShine();
         const auto sample_count = static_cast<std::size_t>(params.required_length * 0.001 * kBlankSampleRate) + 1;
@@ -163,14 +163,14 @@ namespace lessampler {
 
     void Application::model_voicebank() {
         Dialogs::notify("Start modeling audio files", "lessampler");
-        YALL_INFO_ << "Start modeling against the audio files in the provided destination folder...";
+        LOG_INFO << "Start modeling against the audio files in the provided destination folder...";
         VoicebankModeler modeler(std::filesystem::path(argv_[1]), configure_);
         Dialogs::notify("Modeling Done!", "lessampler");
     }
 
     void Application::run() {
         if (configure_.debug_mode) {
-            YALL_DEBUG_.EnableDebug();
+            lessampler::log::SetDebug(true);
         }
 
         switch (parse_args()) {
@@ -183,8 +183,8 @@ namespace lessampler {
                 model_voicebank();
                 return;
             case Command::render_note:
-                YALL_INFO_ << "lessampler Copyright (c)  2018 - 2022, YuzukiTsuru, Version: " + std::string(PROJECT_GIT_HASH);
-                YALL_INFO_ << "Audio File: " + std::string(argv_[1]);
+                LOG_INFO << "lessampler Copyright (c) 2018 - 2026, YuzukiTsuru, Version: " + std::string(PROJECT_GIT_HASH);
+                LOG_INFO << "Audio File: " + std::string(argv_[1]);
                 render_note();
                 return;
         }

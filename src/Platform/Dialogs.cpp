@@ -20,7 +20,7 @@ namespace lessampler {
     Dialogs::Dialogs() {
         // Check that a backend is available
         if (!pfd::settings::available()) {
-            YALL_WARN_ << "Portable File Dialogs are not available on this platform.";
+            LOG_WARN << "Portable File Dialogs are not available on this platform.";
         }
         // Set verbosity to true
         pfd::settings::verbose(true);

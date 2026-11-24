@@ -410,7 +410,7 @@ namespace lessampler {
 
                 return read_chunk(in, header);
             } catch (const std::exception &error) {
-                YALL_DEBUG_ << std::format("LLSM cache is not reusable: {}", error.what());
+                LOG_DEBUG << std::format("LLSM cache is not reusable: {}", error.what());
                 return nullptr;
             }
         }

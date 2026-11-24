@@ -35,7 +35,7 @@ namespace lessampler {
 
         worldPara.fs = sample_rate;
 
-        YALL_DEBUG_ << "Generate F0 from PCM file.";
+        LOG_DEBUG << "Generate F0 from PCM file.";
 
         Timer timer;
         timer.SetTimer();
@@ -43,17 +43,17 @@ namespace lessampler {
         worldPara.frame_period = track.frame_period;
         worldPara.f0 = std::move(track.f0);
         worldPara.time_axis = std::move(track.time_axis);
-        YALL_EVAL_ << timer.GetTimer("F0 Estimation: ");
+        LOG_EVAL << timer.GetTimer("F0 Estimation: ");
 
-        YALL_DEBUG_ << "Generate Envelope from PCM file and F0.";
+        LOG_DEBUG << "Generate Envelope from PCM file and F0.";
         timer.SetTimer();
         SpectralEnvelopeEstimation();
-        YALL_EVAL_ << timer.GetTimer("Spectral Envelope Estimation: ");
+        LOG_EVAL << timer.GetTimer("Spectral Envelope Estimation: ");
 
-        YALL_DEBUG_ << "Generate Aperiodicity.";
+        LOG_DEBUG << "Generate Aperiodicity.";
         timer.SetTimer();
         AperiodicityEstimation();
-        YALL_EVAL_ << timer.GetTimer("Aperiodicity Estimation: ");
+        LOG_EVAL << timer.GetTimer("Aperiodicity Estimation: ");
     }
 
     WorldPara WorldAnalyzer::TakeModule() {

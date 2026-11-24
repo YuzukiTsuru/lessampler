@@ -24,9 +24,9 @@ namespace lessampler {
 
     WorldTransform::WorldTransform(const WorldModel &audioModel, RenderParams _shine) : shine(std::move(_shine)) {
         std::vector<double> f0 = audioModel.f0;
-        YALL_DEBUG_ << "Equalizing Pitch...";
+        LOG_DEBUG << "Equalizing Pitch...";
         PitchEqualizing(f0);
-        YALL_DEBUG_ << "Time Stretch...";
+        LOG_DEBUG << "Time Stretch...";
         TimeStretch(audioModel, f0);
     }
 
@@ -36,7 +36,7 @@ namespace lessampler {
 
     void WorldTransform::PitchEqualizing(std::span<double> f0) const {
         const double freq_avg = GetAvgFreq(f0);
-        YALL_DEBUG_ << std::format("The average frequency is {}", freq_avg);
+        LOG_DEBUG << std::format("The average frequency is {}", freq_avg);
 
         for (double &value: f0) {
             if (value == 0.0) {
@@ -120,7 +120,7 @@ namespace lessampler {
         if (!(avg_freq > 0.0)) {
             avg_freq = shine.scale_num > 0.0 ? shine.scale_num : 1.0;
         }
-        YALL_DEBUG_ << std::format("Get Stretch Paras, AVG: {}", avg_freq);
+        LOG_DEBUG << std::format("Get Stretch Paras, AVG: {}", avg_freq);
 
         for (std::size_t i = 0; i < output_frames; ++i) {
             const double out_sample_index = audioModel.frame_period * static_cast<double>(i);

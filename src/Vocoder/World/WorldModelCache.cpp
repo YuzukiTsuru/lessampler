@@ -244,7 +244,7 @@ namespace lessampler {
             validate_against(metadata, configure, FingerprintSource(in_file_path));
             return true;
         } catch (const std::exception &error) {
-            YALL_WARN_ << std::format("Audio model is not reusable: {}", error.what());
+            LOG_WARN << std::format("Audio model is not reusable: {}", error.what());
             return false;
         }
     }

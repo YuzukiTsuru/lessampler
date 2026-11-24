@@ -50,11 +50,11 @@ namespace lessampler {
                     Timer timer;
                     timer.SetTimer();
                     auto model = LoadOrBuildWorldModel(request.source, request.configure, request.max_workers);
-                    YALL_EVAL_ << timer.GetTimer("WORLD Model Prepare: ");
+                    LOG_EVAL << timer.GetTimer("WORLD Model Prepare: ");
 
-                    YALL_INFO_ << std::format("Audio Sample Rate: {}", model.fs);
-                    YALL_INFO_ << std::format("Model Frame Period: {}", model.frame_period);
-                    YALL_INFO_ << std::format("Model FFT Size: {}", model.fft_size);
+                    LOG_INFO << std::format("Audio Sample Rate: {}", model.fs);
+                    LOG_INFO << std::format("Model Frame Period: {}", model.frame_period);
+                    LOG_INFO << std::format("Model FFT Size: {}", model.fft_size);
 
                     return std::make_shared<WorldAnalysis>(std::move(model));
                 }
@@ -66,11 +66,11 @@ namespace lessampler {
                     timer.SetTimer();
                     WorldTransform transform(analysis.model(), request.params);
                     const auto &transformed = transform.GetTransAudioModel();
-                    YALL_EVAL_ << timer.GetTimer("WORLD Transform: ");
+                    LOG_EVAL << timer.GetTimer("WORLD Transform: ");
 
                     timer.SetTimer();
                     auto output = SynthesizeWorld(transformed, request.params.output_samples);
-                    YALL_EVAL_ << timer.GetTimer("WORLD Synthesis: ");
+                    LOG_EVAL << timer.GetTimer("WORLD Synthesis: ");
 
                     return {std::move(output), transformed.fs};
                 }

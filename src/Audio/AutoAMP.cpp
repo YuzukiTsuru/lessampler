@@ -30,7 +30,7 @@ namespace lessampler {
     void AutoAMP::ApplyInPlace(std::span<double> samples, double volume) {
         const double maximum = MaxAmplitude(samples);
         if (maximum == 0.0) {
-            YALL_WARN_ << "Max AMP is Zero.";
+            LOG_WARN << "Max AMP is Zero.";
             std::fill(samples.begin(), samples.end(), 0.0);
             return;
         }

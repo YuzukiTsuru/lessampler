@@ -27,7 +27,7 @@ namespace lessampler {
             try {
                 return cache.ReadAudioModel(configure);
             } catch (const std::exception &error) {
-                YALL_WARN_ << "Cannot read WORLD model cache, rebuilding: " + std::string(error.what());
+                LOG_WARN << "Cannot read WORLD model cache, rebuilding: " + std::string(error.what());
             }
         }
 
@@ -44,7 +44,7 @@ namespace lessampler {
             WorldModelCache writer(source.path(), model, configure);
             writer.SaveAudioModel();
         } catch (const std::exception &error) {
-            YALL_WARN_ << "Cannot save WORLD model cache: " + std::string(error.what());
+            LOG_WARN << "Cannot save WORLD model cache: " + std::string(error.what());
         }
         return model;
     }
