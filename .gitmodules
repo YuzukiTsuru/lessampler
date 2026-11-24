@@ -10,3 +10,9 @@
 [submodule "lib/tomlplusplus"]
 	path = lib/tomlplusplus
 	url = https://github.com/marzer/tomlplusplus
+[submodule "lib/llsm"]
+	path = lib/llsm
+	url = https://github.com/Dreamtonics/libllsm2.git
+[submodule "lib/ciglet"]
+	path = lib/ciglet
+	url = https://github.com/Sleepwalking/ciglet.git
