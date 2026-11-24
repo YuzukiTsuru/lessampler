@@ -148,7 +148,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL 4.0)
 endif ()
 
 add_subdirectory(lib/World EXCLUDE_FROM_ALL)
-add_subdirectory(lib/dialog EXCLUDE_FROM_ALL)
 add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
 add_subdirectory(lib/tomlplusplus EXCLUDE_FROM_ALL)
 

@@ -26,7 +26,6 @@
 #include "Engine/RenderEngine.h"
 #include "Engine/VoicebankModeler.h"
 #include "Host/UTAU/Shine.h"
-#include "Platform/Dialogs.h"
 
 #include "lessconfig.h"
 
@@ -126,7 +125,6 @@ namespace lessampler {
         if (argc_ < 2) {
             show_logo();
             show_usage();
-            Dialogs::notify("lessampler: Configure", "lessampler");
             return Command::none;
         }
 
@@ -199,10 +197,9 @@ namespace lessampler {
     }
 
     void Application::model_voicebank() {
-        Dialogs::notify("Start modeling audio files", "lessampler");
         LOG_INFO << "Start modeling against the audio files in the provided destination folder...";
         VoicebankModeler modeler(std::filesystem::path(argv_[1]), configure_);
-        Dialogs::notify("Modeling Done!", "lessampler");
+        LOG_OK << "Modeling done.";
     }
 
     void Application::run() {

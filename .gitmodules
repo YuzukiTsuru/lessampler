@@ -1,9 +1,6 @@
 [submodule "lib/World"]
 	path = lib/World
 	url = https://github.com/mmorise/World
-[submodule "lib/dialog"]
-	path = lib/dialog
-	url = https://github.com/samhocevar/portable-file-dialogs
 [submodule "lib/sndfile"]
 	path = lib/sndfile
 	url = https://github.com/libsndfile/libsndfile

@@ -20,7 +20,6 @@ target_link_libraries(lessampler PRIVATE
         Engine
         Shine
         UTAU
-        Platform
         Threads::Threads
 )
 

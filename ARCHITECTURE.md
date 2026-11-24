@@ -14,7 +14,6 @@ App
  │    ├── Config
  │    └── Audio
  ├── Host/UTAU
- └── Platform
 
 Vocoder  ──> Config, Audio, Core
 Config   ──> Core
@@ -22,8 +21,8 @@ Audio    ──> Core
 Core     ──> C++ standard library
 ```
 
-`Host/UTAU` and `Platform` are adapters at the edge. They are not used by the
-engine or by any analysis/synthesis code.
+`Host/UTAU` is an adapter at the edge. It is not used by the engine or by any
+analysis/synthesis code.
 
 ## Source tree
 
@@ -35,7 +34,6 @@ src/
   Core/                Matrix, logging, timing, exceptions, fingerprints, params
   Engine/              RenderEngine, analysis LRU, voicebank modeler
   Host/UTAU/           UTAU parameter parser, Shine, libUTAU binding
-  Platform/            desktop dialogs
   Vocoder/             vocoder interface and implementations
     Common/            F0 estimation shared by WORLD and LLSM
     World/             WORLD model, analyzer, transform, synthesizer, caches

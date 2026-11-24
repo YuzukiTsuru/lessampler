@@ -10,12 +10,12 @@ The code is organized as layered domains. See `ARCHITECTURE.md` for the full mod
 
 ```
 App -> Engine -> Vocoder -> Config/Audio -> Core
-                 ^ Host/UTAU and Platform are edge adapters
+                 ^ Host/UTAU is the edge adapter
 ```
 
 ## Build
 
-Everything under `lib/` is a git submodule (WORLD, portable-file-dialogs, libsndfile, toml++). Configure requires initialized submodules:
+Everything under `lib/` is a git submodule (WORLD, libsndfile, toml++, and the optional LLSM/ciglet pair). Configure requires initialized submodules:
 
 ```bash
 git submodule update --init --recursive
@@ -45,7 +45,7 @@ ctest --preset neural-gcc --output-on-failure
 - Requires GCC 15+, Clang 19+, or MSVC in `/std:c++latest` mode. CMake does not map `CXX_STANDARD 26` for MSVC or AppleClang; the Windows preset uses MSVC's latest mode, and the macOS preset uses Homebrew GCC 15.
 - Presets: `debug-gcc`, `release-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm`, `ci-clang`, `ci-msvc`, `neural-gcc`, `max-gcc` (LLSM + neural), `ci-max`, and `ci-msvc-max`. The `build/<preset>` directories are gitignored. CI's primary jobs use the maximal presets and publish `lessampler-<version>-<os>-<arch>` archives via CPack; `.github/workflows/release.yml` attaches them to tagged GitHub Releases.
 - CMakeLists use explicit source lists. Adding a source file requires editing the relevant domain `CMakeLists.txt`.
-- CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, `Platform`, and the `lessampler` executable.
+- CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `VocoderNeural` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, and the `lessampler` executable.
 - `lessampler_common` is an INTERFACE target carrying C++26 features, include paths, warnings, and compile definitions. Link it through the library targets; do not add global `include_directories`.
 - `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_ENABLE_LLSM`, `LESSAMPLER_ENABLE_NEURAL`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, and `LESSAMPLER_WERROR` are the project options.
 - `LESSAMPLER_ENABLE_LLSM=ON` builds the optional libllsm2 vocoder from the `lib/llsm` and `lib/ciglet` submodules. libllsm2 is GPLv3, so the resulting binary is GPLv3; the default WORLD-only binary stays LGPL-3.0.
