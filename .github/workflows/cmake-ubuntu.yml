@@ -2,9 +2,9 @@ name: CMake Ubuntu
 
 on:
   push:
-    branches: "*"
+    branches: "**"
   pull_request:
-    branches: "*"
+    branches: "**"
 
 env:
   BUILD_TYPE: Release
@@ -44,6 +44,31 @@ jobs:
             build/ci-gcc/compile_commands.json
             build/ci-gcc/Testing
           if-no-files-found: ignore
+
+  gcc-llsm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install GCC 15 and CMake
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
+          curl -L -o /tmp/cmake.tar.gz "https://cmake.org/files/v3.31/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          tar -xzf /tmp/cmake.tar.gz -C /tmp
+          echo "/tmp/cmake-${CMAKE_VERSION}-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Configure with LLSM
+        run: cmake --preset ci-llsm
+
+      - name: Build
+        run: cmake --build --preset ci-llsm -j
+
+      - name: Test
+        run: ctest --preset ci-llsm
 
   clang:
     runs-on: ubuntu-latest

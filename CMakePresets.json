@@ -52,6 +52,15 @@
       "binaryDir": "${sourceDir}/build/ci-gcc"
     },
     {
+      "name": "ci-llsm",
+      "displayName": "CI release build with GCC 15 and the LLSM backend",
+      "inherits": "release-gcc",
+      "binaryDir": "${sourceDir}/build/ci-llsm",
+      "cacheVariables": {
+        "LESSAMPLER_ENABLE_LLSM": "ON"
+      }
+    },
+    {
       "name": "ci-clang",
       "displayName": "CI release build with Clang 21",
       "inherits": "base",
@@ -93,6 +102,10 @@
       "configuration": "Release"
     },
     {
+      "name": "ci-llsm",
+      "configurePreset": "ci-llsm"
+    },
+    {
       "name": "ci-clang",
       "configurePreset": "ci-clang"
     },
@@ -128,6 +141,13 @@
       "name": "ci-gcc",
       "configurePreset": "ci-gcc",
       "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-llsm",
+      "configurePreset": "ci-llsm",
       "output": {
         "outputOnFailure": true
       }
