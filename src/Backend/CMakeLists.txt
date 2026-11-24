@@ -87,7 +87,7 @@ if (LESSAMPLER_ENABLE_LLSM)
         endif ()
     endif ()
 
-    target_sources(Backend PRIVATE LlsmBackend.cpp LlsmBackend.h)
+    target_sources(Backend PRIVATE LlsmBackend.cpp LlsmBackend.h LlsmCache.cpp LlsmCache.h)
     target_link_libraries(Backend PRIVATE llsm2)
     target_compile_definitions(Backend PRIVATE LESSAMPLER_ENABLE_LLSM=1)
 endif ()

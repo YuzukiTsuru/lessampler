@@ -92,6 +92,7 @@ add_executable(BackendTest BackendTest.cpp)
 target_link_libraries(BackendTest PRIVATE Backend FileIO Shine UTAU ConfigUnit)
 if (LESSAMPLER_ENABLE_LLSM)
     target_compile_definitions(BackendTest PRIVATE LESSAMPLER_ENABLE_LLSM=1)
+    target_link_libraries(BackendTest PRIVATE llsm2)
 endif ()
 lessampler_add_test(BackendTest integration)
 

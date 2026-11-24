@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <filesystem>
+#include <fstream>
 #include <span>
 #include <string>
 #include <string_view>
@@ -12,6 +14,9 @@
 #include "AudioModel/AudioInfo.h"
 #include "Backend/VocoderBackend.h"
 #include "Backend/VocoderKind.h"
+#if defined(LESSAMPLER_ENABLE_LLSM)
+#include "Backend/LlsmCache.h"
+#endif
 #include "ConfigUnit/lessConfigure.h"
 #include "FileIO/WavIO.h"
 #include "Shine/Shine.h"
@@ -144,6 +149,37 @@ int main() {
     CHECK(all_finite(llsm_result.samples));
     CHECK(rms_of(llsm_result.samples) > 1e-4);
     CHECK_NEAR(estimate_pitch(llsm_result.samples, llsm_result.fs), 440.0, 25.0);
+
+    const auto cache_path = lessbackend::LlsmCachePath(input);
+    CHECK(std::filesystem::exists(cache_path));
+    CHECK(lessbackend::LoadLlsmCache(input, configure) != nullptr);
+
+    const auto warm_llsm = llsm_backend->Render(request);
+    CHECK(warm_llsm.samples == llsm_result.samples);
+    CHECK(all_finite(warm_llsm.samples));
+
+    // A source change invalidates the layer-1 cache and regenerates it.
+    const auto original_mtime = std::filesystem::last_write_time(input);
+    std::filesystem::last_write_time(input, original_mtime + std::chrono::seconds(2));
+    CHECK(lessbackend::LoadLlsmCache(input, configure) == nullptr);
+    const auto regenerated = llsm_backend->Render(request);
+    CHECK(regenerated.samples == llsm_result.samples);
+    CHECK(std::filesystem::exists(cache_path));
+
+    // The F0/analysis settings are part of the cache key.
+    lessConfigure changed = configure;
+    changed.f0_speed = 2;
+    CHECK(lessbackend::LoadLlsmCache(input, changed) == nullptr);
+
+    // A corrupt cache is ignored and regenerated.
+    {
+        std::ofstream corrupt(cache_path, std::ios::binary | std::ios::trunc);
+        corrupt << "not an LLSM cache";
+    }
+    CHECK(lessbackend::LoadLlsmCache(input, configure) == nullptr);
+    const auto recovered = llsm_backend->Render(request);
+    CHECK(recovered.samples == llsm_result.samples);
+    CHECK(std::filesystem::exists(cache_path));
 
     const auto shifted_llsm = llsm_backend->Render(shifted_request);
     CHECK_EQ(shifted_llsm.samples.size(), static_cast<std::size_t>(shifted.output_samples));

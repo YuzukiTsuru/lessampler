@@ -21,13 +21,10 @@
 #include <vector>
 
 #include "AudioModel/WorldModule/F0Estimator.h"
+#include "LlsmCache.h"
 #include "Utils/LOG.h"
 #include "Utils/Timer.h"
 #include "Utils/exception.h"
-
-extern "C" {
-#include "llsm.h"
-}
 
 namespace lessbackend {
 
@@ -35,10 +32,6 @@ namespace lessbackend {
 
         constexpr int kLayer1FftSize = 2048;
         constexpr double kEpsilon = 1e-8;
-
-        struct ChunkDeleter {
-            void operator()(llsm_chunk *value) const { llsm_delete_chunk(value); }
-        };
 
         struct AOptionsDeleter {
             void operator()(llsm_aoptions *value) const { llsm_delete_aoptions(value); }
@@ -52,7 +45,7 @@ namespace lessbackend {
             void operator()(llsm_output *value) const { llsm_delete_output(value); }
         };
 
-        using ChunkPtr = std::unique_ptr<llsm_chunk, ChunkDeleter>;
+        using ChunkPtr = LlsmChunkPtr;
         using AOptionsPtr = std::unique_ptr<llsm_aoptions, AOptionsDeleter>;
         using SOptionsPtr = std::unique_ptr<llsm_soptions, SOptionsDeleter>;
         using OutputPtr = std::unique_ptr<llsm_output, OutputDeleter>;
@@ -287,52 +280,98 @@ namespace lessbackend {
 
                 Timer timer;
                 timer.SetTimer();
-                auto track = EstimateF0(request.samples, request.fs, request.configure);
-                if (track.f0.empty()) {
-                    throw parameter_error("LLSM F0 estimation produced no frames");
+                ChunkPtr source = LoadLlsmCache(request.input_path, request.configure);
+                std::vector<double> f0;
+                std::size_t input_frames = 0;
+                double frame_period = request.configure.audio_model_frame_period;
+
+                if (source) {
+                    const auto *nfrm = static_cast<const int *>(llsm_container_get(source->conf, LLSM_CONF_NFRM));
+                    if (nfrm == nullptr || *nfrm <= 0) {
+                        source.reset();
+                    } else {
+                        input_frames = static_cast<std::size_t>(*nfrm);
+                        f0.resize(input_frames);
+                        for (std::size_t i = 0; i < input_frames; ++i) {
+                            const auto *frame_f0 = static_cast<const FP_TYPE *>(
+                                    llsm_container_get(source->frames[i], LLSM_FRAME_F0));
+                            if (frame_f0 == nullptr) {
+                                source.reset();
+                                f0.clear();
+                                input_frames = 0;
+                                break;
+                            }
+                            f0[i] = frame_f0[0];
+                        }
+                    }
                 }
-                YALL_INFO_ << timer.GetTimer("LLSM F0 Estimation: ");
+                if (source) {
+                    YALL_EVAL_ << timer.GetTimer("LLSM Cache Load: ");
+                } else {
+                    timer.SetTimer();
+                    auto track = EstimateF0(request.samples, request.fs, request.configure);
+                    if (track.f0.empty()) {
+                        throw parameter_error("LLSM F0 estimation produced no frames");
+                    }
+                    frame_period = track.frame_period;
+                    YALL_INFO_ << timer.GetTimer("LLSM F0 Estimation: ");
 
-                AOptionsPtr analysis_options(llsm_create_aoptions());
-                if (!analysis_options) {
-                    throw std::runtime_error("Cannot create LLSM analysis options");
+                    AOptionsPtr analysis_options(llsm_create_aoptions());
+                    if (!analysis_options) {
+                        throw std::runtime_error("Cannot create LLSM analysis options");
+                    }
+                    analysis_options->thop = frame_period / 1000.0;
+                    analysis_options->npsd = 128;
+                    analysis_options->maxnhar = 400;
+                    analysis_options->maxnhar_e = 5;
+                    analysis_options->hm_method = LLSM_AOPTION_HMPP;
+                    // The shared DIO/Harvest front end already applies StoneMask,
+                    // so keep libllsm2 from refining the same F0 track again.
+                    analysis_options->f0_refine = 0;
+
+                    timer.SetTimer();
+                    std::vector<FP_TYPE> analysis_samples(request.samples.size());
+                    std::ranges::transform(request.samples, analysis_samples.begin(),
+                                           [](double value) { return static_cast<FP_TYPE>(value); });
+                    std::vector<FP_TYPE> analysis_f0(track.f0.size());
+                    std::ranges::transform(track.f0, analysis_f0.begin(),
+                                           [](double value) { return static_cast<FP_TYPE>(value); });
+                    YALL_EVAL_ << timer.GetTimer("LLSM Conversion: ");
+
+                    timer.SetTimer();
+                    source.reset(llsm_analyze(analysis_options.get(),
+                                              analysis_samples.data(),
+                                              static_cast<int>(analysis_samples.size()), request.fs,
+                                              analysis_f0.data(), static_cast<int>(analysis_f0.size()), nullptr));
+                    if (!source) {
+                        throw std::runtime_error("LLSM analysis failed");
+                    }
+                    YALL_INFO_ << timer.GetTimer("LLSM Analysis: ");
+
+                    // llsm_analyze() does not retain either buffer; release the
+                    // float copies before the transform allocates its chunks.
+                    std::vector<FP_TYPE>().swap(analysis_samples);
+                    std::vector<FP_TYPE>().swap(analysis_f0);
+
+                    timer.SetTimer();
+                    llsm_chunk_tolayer1(source.get(), kLayer1FftSize);
+                    YALL_EVAL_ << timer.GetTimer("LLSM Layer 1: ");
+
+                    timer.SetTimer();
+                    llsm_chunk_phasepropagate(source.get(), -1);
+                    YALL_EVAL_ << timer.GetTimer("LLSM Source Phase Propagation: ");
+
+                    f0 = std::move(track.f0);
+                    input_frames = f0.size();
+                    timer.SetTimer();
+                    try {
+                        SaveLlsmCache(request.input_path, request.configure, source.get());
+                        YALL_EVAL_ << timer.GetTimer("LLSM Cache Save: ");
+                    } catch (const std::exception &error) {
+                        YALL_DEBUG_ << std::format("Cannot save LLSM cache: {}", error.what());
+                    }
                 }
-                analysis_options->thop = track.frame_period / 1000.0;
-                analysis_options->npsd = 128;
-                analysis_options->maxnhar = 400;
-                analysis_options->maxnhar_e = 5;
-                analysis_options->hm_method = LLSM_AOPTION_HMPP;
-                // The shared DIO/Harvest front end already applies StoneMask,
-                // so keep libllsm2 from refining the same F0 track again.
-                analysis_options->f0_refine = 0;
 
-                std::vector<FP_TYPE> analysis_samples(request.samples.size());
-                std::ranges::transform(request.samples, analysis_samples.begin(),
-                                       [](double value) { return static_cast<FP_TYPE>(value); });
-                std::vector<FP_TYPE> analysis_f0(track.f0.size());
-                std::ranges::transform(track.f0, analysis_f0.begin(),
-                                       [](double value) { return static_cast<FP_TYPE>(value); });
-
-                timer.SetTimer();
-                ChunkPtr source(llsm_analyze(analysis_options.get(),
-                                             analysis_samples.data(),
-                                             static_cast<int>(analysis_samples.size()), request.fs,
-                                             analysis_f0.data(), static_cast<int>(analysis_f0.size()), nullptr));
-                if (!source) {
-                    throw std::runtime_error("LLSM analysis failed");
-                }
-                YALL_INFO_ << timer.GetTimer("LLSM Analysis: ");
-
-                // llsm_analyze() does not retain either buffer; release the
-                // float copies before the transform allocates its chunks.
-                std::vector<FP_TYPE>().swap(analysis_samples);
-                std::vector<FP_TYPE>().swap(analysis_f0);
-
-                llsm_chunk_tolayer1(source.get(), kLayer1FftSize);
-                llsm_chunk_phasepropagate(source.get(), -1);
-
-                const auto input_frames = track.f0.size();
-                std::vector<double> f0 = std::move(track.f0);
                 EqualizePitch(f0, request.shine);
                 double average_f0 = GetAverageF0(f0);
                 if (!(average_f0 > 0.0)) {
@@ -351,7 +390,6 @@ namespace lessbackend {
 
                 const std::size_t last_input = input_frames - 1;
                 const std::size_t max_pitch_index = request.shine.pitch_bend.size() - 2;
-                const double frame_period = track.frame_period;
 
                 timer.SetTimer();
                 for (std::size_t i = 0; i < output_frames; ++i) {
@@ -426,19 +464,30 @@ namespace lessbackend {
                         frame_f0[0] = target_f0;
                     }
                 }
+                YALL_INFO_ << timer.GetTimer("LLSM Transform: ");
+
                 // The transformed chunk owns deep copies of every frame, so the
                 // source analysis can go away before synthesis allocates its
                 // output buffers.
                 source.reset();
+                timer.SetTimer();
                 llsm_chunk_tolayer0(transformed.get());
+                YALL_EVAL_ << timer.GetTimer("LLSM Layer 0: ");
+
+                timer.SetTimer();
                 llsm_chunk_phasepropagate(transformed.get(), 1);
-                YALL_INFO_ << timer.GetTimer("LLSM Transform: ");
+                YALL_EVAL_ << timer.GetTimer("LLSM Target Phase Propagation: ");
 
                 SOptionsPtr synthesis_options(llsm_create_soptions(request.fs));
                 if (!synthesis_options) {
                     throw std::runtime_error("Cannot create LLSM synthesis options");
                 }
                 synthesis_options->use_l1 = 0;
+                // libllsm2 generates its noise excitation with the C library
+                // rand(). Reseed so two renders of the same input and
+                // parameters are sample-identical instead of depending on how
+                // many notes the process has already rendered.
+                std::srand(1);
                 timer.SetTimer();
                 OutputPtr output(llsm_synthesize(synthesis_options.get(), transformed.get()));
                 if (!output) {
