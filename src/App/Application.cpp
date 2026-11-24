@@ -10,6 +10,7 @@
 
 #include "App/Application.h"
 
+#include <format>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -43,15 +44,35 @@ namespace lessampler {
     }
 
     void Application::show_logo() {
-        std::cout << lessampler::log::color::cyan << " _                           _         \n"
-                                                     "| |___ ___ ___ ___ _____ ___| |___ ___ \n"
-                                                     "| | -_|_ -|_ -| .'|     | . | | -_|  _|\n"
-                                                     "|_|___|___|___|__,|_|_|_|  _|_|___|_|  \n"
-                                                     " Version: "
-                  << PROJECT_GIT_HASH
-                  << "       |_|            "
-                  << "\n\nCopyright (c)  2018 - 2022, YuzukiTsuru <GloomyGhost@GloomyGhost.com>\n"
-                  << lessampler::log::color::reset
+        using namespace lessampler::log;
+        enable_ansi();
+
+        constexpr std::size_t width = 58;
+        const auto centered = [width](std::string_view text) {
+            if (text.size() >= width) {
+                return std::string(text);
+            }
+            const auto left = (width - text.size()) / 2;
+            return std::string(left, ' ') + std::string(text) +
+                   std::string(width - text.size() - left, ' ');
+        };
+        const auto row = [&centered](std::string_view text, std::string_view tint, bool strong) {
+            std::cout << color::bright_cyan << "|" << color::reset << tint
+                      << (strong ? color::bold : std::string_view{}) << centered(text)
+                      << color::reset << color::bright_cyan << "|\n";
+        };
+
+        const std::string border = "+" + std::string(width, '-') + "+";
+        std::cout << '\n'
+                  << color::bright_cyan << border << color::reset << '\n';
+        row("", color::white, false);
+        row("l e s s a m p l e r", color::white, true);
+        row("singing voice synthesizer  /  UTAU resampler", color::bright_magenta, false);
+        row("", color::white, false);
+        row(std::format("version {}  /  {}", PROJECT_VER, PROJECT_GIT_HASH), color::white, false);
+        row("Copyright (c) 2018 - 2026 YuzukiTsuru", color::dim, false);
+        row("", color::white, false);
+        std::cout << color::bright_cyan << border << color::reset << '\n'
                   << std::endl;
     }
 

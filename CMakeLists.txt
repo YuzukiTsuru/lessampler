@@ -3,17 +3,13 @@ cmake_minimum_required(VERSION 3.30...4.2)
 project(lessampler LANGUAGES C CXX)
 
 set(PROJECT_VERSION_MAJOR 0)
-set(PROJECT_VERSION_MINOR 0)
+set(PROJECT_VERSION_MINOR 1)
+set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
-# Use the git commit count as the patch version and the short hash for display.
+# The short commit hash is shown in the banner and stored in the config file.
 find_package(Git QUIET)
 if (Git_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
-    execute_process(
-            COMMAND ${GIT_EXECUTABLE} rev-list --count HEAD
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            OUTPUT_VARIABLE _git_version
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
     execute_process(
             COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%h
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -22,11 +18,8 @@ if (Git_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
             ERROR_QUIET
     )
 else ()
-    set(_git_version 0)
     set(PROJECT_GIT_HASH "")
 endif ()
-set(PROJECT_VERSION_PATCH ${_git_version})
-set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 # C++26 requires GCC 15+, Clang 19+, or an MSVC toolchain driven in /std:c++latest mode.
 if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

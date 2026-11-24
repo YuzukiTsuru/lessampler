@@ -55,6 +55,10 @@ namespace lessampler {
             inline constexpr std::string_view cyan = "\033[36m";
             inline constexpr std::string_view white = "\033[37m";
             inline constexpr std::string_view on_red = "\033[41m";
+            inline constexpr std::string_view bold = "\033[1m";
+            inline constexpr std::string_view dim = "\033[2m";
+            inline constexpr std::string_view bright_cyan = "\033[96m";
+            inline constexpr std::string_view bright_magenta = "\033[95m";
         }// namespace color
 
         inline std::atomic<bool> &debug_flag() {
