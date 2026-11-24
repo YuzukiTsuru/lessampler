@@ -9,6 +9,7 @@ App
  │    ├── Vocoder
  │    │    ├── Vocoder/Common
  │    │    ├── Vocoder/World
+ │    │    ├── Vocoder/Neural (optional, ONNX Runtime)
  │    │    └── Vocoder/Llsm (optional)
  │    ├── Config
  │    └── Audio
@@ -38,6 +39,7 @@ src/
   Vocoder/             vocoder interface and implementations
     Common/            F0 estimation shared by WORLD and LLSM
     World/             WORLD model, analyzer, transform, synthesizer, caches
+    Neural/            ONNX neural vocoder, mel front end, model cache
     Llsm/              LLSM backend, layer-1 cache, compatibility header
 ```
 
@@ -93,6 +95,35 @@ disk again after the first note for each sample. The CLI currently constructs
 one engine per process because of the UTAU protocol; a persistent batch/server
 host can keep one engine alive and reuse the LRU.
 
+## Neural backend
+
+`Vocoder/Neural` is an optional backend built with `LESSAMPLER_ENABLE_NEURAL`.
+It reuses the WORLD analysis store and `WorldTransform`, renders the transformed
+model once to obtain a waveform, and derives NHVSing's 128-bin log-mel features
+from that waveform. The ONNX graph then produces the final note:
+
+```
+WorldModel (disk cache) -> WorldTransform -> preliminary waveform
+                        -> MelSpectrogram -> NHVSing ONNX -> output
+```
+
+The mel front end matches NHVSing's training preprocessing (44.1 kHz, hop 256,
+2048-point STFT, Slaney-normalized 128-bin mel, natural log); its output was
+verified against librosa to float precision. F0 comes from the transformed
+WORLD track; voicing is derived from low-band aperiodicity because WORLD's
+transformed F0 is always positive.
+
+ONNX Runtime is managed by `cmake/OnnxRuntime.cmake`: when the backend is
+enabled, CMake downloads a pinned prebuilt NuGet package into
+`lib/onnxruntime` and exposes the include directory, library, and Windows DLL.
+No model weights are stored in the repository, and the neural backend never
+writes a cache format of its own; it reuses `.lessaudio`.
+
+ONNX Runtime rather than ncnn is deliberate. The exported singing vocoders
+(NHVSing and OpenVPI NSF-HiFiGAN) use dynamic `Scan`/`CumSum`, random excitation,
+and shape operators that `onnx2ncnn` cannot import. A ncnn implementation would
+need a feedforward model or a native C++ port of the excitation/filter DSP.
+
 ## Caches
 
 All caches are sidecars next to the source WAV:
@@ -118,6 +149,9 @@ read-only or full disk; batch modeling still reports real analysis errors.
   of multiplying outer workers by inner D4C workers.
 - `ConfigResolver` and the analysis LRU are internally synchronized; backends
   are currently used from one render at a time per engine.
+- The neural backend loads one ONNX Runtime session per model path and caches
+  it for the process lifetime. ONNX Runtime `Run` calls are thread-safe; the
+  mel extractor is immutable after construction.
 
 ## Adding a vocoder
 

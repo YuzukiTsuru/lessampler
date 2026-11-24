@@ -21,6 +21,7 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
 - Multiple models
   - [x] World
   - [x] llsm (optional build, see below)
+  - [x] NHVSing-compatible neural vocoder (optional build, see below)
 - Global Transform Control
   - [x] Precise Pitch Shift and Time Stretch
   - [x] FFT Size, Samples Number, Estimation Floor and so on
@@ -31,6 +32,7 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
   - [ ] [OpenUTAU](https://github.com/stakira/OpenUtau) Interface
   - [ ] Library Interface
 - Neural Network Vocoder
+  - [x] Optional singing-voice neural vocoder backend
   - [ ] Voice Conversion and Audio Style Transfer
   - [ ] Noise reduction enhanced MOS
 
@@ -70,7 +72,7 @@ ctest --preset release-gcc
 
 The executable is written to `build/<preset>/bin/lessampler`; its `lessampler.less` is created next to it.
 
-Other presets: `debug-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm` (GCC with the optional LLSM backend), `ci-clang`, `ci-msvc`. On Windows:
+Other presets: `debug-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm` (GCC with the optional LLSM backend), `neural-gcc` (GCC with the optional neural backend), `ci-clang`, `ci-msvc`. On Windows:
 
 ```bat
 cmake --preset ci-msvc
@@ -101,6 +103,39 @@ backend = "llsm"   # "world" or "llsm"
 
 Both backends use the same `[f0]` settings. LLSM is not F0-free: its harmonic/noise model and synthesis all require an F0 contour. When the layer-1 cache misses, `LlsmBackend` runs the shared DIO/HARVEST + StoneMask front end and passes that contour to `llsm_analyze`; libllsm2's own refinement is disabled because StoneMask already ran. `f0_mode`, floors, speed, and frame period therefore affect both WORLD and LLSM, and changing them invalidates `.lessllsm`.
 
+### Neural backend
+
+The optional `neural` backend keeps WORLD for analysis and the UTAU time/pitch transform, then replaces the final synthesis stage with an NHVSing-compatible ONNX vocoder. This removes WORLD's buzzy excitation/phase artifacts while keeping the voicebank's spectral envelope and the note's F0 contour:
+
+```
+WORLD analysis -> UTAU transform -> preliminary waveform
+               -> 128-bin ln-mel + F0 -> NHVSing -> waveform
+```
+
+Build it with:
+
+```bash
+cmake --preset neural-gcc
+cmake --build --preset neural-gcc -j
+ctest --preset neural-gcc --output-on-failure
+```
+
+On Windows, use `cmake --preset ci-msvc -DLESSAMPLER_ENABLE_NEURAL=ON` (or add the option to another preset). CMake downloads the pinned ONNX Runtime NuGet package and unpacks the headers and native library into `lib/onnxruntime`; that directory is gitignored. MSVC therefore needs no manual include/lib configuration. The first configure downloads about 176 MB (the package carries several platforms) and reuses the cached package afterwards. Set `ONNXRUNTIME_ROOT` only to use an existing ONNX Runtime installation instead.
+
+The model itself is user-supplied because its weights are not redistributable under the project license. A suitable model is [NHVSing](https://github.com/wavtechyukky/NHVSing) V3/V3.3 (`exported_models/v3_3/nhv_v3_3.onnx`, about 7.8 MB, 0.478 M parameters). NHVSing code is MIT; the published weights are non-commercial and must be downloaded from the upstream project. Point `[neural] model_path` at the ONNX file:
+
+```toml
+[audio_model]
+backend = "neural"
+
+[neural]
+model_path = "/path/to/nhv_v3_3.onnx"
+threads = 4
+target_rms = 0.111
+```
+
+The model is fixed at 44.1 kHz; other voicebank rates are resampled for feature extraction and back to the source rate. ONNX Runtime is used instead of ncnn because the exported NHVSing graph relies on dynamic `Scan`, `CumSum`, and random-excitation operators that `onnx2ncnn` does not import. I verified that both NHVSing and OpenVPI NSF-HiFiGAN ONNX graphs fail `onnx2ncnn` conversion for this reason; a ncnn path would need a feedforward model or a C++ port of the DSP excitation.
+
 ## Configuration
 
 `lessampler.less` is created next to the executable on first run. It is a TOML file:
@@ -111,7 +146,7 @@ version = "git-hash"
 debug = false
 
 [audio_model]
-backend = "world"           # "world" or "llsm"
+backend = "world"           # "world", "llsm", or "neural"
 frame_period = 5.805442176870748
 fft_size = "auto"
 model_amp = 0.85
@@ -126,6 +161,11 @@ f0_allow_range = 0.1
 
 [ap]
 ap_threshold = 0.10
+
+[neural]
+model_path = ""             # NHVSing-compatible ONNX file
+threads = 0                 # 0 lets ONNX Runtime choose
+target_rms = 0.111
 ```
 
 Config files now use the `.less` suffix. An old `lessampler.fex` (TOML or INI) is migrated automatically; the old file is kept as `lessampler.fex.bak`. Changing `[audio_model]`, `[f0]`, or `[ap]` settings invalidates the `.lessaudio` and `.lessllsm` caches; the next run regenerates them.
@@ -140,6 +180,7 @@ The LLSM backend has its own `.lessllsm` layer-1 cache. It is keyed by the same 
 
 - WORLD model generation splits the D4C frame loop across eight fixed chunks. The partition is independent of the machine's core count, so repeated analyses are reproducible. On the reference machine this cut a 44.1 kHz, one-second sample's D4C stage from roughly 0.45 s to about 0.03 s.
 - In a 44.1 kHz UST benchmark, the LLSM layer-1 cache made warm note rendering roughly 10× faster: about 45 ms per note instead of 0.5–0.9 s. The first render still pays the analysis cost. Warm WORLD note rendering is in the same range (tens of milliseconds per note).
+- The neural backend is a quality mode, not a speed mode. A warm one-second note measured about 170 ms on the reference machine: roughly 35 ms for the preliminary WORLD synthesis, 11 ms for mel extraction, 90 ms for ONNX inference with four threads, and 20–40 ms to load the 7.8 MB model. A normal UTAU host starts a fresh process per note, so the model load is paid per note.
 - `WavIO::ProbeWav` reads only the WAV header for UTAU length calculations; the CLI never loads the PCM. LLSM decodes it only when its layer-1 cache misses.
 - `[f0] f0_mode = "DIO"` is substantially faster than `"HARVEST"` for first-time analysis. The default remains `HARVEST` for quality.
 - Enable compile-time stage timings with `-DLESSAMPLER_TIME_EVAL=ON`; the `[TIME]` lines report every analysis, cache, transform, and synthesis stage.
@@ -181,3 +222,5 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 ```
 
 The default build is LGPL-3.0. Builds configured with `-DLESSAMPLER_ENABLE_LLSM=ON` link the GPLv3 libllsm2 library and are therefore distributed under GPLv3.
+
+The optional neural backend links ONNX Runtime (MIT). It does not bundle model weights; NHVSing's released weights are non-commercial and remain under the upstream terms.
