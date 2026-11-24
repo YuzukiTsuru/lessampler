@@ -56,15 +56,15 @@ namespace lessampler {
     };
 
     /*
- * Orchestrates a render independently of the UTAU/CLI host:
- *
- *   sample source -> effective config -> backend.Prepare (disk cache aware)
- *                 -> in-memory analysis LRU
- *                 -> backend.Synthesize -> AutoAMP
- *
- * One engine can render many notes in a session and reuse note-independent
- * analyses without touching disk again.
- */
+     * Orchestrates a render independently of the UTAU/CLI host:
+     *
+     *   sample source -> effective config -> backend.Prepare (disk cache aware)
+     *                 -> in-memory analysis LRU
+     *                 -> backend.Synthesize -> AutoAMP
+     *
+     * One engine can render many notes in a session and reuse note-independent
+     * analyses without touching disk again.
+     */
     class RenderEngine {
     public:
         explicit RenderEngine(Config global_config, EngineOptions options = {});
