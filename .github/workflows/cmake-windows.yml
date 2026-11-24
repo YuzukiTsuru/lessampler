@@ -34,3 +34,22 @@ jobs:
 
       - name: Test
         run: ctest --preset ci-msvc
+
+  msvc-neural:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure
+        run: cmake --preset ci-msvc-neural
+
+      - name: Build
+        run: cmake --build --preset ci-msvc-neural -j
+
+      - name: Test
+        run: ctest --preset ci-msvc-neural
