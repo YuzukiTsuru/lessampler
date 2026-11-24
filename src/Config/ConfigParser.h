@@ -27,7 +27,7 @@ namespace lessampler {
     void apply_config(const toml::table &table, Config &configure);
 
     /*
- * Default lessampler.fex content, including comments.
+ * Default lessampler.less content, including comments.
  */
     [[nodiscard]] std::string default_config_toml();
 

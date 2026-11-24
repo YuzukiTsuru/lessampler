@@ -47,6 +47,12 @@ namespace lessampler {
         }
 
         voice_config_path = voice_path / std::string(lessampler::constants::voicebank_config_file_name);
+        if (!std::filesystem::exists(voice_config_path)) {
+            const auto legacy_path = voice_path / std::string(lessampler::constants::legacy_voicebank_config_file_name);
+            if (std::filesystem::exists(legacy_path)) {
+                voice_config_path = legacy_path;
+            }
+        }
         if (std::filesystem::exists(voice_config_path)) {
             parse_config();
         }
@@ -62,7 +68,7 @@ namespace lessampler {
         }
 
         apply_config(table, configure);
-        YALL_DEBUG_ << std::format("Loaded voicebank config: {}", voice_config_path.string());
+        LOG_DEBUG << std::format("Loaded voicebank config: {}", voice_config_path.string());
     }
 
     Config VoicebankConfig::GetConfig() const {

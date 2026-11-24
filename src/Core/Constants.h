@@ -16,8 +16,10 @@
 namespace lessampler {
     namespace constants {
 
-        inline constexpr std::string_view config_file_name = "lessampler.fex";
-        inline constexpr std::string_view voicebank_config_file_name = "lessvoice.fex";
+        inline constexpr std::string_view config_file_name = "lessampler.less";
+        inline constexpr std::string_view legacy_config_file_name = "lessampler.fex";
+        inline constexpr std::string_view voicebank_config_file_name = "lessvoice.less";
+        inline constexpr std::string_view legacy_voicebank_config_file_name = "lessvoice.fex";
 
     }// namespace constants
 }// namespace lessampler

@@ -35,6 +35,8 @@ namespace lessampler {
         void load_or_create();
 
         void migrate_legacy_ini();
+
+        void migrate_legacy_config(const std::filesystem::path &source_path);
     };
 
 }// namespace lessampler

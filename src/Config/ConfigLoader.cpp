@@ -33,16 +33,21 @@ namespace lessampler {
 
     void ConfigLoader::SetConfig(const std::filesystem::path &exec_path) {
         config_file_path = exec_path / std::string(lessampler::constants::config_file_name);
+        const auto legacy_path = exec_path / std::string(lessampler::constants::legacy_config_file_name);
 
         if (!std::filesystem::exists(config_file_path)) {
-            YALL_DEBUG_ << std::format("Config file not found, creating defaults: {}", config_file_path.string());
-            std::ofstream out(config_file_path);
-            if (!out) {
-                throw file_open_error(config_file_path.string());
-            }
-            out << default_config_toml();
-            if (!out) {
-                throw file_open_error(config_file_path.string());
+            if (std::filesystem::exists(legacy_path)) {
+                migrate_legacy_config(legacy_path);
+            } else {
+                LOG_DEBUG << std::format("Config file not found, creating defaults: {}", config_file_path.string());
+                std::ofstream out(config_file_path);
+                if (!out) {
+                    throw file_open_error(config_file_path.string());
+                }
+                out << default_config_toml();
+                if (!out) {
+                    throw file_open_error(config_file_path.string());
+                }
             }
         }
 
@@ -54,8 +59,8 @@ namespace lessampler {
         try {
             table = toml::parse_file(config_file_path.string());
         } catch (const toml::parse_error &error) {
-            YALL_WARN_ << std::format("Cannot parse {} as TOML: {}. Trying the legacy INI format.",
-                                      config_file_path.string(), error.description());
+            LOG_WARN << std::format("Cannot parse {} as TOML: {}. Trying the legacy INI format.",
+                                    config_file_path.string(), error.description());
             migrate_legacy_ini();
             try {
                 table = toml::parse_file(config_file_path.string());
@@ -68,8 +73,36 @@ namespace lessampler {
         apply_config(table, configure);
 
         if (!configure.version.empty() && configure.version != PROJECT_GIT_HASH) {
-            YALL_WARN_ << "Configure file version does not match software version.";
+            LOG_WARN << "Configure file version does not match software version.";
         }
+    }
+
+
+    void ConfigLoader::migrate_legacy_config(const std::filesystem::path &source_path) {
+        Config migrated;
+
+        try {
+            const auto table = toml::parse_file(source_path.string());
+            apply_config(table, migrated);
+        } catch (const toml::parse_error &) {
+            migrated = Config{};
+            if (!parse_legacy_ini_file(source_path, migrated)) {
+                throw parameter_error(std::format("Cannot migrate legacy config file: {}", source_path.string()));
+            }
+        }
+
+        migrated.version = PROJECT_GIT_HASH;
+        write_config_toml(config_file_path, migrated);
+
+        const auto backup = source_path.string() + ".bak";
+        std::error_code error;
+        std::filesystem::copy_file(source_path, backup,
+                                   std::filesystem::copy_options::overwrite_existing, error);
+        if (error) {
+            LOG_WARN << std::format("Cannot back up legacy config {}: {}", source_path.string(), error.message());
+        }
+
+        LOG_WARN << std::format("Migrated {} to {}", source_path.string(), config_file_path.string());
     }
 
     void ConfigLoader::migrate_legacy_ini() {
@@ -89,7 +122,7 @@ namespace lessampler {
         }
 
         write_config_toml(config_file_path, migrated);
-        YALL_WARN_ << std::format("Migrated legacy INI config to TOML: {}", config_file_path.string());
+        LOG_WARN << std::format("Migrated legacy INI config to TOML: {}", config_file_path.string());
     }
 
     Config ConfigLoader::GetConfig() const {

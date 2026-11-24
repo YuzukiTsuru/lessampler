@@ -22,7 +22,7 @@ namespace lessampler {
 
     /*
  * Resolves the effective config for a sample. The global config is
- * overridden by <voicebank>/lessvoice.fex, and each voicebank directory is
+ * overridden by <voicebank>/lessvoice.less, and each voicebank directory is
  * parsed at most once per session.
  */
     class ConfigResolver {

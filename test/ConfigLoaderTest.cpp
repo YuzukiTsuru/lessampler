@@ -30,13 +30,13 @@ int main() {
     std::filesystem::create_directories(defaults_dir);
     ConfigLoader defaults(defaults_dir);
     auto config = defaults.GetConfig();
-    CHECK(std::filesystem::exists(defaults_dir / "lessampler.fex"));
+    CHECK(std::filesystem::exists(defaults_dir / "lessampler.less"));
     CHECK(!config.custom_fft_size);
     CHECK_EQ(config.vocoder, VocoderKind::world);
     CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_HARVEST);
     CHECK(config.audio_model_frame_period > 0.0);
     {
-        std::ifstream default_config(defaults_dir / "lessampler.fex");
+        std::ifstream default_config(defaults_dir / "lessampler.less");
         const std::string content((std::istreambuf_iterator<char>(default_config)),
                                   std::istreambuf_iterator<char>());
         CHECK(content.find("backend = \"world\"") != std::string::npos);
@@ -44,7 +44,7 @@ int main() {
 
     const auto custom_dir = root / "custom";
     std::filesystem::create_directories(custom_dir);
-    write_file(custom_dir / "lessampler.fex", R"([config]
+    write_file(custom_dir / "lessampler.less", R"([config]
 version = "test"
 debug = true
 
@@ -100,6 +100,7 @@ ap_threshold=0.1
 )");
     ConfigLoader legacy(legacy_dir);
     config = legacy.GetConfig();
+    CHECK(std::filesystem::exists(legacy_dir / "lessampler.less"));
     CHECK(std::filesystem::exists(legacy_dir / "lessampler.fex.bak"));
     CHECK(config.debug_mode);
     CHECK_EQ(config.vocoder, VocoderKind::world);
@@ -108,10 +109,27 @@ ap_threshold=0.1
     CHECK_EQ(config.f0_speed, 2);
     CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_HARVEST);
 
+    const auto legacy_toml_dir = root / "legacy-toml";
+    std::filesystem::create_directories(legacy_toml_dir);
+    write_file(legacy_toml_dir / "lessampler.fex", R"([config]
+version = "old-toml"
+debug = true
+
+[audio_model]
+backend = "world"
+frame_period = 5.7
+)");
+    ConfigLoader legacy_toml(legacy_toml_dir);
+    config = legacy_toml.GetConfig();
+    CHECK(std::filesystem::exists(legacy_toml_dir / "lessampler.less"));
+    CHECK(std::filesystem::exists(legacy_toml_dir / "lessampler.fex.bak"));
+    CHECK(config.debug_mode);
+    CHECK_NEAR(config.audio_model_frame_period, 5.7, 1e-12);
+
     const auto expect_invalid = [&](const std::string &name, const std::string &content) {
         const auto dir = root / name;
         std::filesystem::create_directories(dir);
-        write_file(dir / "lessampler.fex", content);
+        write_file(dir / "lessampler.less", content);
         bool rejected = false;
         try {
             ConfigLoader unit(dir);
@@ -128,7 +146,7 @@ ap_threshold=0.1
 
     const auto voice_dir = root / "voice";
     std::filesystem::create_directories(voice_dir);
-    write_file(voice_dir / "lessvoice.fex", R"([audio_model]
+    write_file(voice_dir / "lessvoice.less", R"([audio_model]
 frame_period = 6.0
 
 [f0]
@@ -146,12 +164,20 @@ f0_mode = "DIO"
     CHECK_EQ(resolved.f0_mode, Config::F0_MODE::F0_MODE_DIO);
 
     // A voicebank config is parsed once per session.
-    write_file(voice_dir / "lessvoice.fex", R"([audio_model]
+    write_file(voice_dir / "lessvoice.less", R"([audio_model]
 frame_period = 7.0
 )");
     CHECK_NEAR(resolver.Resolve(voice_dir / "b.wav").audio_model_frame_period, 6.0, 1e-12);
     ConfigResolver fresh_resolver(base);
     CHECK_NEAR(fresh_resolver.Resolve(voice_dir / "b.wav").audio_model_frame_period, 7.0, 1e-12);
+
+    const auto legacy_voice_dir = root / "voice-legacy";
+    std::filesystem::create_directories(legacy_voice_dir);
+    write_file(legacy_voice_dir / "lessvoice.fex", R"([audio_model]
+frame_period = 6.5
+)");
+    ConfigResolver legacy_voice_resolver(base);
+    CHECK_NEAR(legacy_voice_resolver.Resolve(legacy_voice_dir / "a.wav").audio_model_frame_period, 6.5, 1e-12);
 
     Config fingerprint_config;
     const auto before = fingerprint_config.fingerprint();
