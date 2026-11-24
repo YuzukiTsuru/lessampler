@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "AudioModel/WorldModule/F0Estimator.h"
+#include "FileIO/WavIO.h"
 #include "LlsmCache.h"
 #include "Utils/LOG.h"
 #include "Utils/Timer.h"
@@ -274,9 +275,6 @@ namespace lessbackend {
                 if (request.shine.pitch_step <= 0 || request.shine.pitch_bend.size() < 2) {
                     throw parameter_error("Invalid LLSM pitch parameters");
                 }
-                if (request.samples.empty()) {
-                    throw parameter_error("Empty audio input");
-                }
 
                 Timer timer;
                 timer.SetTimer();
@@ -308,8 +306,20 @@ namespace lessbackend {
                 if (source) {
                     YALL_EVAL_ << timer.GetTimer("LLSM Cache Load: ");
                 } else {
+                    // The CLI deliberately passes no PCM so a cache hit never
+                    // decodes the WAV. Read it only on the analysis path.
+                    std::span<const double> samples = request.samples;
+                    WavData wav;
+                    if (samples.empty()) {
+                        wav = WavIO::ReadWav(request.input_path);
+                        samples = wav.samples;
+                    }
+                    if (samples.empty()) {
+                        throw parameter_error("Empty audio input");
+                    }
+
                     timer.SetTimer();
-                    auto track = EstimateF0(request.samples, request.fs, request.configure);
+                    auto track = EstimateF0(samples, request.fs, request.configure);
                     if (track.f0.empty()) {
                         throw parameter_error("LLSM F0 estimation produced no frames");
                     }
@@ -330,8 +340,8 @@ namespace lessbackend {
                     analysis_options->f0_refine = 0;
 
                     timer.SetTimer();
-                    std::vector<FP_TYPE> analysis_samples(request.samples.size());
-                    std::ranges::transform(request.samples, analysis_samples.begin(),
+                    std::vector<FP_TYPE> analysis_samples(samples.size());
+                    std::ranges::transform(samples, analysis_samples.begin(),
                                            [](double value) { return static_cast<FP_TYPE>(value); });
                     std::vector<FP_TYPE> analysis_f0(track.f0.size());
                     std::ranges::transform(track.f0, analysis_f0.begin(),

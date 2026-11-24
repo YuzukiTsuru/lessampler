@@ -158,6 +158,12 @@ int main() {
     CHECK(warm_llsm.samples == llsm_result.samples);
     CHECK(all_finite(warm_llsm.samples));
 
+    // A cache hit must not require the caller to load the PCM.
+    const lessbackend::RenderRequest cache_only_request{input, std::span<const double>{},
+                                                        wav.sample_rate, shine, configure};
+    const auto cache_only = llsm_backend->Render(cache_only_request);
+    CHECK(cache_only.samples == llsm_result.samples);
+
     // A source change invalidates the layer-1 cache and regenerates it.
     const auto original_mtime = std::filesystem::last_write_time(input);
     std::filesystem::last_write_time(input, original_mtime + std::chrono::seconds(2));

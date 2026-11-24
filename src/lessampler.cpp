@@ -9,6 +9,7 @@
  */
 
 #include <iostream>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -142,16 +143,11 @@ void lessampler::run() {
             auto backend = lessbackend::CreateVocoderBackend(configure.vocoder);
             YALL_INFO_ << "Backend: " + std::string(backend->name());
 
-            // WORLD uses its cached .lessaudio model and does not need the PCM.
-            // LLSM analyzes the waveform directly, so only then do we pay for
-            // loading it.
-            std::vector<double> samples;
-            if (backend->kind() == lessbackend::VocoderKind::llsm) {
-                samples = WavIO::ReadWav(in_file_path).samples;
-            }
-
+            // WORLD uses its cached .lessaudio model. LLSM uses its layer-1
+            // cache when it can, and only reads the PCM on a cache miss. Pass
+            // an empty span rather than paying for the WAV decode up front.
             timer.SetTimer();
-            lessbackend::RenderRequest request{in_file_path, samples, wav_info.sample_rate,
+            lessbackend::RenderRequest request{in_file_path, std::span<const double>{}, wav_info.sample_rate,
                                                shine_para, configure};
             auto result = backend->Render(request);
             YALL_INFO_ << timer.GetTimer("Render: ");

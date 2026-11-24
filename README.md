@@ -126,7 +126,7 @@ The LLSM backend has its own `.lessllsm` layer-1 cache. It is keyed by the same 
 
 - WORLD model generation splits the D4C frame loop across eight fixed chunks. The partition is independent of the machine's core count, so repeated analyses are reproducible. On the reference machine this cut a 44.1 kHz, one-second sample's D4C stage from roughly 0.45 s to about 0.03 s.
 - In a 44.1 kHz UST benchmark, the LLSM layer-1 cache made warm note rendering roughly 10× faster: about 45 ms per note instead of 0.5–0.9 s. The first render still pays the analysis cost. Warm WORLD note rendering is in the same range (tens of milliseconds per note).
-- `WavIO::ProbeWav` reads only the WAV header for UTAU length calculations; the WORLD path never loads the PCM. Only a backend that analyzes the waveform (LLSM) reads the samples.
+- `WavIO::ProbeWav` reads only the WAV header for UTAU length calculations; the CLI never loads the PCM. LLSM decodes it only when its layer-1 cache misses.
 - `[f0] f0_mode = "DIO"` is substantially faster than `"HARVEST"` for first-time analysis. The default remains `HARVEST` for quality.
 - Enable compile-time stage timings with `-DLESSAMPLER_TIME_EVAL=ON`; the `[TIME]` lines report every analysis, cache, transform, and synthesis stage.
 
