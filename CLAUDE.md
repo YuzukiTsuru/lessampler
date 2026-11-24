@@ -45,7 +45,7 @@ ctest --preset release-gcc --output-on-failure
 
 ## Running
 
-`lessampler.fex` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.fex`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`. `[audio_model] backend` is `"world"` or `"llsm"`; selecting `"llsm"` in a build without `LESSAMPLER_ENABLE_LLSM` throws a `parameter_error`. Older INI files are migrated automatically and kept as `lessampler.fex.bak`. File names are defined in `src/Core/Constants.h`.
+`lessampler.less` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.less`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`. `[audio_model] backend` is `"world"` or `"llsm"`; selecting `"llsm"` in a build without `LESSAMPLER_ENABLE_LLSM` throws a `parameter_error`. Old `lessampler.fex` files, both TOML and legacy INI, are migrated to `lessampler.less` and kept as `lessampler.fex.bak`; an unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration. File names are defined in `src/Core/Constants.h`.
 
 Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 
@@ -78,7 +78,7 @@ If the input WAV does not exist, a silent WAV of the requested length is written
 
 `Application` is a thin host. The rendering work is owned by `RenderEngine` (`src/Engine/RenderEngine.cpp`):
 
-1. **Config** — `ConfigLoader` loads or creates the global `lessampler.fex`. `ConfigResolver` resolves a per-sample `Config`, applying `<voicebank>/lessvoice.fex` and caching each voicebank directory for the session.
+1. **Config** — `ConfigLoader` loads or creates the global `lessampler.less`. `ConfigResolver` resolves a per-sample `Config`, applying `<voicebank>/lessvoice.less` and caching each voicebank directory for the session.
 2. **Source** — `SampleSource` probes the WAV header immediately and exposes the PCM lazily. A cache hit never decodes the waveform.
 3. **Analysis** — `RenderEngine::analysis_for` looks up an in-memory LRU keyed by backend kind/version, effective config fingerprint, canonical source path, and source size/mtime. On a miss it calls `VocoderBackend::Prepare`, which loads or creates the on-disk analysis.
 4. **Synthesis** — `VocoderBackend::Synthesize` renders one note from the note-independent analysis and `RenderParams`.
@@ -101,6 +101,8 @@ RenderResult Synthesize(const SynthesisRequest &);  // per note
 D4C uses a fixed eight-block frame partition. The partition and per-block random state are independent of the worker count, so output is reproducible; `max_workers` only controls concurrency.
 
 ### LLSM path
+
+LLSM is not F0-free. Its harmonic/noise analysis and synthesis require an F0 contour; the shared DIO/Harvest + StoneMask front end supplies it, and libllsm2's internal refinement is disabled (`f0_refine = 0`). The `[f0]` settings therefore apply to both backends.
 
 `LlsmBackend::Prepare` first tries `.lessllsm`, a layer-1 cache keyed by the config fingerprint and source size/mtime. A hit skips F0 estimation, `llsm_analyze`, and layer-1 conversion. On a miss it estimates F0 with the shared front end, runs `llsm_analyze`, converts to layer 1, applies source phase propagation, and saves the cache. `Synthesize` interpolates layer-1 frames along the UTAU time map, writes the target F0 per frame, converts back to layer 0, and calls `llsm_synthesize`.
 
@@ -167,12 +169,12 @@ Readers validate magic, version, fingerprint, source fingerprint, dimensions, fr
 
 ## Logging and debugging
 
-- Use the `YALL_*` macros from `src/Core/Log.h`: `YALL_INFO_`, `YALL_WARN_`, `YALL_ERROR_`, `YALL_OK_`, `YALL_EVAL_`, plus `YALL_DEBUG_`/`YALL_DUMP_`.
+- Use the `LOG_*` macros from `src/Core/Log.h`: `LOG_INFO`, `LOG_WARN`, `LOG_ERROR`, `LOG_OK`, `LOG_EVAL`, `LOG_CRITICAL`, plus `LOG_DEBUG`/`LOG_DUMP`.
 - The logger namespace is `lessampler::log`.
-- `YALL_DEBUG_` output is disabled unless `YALL_DEBUG_.EnableDebug()` is called; the Debug build's config defaults `debug=true`.
-- `LESSAMPLER_DUMP_DATA` and `LESSAMPLER_TIME_EVAL` are CMake options translated into compile definitions. `DUMP_DATA` gates the per-sample dump file in `WorldTransform`. With `LESSAMPLER_TIME_EVAL=ON`, `YALL_EVAL_` prints stage timings for F0/CheapTrick/D4C, WORLD model prepare/transform/synthesis, and LLSM cache load/save, layer conversions, transform, and synthesis.
+- `LOG_DEBUG` output is disabled unless `lessampler::log::SetDebug(true)` is called (or the Debug build's config defaults `debug=true`); `lessampler::log::DebugEnabled()` queries the state.
+- `LESSAMPLER_DUMP_DATA` and `LESSAMPLER_TIME_EVAL` are CMake options translated into compile definitions. `DUMP_DATA` gates the per-sample dump file in `WorldTransform`. With `LESSAMPLER_TIME_EVAL=ON`, `LOG_EVAL` prints stage timings for F0/CheapTrick/D4C, WORLD model prepare/transform/synthesis, and LLSM cache load/save, layer conversions, transform, and synthesis.
 - `tools/arg_parameter_export` is a dummy executable that appends its `argv` to `<its own path>.log`; use it to capture how a UTAU host invokes the resampler.
-- `ConfigResolver` loads `<voice_dir>/lessvoice.fex` in TOML and caches the result per directory.
+- `ConfigResolver` loads `<voice_dir>/lessvoice.less` in TOML and caches the result per directory.
 
 ## Tests
 

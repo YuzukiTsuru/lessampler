@@ -68,7 +68,7 @@ cmake --build --preset release-gcc -j
 ctest --preset release-gcc
 ```
 
-The executable is written to `build/<preset>/bin/lessampler`; its `lessampler.fex` is created next to it.
+The executable is written to `build/<preset>/bin/lessampler`; its `lessampler.less` is created next to it.
 
 Other presets: `debug-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm` (GCC with the optional LLSM backend), `ci-clang`, `ci-msvc`. On Windows:
 
@@ -90,7 +90,7 @@ cmake --build --preset release-gcc -j
 ctest --preset release-gcc --output-on-failure
 ```
 
-Then select it in `lessampler.fex`:
+Then select it in `lessampler.less`:
 
 ```toml
 [audio_model]
@@ -99,9 +99,11 @@ backend = "llsm"   # "world" or "llsm"
 
 `libllsm2` is GPLv3, so a binary built with `LESSAMPLER_ENABLE_LLSM=ON` is GPLv3. The default build keeps the project's LGPL-3.0 licensing. The WORLD `.lessaudio` cache is only used by the WORLD backend; switching backends does not invalidate it.
 
+Both backends use the same `[f0]` settings. LLSM is not F0-free: its harmonic/noise model and synthesis all require an F0 contour. When the layer-1 cache misses, `LlsmBackend` runs the shared DIO/HARVEST + StoneMask front end and passes that contour to `llsm_analyze`; libllsm2's own refinement is disabled because StoneMask already ran. `f0_mode`, floors, speed, and frame period therefore affect both WORLD and LLSM, and changing them invalidates `.lessllsm`.
+
 ## Configuration
 
-`lessampler.fex` is created next to the executable on first run. It is a TOML file:
+`lessampler.less` is created next to the executable on first run. It is a TOML file:
 
 ```toml
 [config]
@@ -126,7 +128,7 @@ f0_allow_range = 0.1
 ap_threshold = 0.10
 ```
 
-Older INI-style `lessampler.fex` files are migrated automatically and the original is kept as `lessampler.fex.bak`. Changing `[audio_model]`, `[f0]`, or `[ap]` settings invalidates the `.lessaudio` and `.lessllsm` caches; the next run regenerates them.
+Config files now use the `.less` suffix. An old `lessampler.fex` (TOML or INI) is migrated automatically; the old file is kept as `lessampler.fex.bak`. Changing `[audio_model]`, `[f0]`, or `[ap]` settings invalidates the `.lessaudio` and `.lessllsm` caches; the next run regenerates them.
 
 ## Model cache
 

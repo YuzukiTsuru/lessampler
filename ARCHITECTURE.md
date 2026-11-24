@@ -54,7 +54,7 @@ note into audio:
 SampleSource
    │  (header now, PCM lazily)
    ▼
-ConfigResolver ──> effective Config (global + lessvoice.fex)
+ConfigResolver ──> effective Config (global + lessvoice.less)
    ▼
 VocoderBackend::Prepare
    │  disk cache hit  -> Analysis
