@@ -114,11 +114,21 @@ f0_allow_range = 0.1
 ap_threshold = 0.10
 ```
 
-Older INI-style `lessampler.fex` files are migrated automatically and the original is kept as `lessampler.fex.bak`. Changing `[audio_model]`, `[f0]`, or `[ap]` settings invalidates the `.lessaudio` model cache; the next run regenerates it.
+Older INI-style `lessampler.fex` files are migrated automatically and the original is kept as `lessampler.fex.bak`. Changing `[audio_model]`, `[f0]`, or `[ap]` settings invalidates the `.lessaudio` and `.lessllsm` caches; the next run regenerates them.
 
 ## Model cache
 
-Analysis results are stored next to each WAV as a `.lessaudio` file (format v2). The file records the analysis settings and the source WAV size/mtime, so either a configuration change or a modified sample invalidates the cache. Old v1 files are rejected and regenerated.
+The WORLD backend stores analysis results next to each WAV as a `.lessaudio` file (format v2). The file records the analysis settings and the source WAV size/mtime, so either a configuration change or a modified sample invalidates the cache. Old v1 files are rejected and regenerated.
+
+The LLSM backend has its own `.lessllsm` layer-1 cache. It is keyed by the same configuration fingerprint and source size/mtime, and it is independent of the UTAU note parameters. The first note rendered from a sample runs F0 estimation, LLSM analysis, and the layer-1 conversion; later notes loading the same sample skip all three. A missing or corrupt cache falls back to a full analysis and is rewritten. Cache writes are best-effort, so a read-only voicebank still renders correctly.
+
+## Performance
+
+- WORLD model generation splits the D4C frame loop across eight fixed chunks. The partition is independent of the machine's core count, so repeated analyses are reproducible. On the reference machine this cut a 44.1 kHz, one-second sample's D4C stage from roughly 0.45 s to about 0.03 s.
+- In a 44.1 kHz UST benchmark, the LLSM layer-1 cache made warm note rendering roughly 10× faster: about 45 ms per note instead of 0.5–0.9 s. The first render still pays the analysis cost. Warm WORLD note rendering is in the same range (tens of milliseconds per note).
+- `WavIO::ProbeWav` reads only the WAV header for UTAU length calculations; the WORLD path never loads the PCM. Only a backend that analyzes the waveform (LLSM) reads the samples.
+- `[f0] f0_mode = "DIO"` is substantially faster than `"HARVEST"` for first-time analysis. The default remains `HARVEST` for quality.
+- Enable compile-time stage timings with `-DLESSAMPLER_TIME_EVAL=ON`; the `[TIME]` lines report every analysis, cache, transform, and synthesis stage.
 
 ## Tests
 
