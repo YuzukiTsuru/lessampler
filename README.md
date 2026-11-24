@@ -20,7 +20,7 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
 
 - Multiple models
   - [x] World
-  - [ ] llsm
+  - [x] llsm (optional build, see below)
 - Global Transform Control
   - [x] Precise Pitch Shift and Time Stretch
   - [x] FFT Size, Samples Number, Estimation Floor and so on
@@ -58,7 +58,7 @@ cmake --build --preset release-gcc -j
 ctest --preset release-gcc
 ```
 
-Other presets: `debug-gcc`, `asan-gcc`, `ci-gcc`, `ci-clang`, `ci-msvc`. On Windows:
+Other presets: `debug-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm` (GCC with the optional LLSM backend), `ci-clang`, `ci-msvc`. On Windows:
 
 ```bat
 cmake --preset ci-msvc
@@ -67,6 +67,25 @@ ctest --preset ci-msvc
 ```
 
 Do not use `--depth 1` for the clone. The submodules are pinned to exact commits that are not necessarily at the tip of their branches.
+
+### Vocoder backends
+
+WORLD is always built. The optional LLSM backend uses libllsm2 and its ciglet dependency, both of which live under `lib/` as submodules:
+
+```bash
+cmake --preset release-gcc -DLESSAMPLER_ENABLE_LLSM=ON
+cmake --build --preset release-gcc -j
+ctest --preset release-gcc --output-on-failure
+```
+
+Then select it in `lessampler.fex`:
+
+```toml
+[audio_model]
+backend = "llsm"   # "world" or "llsm"
+```
+
+`libllsm2` is GPLv3, so a binary built with `LESSAMPLER_ENABLE_LLSM=ON` is GPLv3. The default build keeps the project's LGPL-3.0 licensing. The WORLD `.lessaudio` cache is only used by the WORLD backend; switching backends does not invalidate it.
 
 ## Configuration
 
@@ -78,6 +97,7 @@ version = "git-hash"
 debug = false
 
 [audio_model]
+backend = "world"           # "world" or "llsm"
 frame_period = 5.805442176870748
 fft_size = "auto"
 model_amp = 0.85
@@ -134,3 +154,5 @@ it under the terms of the GNU Lesser General Public License v3.0 as published by
   You should have received a copy of the GNU Lesser General Public License v3.0
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 ```
+
+The default build is LGPL-3.0. Builds configured with `-DLESSAMPLER_ENABLE_LLSM=ON` link the GPLv3 libllsm2 library and are therefore distributed under GPLv3.
