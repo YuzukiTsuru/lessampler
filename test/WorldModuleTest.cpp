@@ -70,6 +70,13 @@ int main() {
     CHECK(is_finite_model(fixture_model));
     CHECK(average_voiced_f0(fixture_model.f0) > 0.0);
 
+    // The fixed D4C chunk partition keeps analysis reproducible in-process.
+    AudioModel repeat_model(wav.samples, wav.sample_rate, configure);
+    const auto &repeated = repeat_model.GetAudioModel();
+    CHECK(repeated.f0 == fixture_model.f0);
+    CHECK(repeated.spectrogram.values() == fixture_model.spectrogram.values());
+    CHECK(repeated.aperiodicity.values() == fixture_model.aperiodicity.values());
+
     constexpr int fs = 44100;
     constexpr double frequency = 440.0;
     std::vector<double> sine(44100);

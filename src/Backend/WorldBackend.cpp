@@ -18,6 +18,7 @@
 #include "FileIO/AudioModelIO.h"
 #include "FileIO/GenerateAudioModel.h"
 #include "Utils/LOG.h"
+#include "Utils/Timer.h"
 
 namespace lessbackend {
 
@@ -30,20 +31,30 @@ namespace lessbackend {
             [[nodiscard]] std::string_view name() const noexcept override { return "world"; }
 
             [[nodiscard]] RenderResult Render(const RenderRequest &request) override {
+                Timer timer;
                 AudioModelIO model_io(request.input_path);
+                timer.SetTimer();
                 if (!model_io.CheckAudioModel(request.configure)) {
                     YALL_INFO_ << "Generating WORLD audio model: " + request.input_path.string();
                     GenerateAudioModel::GenerateModelForFile(request.input_path, request.configure);
                 }
+                YALL_EVAL_ << timer.GetTimer("WORLD Model Check/Generate: ");
 
+                timer.SetTimer();
                 const auto &model = model_io.ReadAudioModel(request.configure);
+                YALL_EVAL_ << timer.GetTimer("WORLD Model Read: ");
                 YALL_INFO_ << std::format("Audio Sample Rate: {}", model.fs);
                 YALL_INFO_ << std::format("Model Frame Period: {}", model.frame_period);
                 YALL_INFO_ << std::format("Model FFT Size: {}", model.fft_size);
 
+                timer.SetTimer();
                 AudioProcess process(model, request.shine);
                 const auto &transformed = process.GetTransAudioModel();
+                YALL_EVAL_ << timer.GetTimer("WORLD Transform: ");
+
+                timer.SetTimer();
                 Synthesis synthesis(transformed, request.shine.output_samples);
+                YALL_EVAL_ << timer.GetTimer("WORLD Synthesis: ");
 
                 return {std::move(synthesis.GetWavData()), transformed.fs};
             }

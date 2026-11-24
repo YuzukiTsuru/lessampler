@@ -10,6 +10,8 @@
 
 #include "WorldModule.h"
 
+#include <algorithm>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -81,9 +83,34 @@ void WorldModule::AperiodicityEstimation() {
     option.threshold = configure.ap_threshold;
 
     const int w_length = worldPara.fft_size / 2 + 1;
+    const auto frame_count = static_cast<int>(worldPara.f0.size());
     worldPara.aperiodicity.assign(worldPara.f0.size(), static_cast<std::size_t>(w_length), 0.0);
 
     auto pointers = worldPara.aperiodicity.row_pointers();
-    D4C(x, x_length, worldPara.fs, worldPara.time_axis.data(), worldPara.f0.data(),
-        static_cast<int>(worldPara.f0.size()), worldPara.fft_size, &option, pointers.data());
+    if (frame_count <= 0) {
+        return;
+    }
+
+    // D4C works one frame at a time. Split the frame range across a fixed
+    // number of blocks so the partition (and therefore the random safeguard
+    // sequence) does not depend on the machine's core count. Each call owns its
+    // FFT and random state, and every call writes a disjoint block of rows.
+    constexpr int max_workers = 8;
+    const int thread_count = std::min(max_workers, frame_count);
+    if (thread_count <= 1) {
+        D4C(x, x_length, worldPara.fs, worldPara.time_axis.data(), worldPara.f0.data(),
+            frame_count, worldPara.fft_size, &option, pointers.data());
+    } else {
+        const int chunk = (frame_count + thread_count - 1) / thread_count;
+        std::vector<std::jthread> threads;
+        threads.reserve(static_cast<std::size_t>(thread_count - 1));
+        for (int start = 0; start < frame_count; start += chunk) {
+            const int count = std::min(chunk, frame_count - start);
+            threads.emplace_back([&, start, count]() {
+                D4C(x, x_length, worldPara.fs, worldPara.time_axis.data() + start,
+                    worldPara.f0.data() + start, count, worldPara.fft_size, &option,
+                    pointers.data() + start);
+            });
+        }
+    }
 }
