@@ -70,6 +70,22 @@
       }
     },
     {
+      "name": "max-gcc",
+      "displayName": "Release with GCC 15 and every optional backend",
+      "inherits": "release-gcc",
+      "binaryDir": "${sourceDir}/build/max-gcc",
+      "cacheVariables": {
+        "LESSAMPLER_ENABLE_LLSM": "ON",
+        "LESSAMPLER_ENABLE_NEURAL": "ON"
+      }
+    },
+    {
+      "name": "ci-max",
+      "displayName": "CI release with every optional backend",
+      "inherits": "max-gcc",
+      "binaryDir": "${sourceDir}/build/ci-max"
+    },
+    {
       "name": "ci-clang",
       "displayName": "CI release build with Clang 21",
       "inherits": "base",
@@ -98,6 +114,16 @@
       "inherits": "ci-msvc",
       "binaryDir": "${sourceDir}/build/ci-msvc-neural",
       "cacheVariables": {
+        "LESSAMPLER_ENABLE_NEURAL": "ON"
+      }
+    },
+    {
+      "name": "ci-msvc-max",
+      "displayName": "CI release build with MSVC and every optional backend",
+      "inherits": "ci-msvc",
+      "binaryDir": "${sourceDir}/build/ci-msvc-max",
+      "cacheVariables": {
+        "LESSAMPLER_ENABLE_LLSM": "ON",
         "LESSAMPLER_ENABLE_NEURAL": "ON"
       }
     }
@@ -129,6 +155,15 @@
       "configurePreset": "neural-gcc"
     },
     {
+      "name": "max-gcc",
+      "configurePreset": "max-gcc"
+    },
+    {
+      "name": "ci-max",
+      "configurePreset": "ci-max",
+      "configuration": "Release"
+    },
+    {
       "name": "ci-clang",
       "configurePreset": "ci-clang"
     },
@@ -139,6 +174,10 @@
     {
       "name": "ci-msvc-neural",
       "configurePreset": "ci-msvc-neural"
+    },
+    {
+      "name": "ci-msvc-max",
+      "configurePreset": "ci-msvc-max"
     }
   ],
   "testPresets": [
@@ -186,6 +225,21 @@
       }
     },
     {
+      "name": "max-gcc",
+      "configurePreset": "max-gcc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-max",
+      "configurePreset": "ci-max",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "ci-clang",
       "configurePreset": "ci-clang",
       "output": {
@@ -202,6 +256,13 @@
     {
       "name": "ci-msvc-neural",
       "configurePreset": "ci-msvc-neural",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-msvc-max",
+      "configurePreset": "ci-msvc-max",
       "output": {
         "outputOnFailure": true
       }

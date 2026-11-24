@@ -10,7 +10,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  gcc:
+  gcc-max:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
@@ -22,11 +22,26 @@ jobs:
           brew install cmake gcc@15
           echo "$(brew --prefix gcc@15)/bin" >> "$GITHUB_PATH"
 
-      - name: Configure
-        run: cmake --preset ci-gcc
+      - name: Configure with every backend
+        run: cmake --preset ci-max
 
       - name: Build
-        run: cmake --build --preset ci-gcc -j
+        run: cmake --build --preset ci-max -j
 
       - name: Test
-        run: ctest --preset ci-gcc
+        run: ctest --preset ci-max
+
+      - name: Package
+        run: cmake --build --preset ci-max --target package
+
+      - name: Smoke test package
+        run: |
+          mkdir -p /tmp/lessampler-package
+          tar -xzf build/ci-max/lessampler-*.tar.gz -C /tmp/lessampler-package
+          /tmp/lessampler-package/*/lessampler --version
+
+      - name: Upload package
+        uses: actions/upload-artifact@v7
+        with:
+          name: lessampler-macos-arm64
+          path: build/ci-max/lessampler-*.tar.gz*

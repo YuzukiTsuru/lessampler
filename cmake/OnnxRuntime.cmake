@@ -18,6 +18,7 @@ set(LESSAMPLER_ONNXRUNTIME_INCLUDE_DIR "" CACHE INTERNAL "")
 set(LESSAMPLER_ONNXRUNTIME_LIBRARY "" CACHE INTERNAL "")
 set(LESSAMPLER_ONNXRUNTIME_DLL "" CACHE INTERNAL "")
 set(LESSAMPLER_ONNXRUNTIME_DLL_DIR "" CACHE INTERNAL "")
+set(LESSAMPLER_ONNXRUNTIME_LICENSE_DIR "" CACHE INTERNAL "")
 
 function(_lessampler_onnxruntime_rid out_var)
     if (WIN32)
@@ -96,7 +97,7 @@ function(lessampler_setup_onnxruntime)
         file(ARCHIVE_EXTRACT
                 INPUT "${nupkg}"
                 DESTINATION "${extract_dir}"
-                PATTERNS "build/native/include/*" "runtimes/${rid}/native/*")
+                PATTERNS "build/native/include/*" "runtimes/${rid}/native/*" "LICENSE" "ThirdPartyNotices.txt")
         if (NOT EXISTS "${extract_dir}/build/native/include/onnxruntime_cxx_api.h")
             message(FATAL_ERROR
                     "ONNX Runtime ${LESSAMPLER_ONNXRUNTIME_VERSION} does not ship a ${rid} build. "
@@ -126,6 +127,14 @@ function(lessampler_setup_onnxruntime)
             endif ()
         endif ()
 
+        file(GLOB onnxruntime_licenses
+                "${extract_dir}/LICENSE"
+                "${extract_dir}/ThirdPartyNotices.txt")
+        if (onnxruntime_licenses)
+            file(MAKE_DIRECTORY "${root}/licenses")
+            file(COPY ${onnxruntime_licenses} DESTINATION "${root}/licenses")
+        endif ()
+
         file(REMOVE_RECURSE "${extract_dir}")
 
         find_path(onnxruntime_include
@@ -144,6 +153,12 @@ function(lessampler_setup_onnxruntime)
 
     set(LESSAMPLER_ONNXRUNTIME_INCLUDE_DIR "${onnxruntime_include}" CACHE INTERNAL "" FORCE)
     set(LESSAMPLER_ONNXRUNTIME_LIBRARY "${onnxruntime_library}" CACHE INTERNAL "" FORCE)
+
+    if (EXISTS "${root}/licenses")
+        set(LESSAMPLER_ONNXRUNTIME_LICENSE_DIR "${root}/licenses" CACHE INTERNAL "" FORCE)
+    elseif (EXISTS "${root}/LICENSE")
+        set(LESSAMPLER_ONNXRUNTIME_LICENSE_DIR "${root}" CACHE INTERNAL "" FORCE)
+    endif ()
 
     if (WIN32)
         find_file(onnxruntime_dll

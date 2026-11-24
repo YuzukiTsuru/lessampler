@@ -1,7 +1,7 @@
 <div align="center"><img width="80" src="assets/icon_128.gif" alt="lessampler logo"></div>
 <h1 align="center"><b>lessampler</b></h1>
 <p align="center">
-  lessampler is a Singing Voice Synthesizer [WIP]
+  lessampler is a Singing Voice Synthesizer
 </p>
 
 [![forthebadge](https://forthebadge.com/images/badges/contains-cat-gifs.svg)](https://forthebadge.com)
@@ -99,6 +99,24 @@ Then select it in `lessampler.less`:
 backend = "llsm"   # "world" or "llsm"
 ```
 
+### Release packages
+
+CI builds the maximal configuration on Ubuntu, macOS, and Windows: WORLD plus every optional backend compiled on that platform. Tagged pushes (`v*`) run `.github/workflows/release.yml`, which uploads `lessampler-<version>-<os>-<arch>` archives and SHA-256 checksums to GitHub Releases.
+
+Build the same archive locally with:
+
+```bash
+scripts/package-release.sh          # GCC preset max-gcc
+scripts/package-release.ps1         # MSVC preset ci-msvc-max
+```
+
+The archives contain the executable, ONNX Runtime when the neural backend is enabled, the required OpenMP runtime on Linux, README/LICENSE, and third-party license files. Model weights are not bundled. To download the latest release for the current machine:
+
+```bash
+scripts/download-release.sh
+```
+
+
 `libllsm2` is GPLv3, so a binary built with `LESSAMPLER_ENABLE_LLSM=ON` is GPLv3. The default build keeps the project's LGPL-3.0 licensing. The WORLD `.lessaudio` cache is only used by the WORLD backend; switching backends does not invalidate it.
 
 Both backends use the same `[f0]` settings. LLSM is not F0-free: its harmonic/noise model and synthesis all require an F0 contour. When the layer-1 cache misses, `LlsmBackend` runs the shared DIO/HARVEST + StoneMask front end and passes that contour to `llsm_analyze`; libllsm2's own refinement is disabled because StoneMask already ran. `f0_mode`, floors, speed, and frame period therefore affect both WORLD and LLSM, and changing them invalidates `.lessllsm`.
@@ -185,6 +203,27 @@ The LLSM backend has its own `.lessllsm` layer-1 cache. It is keyed by the same 
 - `[f0] f0_mode = "DIO"` is substantially faster than `"HARVEST"` for first-time analysis. The default remains `HARVEST` for quality.
 - Enable compile-time stage timings with `-DLESSAMPLER_TIME_EVAL=ON`; the `[TIME]` lines report every analysis, cache, transform, and synthesis stage.
 - GPU offload was evaluated and is not used. UTAU starts a fresh resampler process for every note; Vulkan context creation alone measured about 0.7 s on the reference machine, far above the tens-of-milliseconds warm render. GPU compute would require a persistent batch/server process or a different host protocol.
+
+## Rendering a UST
+
+`scripts/render_ust.py` is a small UTAU host: it reads a `.ust`, selects the closest `oto.ini` entry for each note, invokes lessampler once per note, and mixes the results at their tick positions. If `data/` contains a UST archive and a voicebank archive, the wrapper extracts both and renders the main UST:
+
+```bash
+./scripts/render_data.sh
+# output: build/data-render/main.wav
+```
+
+Or point it at extracted files:
+
+```bash
+python3 scripts/render_ust.py \
+  --ust path/to/song.ust \
+  --voicebank path/to/voicebank \
+  --output build/song.wav \
+  --lessampler build/max-gcc/bin/lessampler
+```
+
+The host applies note pitch, tempo, volume, modulation, and short fades. It does not implement UTAU's full wavtool semantics yet: envelopes, crossfades, preutterance/overlap placement, and the PBS/PBY/PBW pitch-bend curve are not applied, so treated notes are rendered with their nominal pitch. Missing breath aliases such as `x` are skipped.
 
 ## Tests
 

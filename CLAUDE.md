@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-lessampler is a work-in-progress singing-voice synthesizer that implements the UTAU resampler command-line protocol. C++26, CMake, LGPL-3.0. A voicebank is a folder of WAV samples; note-independent analysis is cached next to each sample as binary sidecars (`.lessaudio` for WORLD, `.lessllsm` for LLSM).
+lessampler is a Singing Voice Synthesizer. It implements the UTAU resampler command-line protocol. C++26, CMake, LGPL-3.0. A voicebank is a folder of WAV samples; note-independent analysis is cached next to each sample as binary sidecars (`.lessaudio` for WORLD, `.lessllsm` for LLSM).
 
 The code is organized as layered domains. See `ARCHITECTURE.md` for the full module map. The dependency direction is:
 
@@ -43,7 +43,7 @@ ctest --preset neural-gcc --output-on-failure
 
 - Requires CMake 3.30+ (3.31.x recommended; CMake 4.x works through the `CMAKE_POLICY_VERSION_MINIMUM` shim in the root `CMakeLists.txt`).
 - Requires GCC 15+, Clang 19+, or MSVC in `/std:c++latest` mode. CMake does not map `CXX_STANDARD 26` for MSVC or AppleClang; the Windows preset uses MSVC's latest mode, and the macOS preset uses Homebrew GCC 15.
-- Presets: `debug-gcc`, `release-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm`, `ci-clang`, `ci-msvc`. The `build/<preset>` directories are gitignored.
+- Presets: `debug-gcc`, `release-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm`, `ci-clang`, `ci-msvc`, `neural-gcc`, `max-gcc` (LLSM + neural), `ci-max`, and `ci-msvc-max`. The `build/<preset>` directories are gitignored. CI's primary jobs use the maximal presets and publish `lessampler-<version>-<os>-<arch>` archives via CPack; `.github/workflows/release.yml` attaches them to tagged GitHub Releases.
 - CMakeLists use explicit source lists. Adding a source file requires editing the relevant domain `CMakeLists.txt`.
 - CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, `Platform`, and the `lessampler` executable.
 - `lessampler_common` is an INTERFACE target carrying C++26 features, include paths, warnings, and compile definitions. Link it through the library targets; do not add global `include_directories`.

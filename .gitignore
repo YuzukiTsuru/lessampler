@@ -369,3 +369,9 @@ docd/
 
 # ONNX Runtime prebuilt package managed by CMake (LESSAMPLER_ENABLE_NEURAL)
 /lib/onnxruntime/
+
+# Test data for e2e tests (LESSAMPLER_ENABLE_TESTS)
+data/
+
+# Python helper caches
+__pycache__/

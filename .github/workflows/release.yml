@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  CMAKE_VERSION: 3.31.12
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            preset: ci-max
+            package: build/ci-max/lessampler-*.tar.gz*
+            artifact: release-linux
+          - os: macos-latest
+            preset: ci-max
+            package: build/ci-max/lessampler-*.tar.gz*
+            artifact: release-macos
+          - os: windows-latest
+            preset: ci-msvc-max
+            package: build/ci-msvc-max/lessampler-*.zip*
+            artifact: release-windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Install GCC 15 and CMake
+        if: runner.os == 'Linux'
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
+          curl -L -o /tmp/cmake.tar.gz "https://cmake.org/files/v3.31/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
+          tar -xzf /tmp/cmake.tar.gz -C /tmp
+          echo "/tmp/cmake-${CMAKE_VERSION}-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+      - name: Install GCC 15 and CMake
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake gcc@15
+          echo "$(brew --prefix gcc@15)/bin" >> "$GITHUB_PATH"
+
+      - name: Set up MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure with every backend
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }} -j
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}
+
+      - name: Package
+        run: cmake --build --preset ${{ matrix.preset }} --target package
+
+      - name: Upload package
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.package }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Write checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$tag" --repo "$GITHUB_REPOSITORY" --generate-notes --title "lessampler $tag"
+          gh release upload "$tag" dist/* --repo "$GITHUB_REPOSITORY" --clobber

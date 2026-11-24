@@ -11,7 +11,7 @@ env:
   CMAKE_VERSION: 3.31.12
 
 jobs:
-  gcc:
+  gcc-max:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -27,48 +27,38 @@ jobs:
           tar -xzf /tmp/cmake.tar.gz -C /tmp
           echo "/tmp/cmake-${CMAKE_VERSION}-linux-x86_64/bin" >> "$GITHUB_PATH"
 
-      - name: Configure
-        run: cmake --preset ci-gcc
+      - name: Configure with every backend
+        run: cmake --preset ci-max
 
       - name: Build
-        run: cmake --build --preset ci-gcc -j
+        run: cmake --build --preset ci-max -j
 
       - name: Test
-        run: ctest --preset ci-gcc
+        run: ctest --preset ci-max
+
+      - name: Package
+        run: cmake --build --preset ci-max --target package
+
+      - name: Smoke test package
+        run: |
+          mkdir -p /tmp/lessampler-package
+          tar -xzf build/ci-max/lessampler-*.tar.gz -C /tmp/lessampler-package
+          /tmp/lessampler-package/*/lessampler --version
+
+      - name: Upload package
+        uses: actions/upload-artifact@v7
+        with:
+          name: lessampler-linux-x86_64
+          path: build/ci-max/lessampler-*.tar.gz*
 
       - name: Upload build metadata
         uses: actions/upload-artifact@v7
         with:
           name: ubuntu-gcc-metadata
           path: |
-            build/ci-gcc/compile_commands.json
-            build/ci-gcc/Testing
+            build/ci-max/compile_commands.json
+            build/ci-max/Testing
           if-no-files-found: ignore
-
-  gcc-llsm:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: recursive
-
-      - name: Install GCC 15 and CMake
-        run: |
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          sudo apt-get update
-          sudo apt-get install -y g++-15
-          curl -L -o /tmp/cmake.tar.gz "https://cmake.org/files/v3.31/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz"
-          tar -xzf /tmp/cmake.tar.gz -C /tmp
-          echo "/tmp/cmake-${CMAKE_VERSION}-linux-x86_64/bin" >> "$GITHUB_PATH"
-
-      - name: Configure with LLSM
-        run: cmake --preset ci-llsm
-
-      - name: Build
-        run: cmake --build --preset ci-llsm -j
-
-      - name: Test
-        run: ctest --preset ci-llsm
 
   clang:
     runs-on: ubuntu-latest

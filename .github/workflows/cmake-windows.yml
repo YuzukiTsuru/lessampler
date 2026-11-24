@@ -10,7 +10,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  msvc:
+  msvc-max:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -26,30 +26,28 @@ jobs:
           cmake --version
           cl 2>&1 | findstr /C:"Version"
 
-      - name: Configure
-        run: cmake --preset ci-msvc
+      - name: Configure with every backend
+        run: cmake --preset ci-msvc-max
 
       - name: Build
-        run: cmake --build --preset ci-msvc -j
+        run: cmake --build --preset ci-msvc-max -j
 
       - name: Test
-        run: ctest --preset ci-msvc
+        run: ctest --preset ci-msvc-max
 
-  msvc-neural:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v7
+      - name: Package
+        run: cmake --build --preset ci-msvc-max --target package
+
+      - name: Smoke test package
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem build/ci-msvc-max/lessampler-*.zip | Select-Object -First 1
+          Expand-Archive -Path $zip.FullName -DestinationPath dist -Force
+          $exe = Get-ChildItem dist -Recurse -Filter lessampler.exe | Select-Object -First 1
+          & $exe.FullName --version
+
+      - name: Upload package
+        uses: actions/upload-artifact@v7
         with:
-          submodules: recursive
-
-      - name: Set up MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Configure
-        run: cmake --preset ci-msvc-neural
-
-      - name: Build
-        run: cmake --build --preset ci-msvc-neural -j
-
-      - name: Test
-        run: ctest --preset ci-msvc-neural
+          name: lessampler-windows-x86_64
+          path: build/ci-msvc-max/lessampler-*.zip*
