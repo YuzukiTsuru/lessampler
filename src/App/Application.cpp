@@ -10,6 +10,7 @@
 
 #include "App/Application.h"
 
+#include <array>
 #include <format>
 #include <iostream>
 #include <string>
@@ -33,7 +34,46 @@ namespace lessampler {
 
     namespace {
         constexpr int kBlankSampleRate = 44100;
-    }
+
+        std::string compiler_label() {
+#if defined(__clang__)
+            return std::format("Clang {}", __clang_version__);
+#elif defined(__GNUC__)
+            return std::format("GCC {}.{}.{}", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#elif defined(_MSC_VER)
+            return std::format("MSVC {}", _MSC_VER);
+#else
+            return "unknown compiler";
+#endif
+        }
+
+        std::string architecture_label() {
+#if defined(__x86_64__) || defined(_M_X64)
+            return "x86_64";
+#elif defined(__aarch64__) || defined(_M_ARM64)
+            return "aarch64";
+#elif defined(__i386__) || defined(_M_IX86)
+            return "x86";
+#elif defined(__arm__) || defined(_M_ARM)
+            return "arm";
+#else
+            return "unknown";
+#endif
+        }
+
+        std::string platform_label() {
+#if defined(_WIN32)
+            return "windows";
+#elif defined(__APPLE__)
+            return "macos";
+#elif defined(__linux__)
+            return "linux";
+#else
+            return "unknown";
+#endif
+        }
+
+    }// namespace
 
     Application::Application(int argc, char **argv) : argc_(argc), argv_(argv) {
         exec_path_ = std::filesystem::weakly_canonical(std::filesystem::path(argv_[0])).parent_path();
@@ -47,32 +87,29 @@ namespace lessampler {
         using namespace lessampler::log;
         enable_ansi();
 
-        constexpr std::size_t width = 58;
-        const auto centered = [width](std::string_view text) {
-            if (text.size() >= width) {
-                return std::string(text);
-            }
-            const auto left = (width - text.size()) / 2;
-            return std::string(left, ' ') + std::string(text) +
-                   std::string(width - text.size() - left, ' ');
+        static constexpr std::array<std::string_view, 4> logo{
+                " _                           _         ",
+                "| |___ ___ ___ ___ _____ ___| |___ ___ ",
+                "| | -_|_ -|_ -| .'|     | . | | -_|  _|",
+                "|_|___|___|___|__,|_|_|_|  _|_|___|_|  ",
         };
-        const auto row = [&centered](std::string_view text, std::string_view tint, bool strong) {
-            std::cout << color::bright_cyan << "|" << color::reset << tint
-                      << (strong ? color::bold : std::string_view{}) << centered(text)
-                      << color::reset << color::bright_cyan << "|\n";
-        };
+        constexpr std::size_t rule_width = 39;
+        const std::string rule(rule_width, '*');
 
-        const std::string border = "+" + std::string(width, '-') + "+";
-        std::cout << '\n'
-                  << color::bright_cyan << border << color::reset << '\n';
-        row("", color::white, false);
-        row("l e s s a m p l e r", color::white, true);
-        row("singing voice synthesizer  /  UTAU resampler", color::bright_magenta, false);
-        row("", color::white, false);
-        row(std::format("version {}  /  {}", PROJECT_VER, PROJECT_GIT_HASH), color::white, false);
-        row("Copyright (c) 2018 - 2026 YuzukiTsuru", color::dim, false);
-        row("", color::white, false);
-        std::cout << color::bright_cyan << border << color::reset << '\n'
+        std::cout << '\n';
+        for (std::string_view line: logo) {
+            std::cout << color::cyan << line << color::reset << '\n';
+        }
+        std::cout << color::bright_cyan << rule << color::reset << '\n'
+                  << color::bold << std::format(" lessampler v{} Commit: {}", PROJECT_VER, PROJECT_GIT_HASH)
+                  << color::reset << '\n'
+                  << color::dim << " github.com/YuzukiTsuru/lessampler" << color::reset << '\n'
+                  << color::bright_cyan << rule << color::reset << '\n'
+                  << color::dim << std::format(" Built by: {} ({})", compiler_label(), std::format("{} {}", platform_label(), architecture_label()))
+                  << color::reset << '\n'
+                  << color::dim << std::format(" Backends: {}", backend::AvailableVocoderBackends())
+                  << color::reset << '\n'
+                  << color::dim << " Copyright (c) 2018 - 2026 YuzukiTsuru" << color::reset << '\n'
                   << std::endl;
     }
 

@@ -45,6 +45,17 @@ namespace lessampler {
             throw parameter_error("Unknown vocoder backend");
         }
 
+        std::string AvailableVocoderBackends() {
+            std::string backends = "world";
+#if defined(LESSAMPLER_ENABLE_LLSM)
+            backends += " llsm";
+#endif
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+            backends += " neural";
+#endif
+            return backends;
+        }
+
     }// namespace backend
 
 }// namespace lessampler

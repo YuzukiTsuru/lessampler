@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -82,6 +83,11 @@ namespace lessampler {
         };
 
         [[nodiscard]] std::unique_ptr<VocoderBackend> CreateVocoderBackend(VocoderKind kind);
+
+        /*
+         * Space-separated list of the backends compiled into this binary.
+         */
+        [[nodiscard]] std::string AvailableVocoderBackends();
 
     }// namespace backend
 
