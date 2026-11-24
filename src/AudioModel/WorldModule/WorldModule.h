@@ -23,10 +23,6 @@ public:
     [[nodiscard]] WorldPara TakeModule();
 
 private:
-    void F0EstimationDio();
-
-    void F0EstimationHarvest();
-
     void SpectralEnvelopeEstimation();
 
     void AperiodicityEstimation();

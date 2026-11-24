@@ -70,12 +70,12 @@ UTAUPara libUTAU::GetUTAUPara() const {
     return utauPara;
 }
 
-void libUTAU::CheckPara(const lessAudioModel &audioModel) {
-    if (audioModel.fs <= 0) {
+void libUTAU::CheckPara(const AudioInfo &audioInfo) {
+    if (audioInfo.fs <= 0) {
         throw parameter_error("The audio sample rate is invalid");
     }
 
-    utauPara.wave_length = static_cast<double>(audioModel.x_length) / static_cast<double>(audioModel.fs) * 1000.0;
+    utauPara.wave_length = static_cast<double>(audioInfo.x_length) / static_cast<double>(audioInfo.fs) * 1000.0;
     if (!(utauPara.wave_length > 0.0)) {
         throw parameter_error("The input audio is empty");
     }
@@ -122,9 +122,13 @@ void libUTAU::CheckPara(const lessAudioModel &audioModel) {
         utauPara.stretch_length = std::clamp(utauPara.pre_cross_length / utauPara.cross_length, 0.0, 1.0);
     }
 
-    const double output_samples = utauPara.required_length * 0.001 * static_cast<double>(audioModel.fs) + 1.0;
+    const double output_samples = utauPara.required_length * 0.001 * static_cast<double>(audioInfo.fs) + 1.0;
     if (output_samples <= 0.0 || output_samples > static_cast<double>(std::numeric_limits<int>::max())) {
         throw parameter_error("The requested output length is invalid");
     }
     utauPara.output_samples = static_cast<int>(output_samples);
+}
+
+void libUTAU::CheckPara(const lessAudioModel &audioModel) {
+    CheckPara(AudioInfo{audioModel.fs, audioModel.x_length, audioModel.frame_period});
 }

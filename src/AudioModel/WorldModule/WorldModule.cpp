@@ -15,10 +15,8 @@
 
 #include <world/cheaptrick.h>
 #include <world/d4c.h>
-#include <world/dio.h>
-#include <world/harvest.h>
-#include <world/stonemask.h>
 
+#include "F0Estimator.h"
 #include "Utils/LOG.h"
 #include "Utils/Timer.h"
 #include "Utils/exception.h"
@@ -30,23 +28,16 @@ WorldModule::WorldModule(std::span<const double> samples, int sample_rate, const
     }
 
     worldPara.fs = sample_rate;
-    worldPara.frame_period = configure.audio_model_frame_period;
 
     YALL_DEBUG_ << "Generate F0 from PCM file.";
 
     Timer timer;
-
-    if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_DIO) {
-        timer.SetTimer();
-        F0EstimationDio();
-        YALL_EVAL_ << timer.GetTimer("DIO F0 Estimation: ");
-    } else if (configure.f0_mode == lessConfigure::F0_MODE::F0_MODE_HARVEST) {
-        timer.SetTimer();
-        F0EstimationHarvest();
-        YALL_EVAL_ << timer.GetTimer("HARVEST F0 Estimation: ");
-    } else {
-        throw parameter_error("F0 estimation mode is unknown");
-    }
+    timer.SetTimer();
+    auto track = EstimateF0(samples, sample_rate, configure);
+    worldPara.frame_period = track.frame_period;
+    worldPara.f0 = std::move(track.f0);
+    worldPara.time_axis = std::move(track.time_axis);
+    YALL_EVAL_ << timer.GetTimer("F0 Estimation: ");
 
     YALL_DEBUG_ << "Generate Envelope from PCM file and F0.";
     timer.SetTimer();
@@ -61,41 +52,6 @@ WorldModule::WorldModule(std::span<const double> samples, int sample_rate, const
 
 WorldPara WorldModule::TakeModule() {
     return std::move(worldPara);
-}
-
-void WorldModule::F0EstimationDio() {
-    DioOption option{};
-    InitializeDioOption(&option);
-
-    option.frame_period = worldPara.frame_period;
-    option.speed = configure.f0_speed;
-    option.f0_floor = configure.f0_dio_floor;
-    option.allowed_range = configure.f0_allow_range;
-
-    const int f0_length = GetSamplesForDIO(worldPara.fs, x_length, worldPara.frame_period);
-    worldPara.f0.resize(static_cast<std::size_t>(f0_length));
-    worldPara.time_axis.resize(static_cast<std::size_t>(f0_length));
-    std::vector<double> refined_f0(static_cast<std::size_t>(f0_length));
-
-    Dio(x, x_length, worldPara.fs, &option, worldPara.time_axis.data(), worldPara.f0.data());
-    StoneMask(x, x_length, worldPara.fs, worldPara.time_axis.data(), worldPara.f0.data(), f0_length,
-              refined_f0.data());
-
-    worldPara.f0 = std::move(refined_f0);
-}
-
-void WorldModule::F0EstimationHarvest() {
-    HarvestOption option{};
-    InitializeHarvestOption(&option);
-
-    option.frame_period = worldPara.frame_period;
-    option.f0_floor = configure.f0_harvest_floor;
-
-    const int f0_length = GetSamplesForHarvest(worldPara.fs, x_length, worldPara.frame_period);
-    worldPara.f0.resize(static_cast<std::size_t>(f0_length));
-    worldPara.time_axis.resize(static_cast<std::size_t>(f0_length));
-
-    Harvest(x, x_length, worldPara.fs, &option, worldPara.time_axis.data(), worldPara.f0.data());
 }
 
 void WorldModule::SpectralEnvelopeEstimation() {

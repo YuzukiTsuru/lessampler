@@ -20,6 +20,7 @@
 
 #include "ShinePara.h"
 
+#include "AudioModel/AudioInfo.h"
 #include "AudioModel/lessAudioModel.h"
 #include "Binding/libUTAU/libUTAU.h"
 
@@ -37,6 +38,10 @@ public:
      */
     [[maybe_unused]] Shine(int argc, char *argv[], SHINE_MODE mode);
 
+    [[maybe_unused]] Shine(int argc, char *argv[], const AudioInfo &audioInfo, SHINE_MODE mode);
+
+    [[maybe_unused]] Shine(std::span<const std::string_view> args, const AudioInfo &audioInfo, SHINE_MODE mode);
+
     [[maybe_unused]] Shine(int argc, char *argv[], const lessAudioModel &audioModel, SHINE_MODE mode);
 
     [[maybe_unused]] Shine(std::span<const std::string_view> args, const lessAudioModel &audioModel, SHINE_MODE mode);
@@ -49,6 +54,8 @@ private:
     ShinePara shine_para;
 
 private:
+    void SetShine(const UTAUPara &utau_para, const AudioInfo &audioInfo);
+
     void SetShine(const UTAUPara &utau_para, const lessAudioModel &audioModel);
 
     void SetShine(const UTAUPara &utau_para);

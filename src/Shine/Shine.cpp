@@ -26,11 +26,11 @@
 
 [[maybe_unused]] Shine::Shine(ShinePara para) : shine_para(std::move(para)) {}
 
-Shine::Shine(int argc, char *argv[], const lessAudioModel &audioModel, SHINE_MODE mode) {
+Shine::Shine(int argc, char *argv[], const AudioInfo &audioInfo, SHINE_MODE mode) {
     if (mode == SHINE_MODE::UTAU) {
         libUTAU utau(argc, argv);
-        utau.CheckPara(audioModel);
-        SetShine(utau.GetUTAUPara(), audioModel);
+        utau.CheckPara(audioInfo);
+        SetShine(utau.GetUTAUPara(), audioInfo);
     }
 }
 
@@ -41,13 +41,19 @@ Shine::Shine(int argc, char **argv, Shine::SHINE_MODE mode) {
     }
 }
 
-Shine::Shine(std::span<const std::string_view> args, const lessAudioModel &audioModel, SHINE_MODE mode) {
+Shine::Shine(std::span<const std::string_view> args, const AudioInfo &audioInfo, SHINE_MODE mode) {
     if (mode == SHINE_MODE::UTAU) {
         libUTAU utau(args);
-        utau.CheckPara(audioModel);
-        SetShine(utau.GetUTAUPara(), audioModel);
+        utau.CheckPara(audioInfo);
+        SetShine(utau.GetUTAUPara(), audioInfo);
     }
 }
+
+Shine::Shine(int argc, char *argv[], const lessAudioModel &audioModel, SHINE_MODE mode)
+    : Shine(argc, argv, AudioInfo{audioModel.fs, audioModel.x_length, audioModel.frame_period}, mode) {}
+
+Shine::Shine(std::span<const std::string_view> args, const lessAudioModel &audioModel, SHINE_MODE mode)
+    : Shine(args, AudioInfo{audioModel.fs, audioModel.x_length, audioModel.frame_period}, mode) {}
 
 void Shine::SetShine(const UTAUPara &utau_para) {
     shine_para.input_file_name = utau_para.input_file_name;
@@ -55,7 +61,7 @@ void Shine::SetShine(const UTAUPara &utau_para) {
     shine_para.required_length = utau_para.required_length;
 }
 
-void Shine::SetShine(const UTAUPara &utau_para, const lessAudioModel &audioModel) {
+void Shine::SetShine(const UTAUPara &utau_para, const AudioInfo &audioInfo) {
     shine_para.input_file_name = utau_para.input_file_name;
     shine_para.output_file_name = utau_para.output_file_name;
     shine_para.time_percent = utau_para.time_percent;
@@ -75,7 +81,11 @@ void Shine::SetShine(const UTAUPara &utau_para, const lessAudioModel &audioModel
     shine_para.scale_num = utau_para.scale_num;
     shine_para.tempo_num = utau_para.tempo_num;
     shine_para.is_custom_pitch = utau_para.is_custom_pitch;
-    DecodePitchBend(audioModel.fs, audioModel.frame_period, utau_para.pitch);
+    DecodePitchBend(audioInfo.fs, audioInfo.frame_period, utau_para.pitch);
+}
+
+void Shine::SetShine(const UTAUPara &utau_para, const lessAudioModel &audioModel) {
+    SetShine(utau_para, AudioInfo{audioModel.fs, audioModel.x_length, audioModel.frame_period});
 }
 
 ShinePara Shine::GetShine() const {

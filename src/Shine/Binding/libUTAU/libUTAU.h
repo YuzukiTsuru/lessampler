@@ -15,6 +15,7 @@
 #include <string>
 #include <string_view>
 
+#include "AudioModel/AudioInfo.h"
 #include "AudioModel/lessAudioModel.h"
 
 // AudioProcess Concept
@@ -66,6 +67,8 @@ public:
     libUTAU(int argc, char *argv[]);
 
     void PrintUTAUPara() const;
+
+    void CheckPara(const AudioInfo &audioInfo);
 
     void CheckPara(const lessAudioModel &audioModel);
 
