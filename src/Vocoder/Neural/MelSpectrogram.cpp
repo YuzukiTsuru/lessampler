@@ -204,7 +204,7 @@ namespace lessampler {
         }
 
         const std::size_t frames = 1 + (padded.size() - static_cast<std::size_t>(fft_size)) /
-                                                   static_cast<std::size_t>(hop_size);
+                                               static_cast<std::size_t>(hop_size);
         std::vector<float> features(frames * static_cast<std::size_t>(mel_bins), 0.0f);
 
         std::vector<double> window(static_cast<std::size_t>(fft_size));
