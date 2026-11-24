@@ -3,22 +3,19 @@
 #include <array>
 #include <string_view>
 
-#include "Analysis/World/WorldModel.h"
+#include "Core/AudioInfo.h"
 #include "Host/UTAU/Shine.h"
 
+using namespace lessampler;
+
 int main() {
-    WorldModel model;
-    model.fs = 44100;
-    model.frame_period = 5.0;
-    model.fft_size = 1024;
-    model.w_length = 513;
-    model.x_length = 44100;
+    const AudioInfo info{44100, 44100, 5.0};
 
     std::array<std::string_view, 14> args{
             "lessampler", "in.wav", "out.wav", "A4", "100", "", "0", "1000",
             "100", "0", "100", "0", "!120", ""};
 
-    Shine shine(args, model, Shine::SHINE_MODE::UTAU);
+    Shine shine(args, info, Shine::SHINE_MODE::UTAU);
     const auto para = shine.GetShine();
     CHECK_NEAR(para.scale_num, 440.0, 1e-9);
     CHECK_EQ(para.output_samples, 44101);
@@ -32,7 +29,7 @@ int main() {
     CHECK_EQ(para.required_frame, 201);
 
     args[13] = "1E#4#";
-    Shine bent(args, model, Shine::SHINE_MODE::UTAU);
+    Shine bent(args, info, Shine::SHINE_MODE::UTAU);
     const auto bent_para = bent.GetShine();
     REQUIRE(bent_para.pitch_bend.size() >= 5);
     for (std::size_t i = 0; i < 5; ++i) {

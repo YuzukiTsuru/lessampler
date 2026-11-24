@@ -16,39 +16,43 @@
 #include <string>
 #include <string_view>
 
-class Timer {
-public:
-    Timer() : start_time(get_now()), global_start_time(start_time) {}
+namespace lessampler {
 
-    void SetTimer() {
-        start_time = get_now();
-    }
+    class Timer {
+    public:
+        Timer() : start_time(get_now()), global_start_time(start_time) {}
 
-    [[nodiscard]] std::string GetTimer(std::string_view info) const {
-        return std::format("{}{}", info, format_duration(get_now() - start_time));
-    }
-
-    [[nodiscard]] std::string EndTimer() const {
-        return format_duration(get_now() - global_start_time);
-    }
-
-private:
-    using Clock = std::chrono::steady_clock;
-    using Duration = std::chrono::duration<double, std::milli>;
-
-    static Clock::time_point get_now() {
-        return Clock::now();
-    }
-
-    static std::string format_duration(Duration duration) {
-        if (duration.count() < 1.0) {
-            return std::format("{:.0f}us", duration.count() * 1000.0);
+        void SetTimer() {
+            start_time = get_now();
         }
-        return std::format("{:.0f}ms", duration.count());
-    }
 
-    Clock::time_point start_time;
-    Clock::time_point global_start_time;
-};
+        [[nodiscard]] std::string GetTimer(std::string_view info) const {
+            return std::format("{}{}", info, format_duration(get_now() - start_time));
+        }
+
+        [[nodiscard]] std::string EndTimer() const {
+            return format_duration(get_now() - global_start_time);
+        }
+
+    private:
+        using Clock = std::chrono::steady_clock;
+        using Duration = std::chrono::duration<double, std::milli>;
+
+        static Clock::time_point get_now() {
+            return Clock::now();
+        }
+
+        static std::string format_duration(Duration duration) {
+            if (duration.count() < 1.0) {
+                return std::format("{:.0f}us", duration.count() * 1000.0);
+            }
+            return std::format("{:.0f}ms", duration.count());
+        }
+
+        Clock::time_point start_time;
+        Clock::time_point global_start_time;
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_TIMER_H

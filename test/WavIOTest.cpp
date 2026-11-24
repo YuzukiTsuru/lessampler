@@ -9,6 +9,8 @@
 
 extern "C" {
 #include <sndfile.h>
+
+using namespace lessampler;
 }
 
 int main() {

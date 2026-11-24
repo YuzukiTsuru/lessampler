@@ -7,8 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "EndToEndBinary.h"
 #include "Audio/WavIO.h"
+#include "EndToEndBinary.h"
+
+using namespace lessampler;
 
 namespace {
 

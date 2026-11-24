@@ -18,35 +18,39 @@
 #include <stdexcept>
 #include <string>
 
-class file_open_error : public std::runtime_error {
-public:
-    explicit file_open_error(const std::string &what) : std::runtime_error("Fail to open file: " + what + ".") {};
-};
+namespace lessampler {
 
-class header_check_error : public std::runtime_error {
-public:
-    header_check_error(const std::string &what, const std::string &expect) : std::runtime_error(
-                                                                                     "Header: " + what + " is not same as " + expect + ".") {};
-};
+    class file_open_error : public std::runtime_error {
+    public:
+        explicit file_open_error(const std::string &what) : std::runtime_error("Fail to open file: " + what + ".") {};
+    };
 
-class file_version_error : public std::runtime_error {
-public:
-    explicit file_version_error(const std::string &what) : std::runtime_error(what + " Version Mismatch.") {};
-};
+    class header_check_error : public std::runtime_error {
+    public:
+        header_check_error(const std::string &what, const std::string &expect) : std::runtime_error(
+                                                                                         "Header: " + what + " is not same as " + expect + ".") {};
+    };
 
-class parameter_error : public std::runtime_error {
-public:
-    explicit parameter_error(const std::string &what) : std::runtime_error("Parameter Error: " + what + ".") {};
-};
+    class file_version_error : public std::runtime_error {
+    public:
+        explicit file_version_error(const std::string &what) : std::runtime_error(what + " Version Mismatch.") {};
+    };
 
-class type_error : public std::runtime_error {
-public:
-    explicit type_error(const std::string &what) : std::runtime_error("Type Error: " + what + ".") {};
-};
+    class parameter_error : public std::runtime_error {
+    public:
+        explicit parameter_error(const std::string &what) : std::runtime_error("Parameter Error: " + what + ".") {};
+    };
 
-class audio_file_error : public std::runtime_error {
-public:
-    explicit audio_file_error(const std::string &what) : std::runtime_error("Audio File Error: " + what + ".") {};
-};
+    class type_error : public std::runtime_error {
+    public:
+        explicit type_error(const std::string &what) : std::runtime_error("Type Error: " + what + ".") {};
+    };
+
+    class audio_file_error : public std::runtime_error {
+    public:
+        explicit audio_file_error(const std::string &what) : std::runtime_error("Audio File Error: " + what + ".") {};
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_EXCEPTION_H

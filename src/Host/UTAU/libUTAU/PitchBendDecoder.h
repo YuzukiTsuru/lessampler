@@ -14,20 +14,24 @@
 #include <string_view>
 #include <vector>
 
-class PitchBendDecoder {
-public:
-    PitchBendDecoder(std::string_view pitch, int count);
+namespace lessampler {
 
-    [[nodiscard]] std::vector<int> GetPitchBend() const;
+    class PitchBendDecoder {
+    public:
+        PitchBendDecoder(std::string_view pitch, int count);
 
-private:
-    std::string_view pitch;
-    std::vector<int> pitch_bend;
+        [[nodiscard]] std::vector<int> GetPitchBend() const;
 
-private:
-    static int GetDataFromUTAU64(char value);
+    private:
+        std::string_view pitch;
+        std::vector<int> pitch_bend;
 
-    void PitchBendDecode();
-};
+    private:
+        static int GetDataFromUTAU64(char value);
+
+        void PitchBendDecode();
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_PITCHBENDDECODER_H

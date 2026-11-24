@@ -15,23 +15,27 @@
 
 #include "Config.h"
 
-class VoicebankConfig {
-public:
-    VoicebankConfig(const std::filesystem::path &voice_file_path, Config configure);
+namespace lessampler {
 
-    explicit VoicebankConfig(Config configure);
+    class VoicebankConfig {
+    public:
+        VoicebankConfig(const std::filesystem::path &voice_file_path, Config configure);
 
-    void SetVoiceConfig();
+        explicit VoicebankConfig(Config configure);
 
-    [[nodiscard]] Config GetConfig() const;
+        void SetVoiceConfig();
 
-private:
-    Config configure;
-    std::filesystem::path voice_path;
-    std::filesystem::path voice_config_path;
+        [[nodiscard]] Config GetConfig() const;
 
-private:
-    void parse_config();
-};
+    private:
+        Config configure;
+        std::filesystem::path voice_path;
+        std::filesystem::path voice_config_path;
+
+    private:
+        void parse_config();
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_CONFIGVOICEBANK_H

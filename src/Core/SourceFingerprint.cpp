@@ -12,17 +12,21 @@
 
 #include <system_error>
 
-SourceFingerprint FingerprintSource(const std::filesystem::path &path) {
-    std::error_code error;
-    const auto size = std::filesystem::file_size(path, error);
-    if (error) {
-        return {};
+namespace lessampler {
+
+    SourceFingerprint FingerprintSource(const std::filesystem::path &path) {
+        std::error_code error;
+        const auto size = std::filesystem::file_size(path, error);
+        if (error) {
+            return {};
+        }
+
+        const auto mtime = std::filesystem::last_write_time(path, error);
+        if (error) {
+            return {size, 0};
+        }
+
+        return {size, static_cast<std::int64_t>(mtime.time_since_epoch().count())};
     }
 
-    const auto mtime = std::filesystem::last_write_time(path, error);
-    if (error) {
-        return {size, 0};
-    }
-
-    return {size, static_cast<std::int64_t>(mtime.time_since_epoch().count())};
-}
+}// namespace lessampler

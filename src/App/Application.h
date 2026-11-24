@@ -1,50 +1,62 @@
 /*
  * Copyright (c) 2022. YuzukiTsuru <GloomyGhost@GloomyGhost.com>.
- * Application is free software: you can redistribute it and/or modify
+ * lessampler is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License v3.0 as published by
  *  the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * You should have received a copy of the GNU Lesser General Public License v3.0
- * along with Application. If not, see <http://www.gnu.org/licenses/>.
+ * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/2.
-//
-
-#ifndef LESSAMPLER_LESSAMPLER_H
-#define LESSAMPLER_LESSAMPLER_H
+#ifndef LESSAMPLER_APPLICATION_H
+#define LESSAMPLER_APPLICATION_H
 
 #include <filesystem>
-#include <iostream>
 
-#include "Config/ConfigLoader.h"
-#include "Core/Log.h"
+#include "Config/Config.h"
 
-class Application {
-public:
-    Application(int argc, char **argv);
+namespace lessampler {
 
-    void run();
+    /*
+ * CLI host. Parses the process arguments, selects a command, and keeps the
+ * rendering engine independent of argument parsing.
+ */
+    class Application {
+    public:
+        Application(int argc, char **argv);
 
-private:
-    int argc;
-    char **argv;
-    std::filesystem::path exec_path;
-    std::filesystem::path in_file_path;
-    Config configure;
+        void run();
 
-private:
-    const int default_fs = 44100;
+    private:
+        enum class Command {
+            none,
+            help,
+            version,
+            usage,
+            model_voicebank,
+            render_note,
+        };
 
-private:
-    [[nodiscard]] bool ParseArgs();
+        [[nodiscard]] Command parse_args() const;
 
-    static void ShowUsage();
+        void render_note();
 
-private:
-    static void show_logo();
-};
+        static void render_blank(int argc, char **argv);
 
+        void model_voicebank();
 
-#endif//LESSAMPLER_LESSAMPLER_H
+        static void show_logo();
+
+        static void show_usage();
+
+    private:
+        int argc_;
+        char **argv_;
+        std::filesystem::path exec_path_;
+        std::filesystem::path input_path_;
+        Config configure_;
+    };
+
+}// namespace lessampler
+
+#endif//LESSAMPLER_APPLICATION_H

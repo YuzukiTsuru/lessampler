@@ -13,6 +13,8 @@
 #include "App/Application.h"
 #include "Core/Log.h"
 
+using namespace lessampler;
+
 int main(int argc, char *argv[]) {
     try {
         Application application(argc, argv);

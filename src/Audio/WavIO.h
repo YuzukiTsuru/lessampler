@@ -16,34 +16,38 @@
 #include <span>
 #include <vector>
 
-struct WavData {
-    std::vector<double> samples;
-    int sample_rate = 0;
-    int channels = 0;
-};
+namespace lessampler {
 
-struct WavInfo {
-    int sample_rate = 0;
-    int channels = 0;
-    std::size_t frames = 0;
-};
+    struct WavData {
+        std::vector<double> samples;
+        int sample_rate = 0;
+        int channels = 0;
+    };
 
-class WavIO {
-public:
-    /*
+    struct WavInfo {
+        int sample_rate = 0;
+        int channels = 0;
+        std::size_t frames = 0;
+    };
+
+    class WavIO {
+    public:
+        /*
      * Read the WAV header without loading the sample data.
      */
-    static WavInfo ProbeWav(const std::filesystem::path &path);
+        static WavInfo ProbeWav(const std::filesystem::path &path);
 
-    /*
+        /*
      * Read a WAV file as mono. Multi-channel input is averaged per frame.
      */
-    static WavData ReadWav(const std::filesystem::path &path);
+        static WavData ReadWav(const std::filesystem::path &path);
 
-    /*
+        /*
      * Write mono 16-bit PCM.
      */
-    static void WriteWav(const std::filesystem::path &path, std::span<const double> x, int fs);
-};
+        static void WriteWav(const std::filesystem::path &path, std::span<const double> x, int fs);
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_WAVIO_H

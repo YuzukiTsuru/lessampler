@@ -16,66 +16,67 @@
 #include <string_view>
 
 #include "Core/AudioInfo.h"
-#include "Analysis/World/WorldModel.h"
 
-// WorldTransform Concept
-//  offset   fixed   pre_cross   blank
-//|--------|--------|---------|---------| Original Signal
-//         |        |          |
-//         |   l1   |    l2     |
-//         |--------|------------|        Output Signal
-// l1  = fixed / velocity                        -> base_length
-// l2  = pre_cross / stretch                     -> cross_length
-// l1 + l2 = required_length = argv[7]           -> required_length
+namespace lessampler {
 
-class UTAUPara {
-public:
-    // Basic Transformation Parameters
-    std::string local_name = {};
-    std::string input_file_name = {};
-    std::string output_file_name = {};
-    std::string scale_name = {};
-    int time_percent = 0;
-    double velocity = 1.0;
-    std::string flags = {};
-    double offset = 0.0;
-    double required_length = 0.0;
-    double first_half_fixed_part = 0.0;
-    double last_unused_part = 0.0;
-    double volumes = 1.0;
-    int modulation = 0;
-    std::string tempo = {};
-    std::string pitch = {};
+    // WorldTransform Concept
+    //  offset   fixed   pre_cross   blank
+    //|--------|--------|---------|---------| Original Signal
+    //         |        |          |
+    //         |   l1   |    l2     |
+    //         |--------|------------|        Output Signal
+    // l1  = fixed / velocity                        -> base_length
+    // l2  = pre_cross / stretch                     -> cross_length
+    // l1 + l2 = required_length = argv[7]           -> required_length
 
-public:
-    // Extended transformation parameters
-    double wave_length = 0.0;
-    double pre_cross_length = 0.0;
-    double base_length = 0.0;
-    double cross_length = 0.0;
-    double stretch_length = 0.0;
-    int output_samples = 0;
-    double scale_num = 0.0;
-    int tempo_num = 120;
-    bool is_custom_pitch = false;
-};
+    class UTAUPara {
+    public:
+        // Basic Transformation Parameters
+        std::string local_name = {};
+        std::string input_file_name = {};
+        std::string output_file_name = {};
+        std::string scale_name = {};
+        int time_percent = 0;
+        double velocity = 1.0;
+        std::string flags = {};
+        double offset = 0.0;
+        double required_length = 0.0;
+        double first_half_fixed_part = 0.0;
+        double last_unused_part = 0.0;
+        double volumes = 1.0;
+        int modulation = 0;
+        std::string tempo = {};
+        std::string pitch = {};
 
-class libUTAU {
-public:
-    explicit libUTAU(std::span<const std::string_view> args);
+    public:
+        // Extended transformation parameters
+        double wave_length = 0.0;
+        double pre_cross_length = 0.0;
+        double base_length = 0.0;
+        double cross_length = 0.0;
+        double stretch_length = 0.0;
+        int output_samples = 0;
+        double scale_num = 0.0;
+        int tempo_num = 120;
+        bool is_custom_pitch = false;
+    };
 
-    libUTAU(int argc, char *argv[]);
+    class libUTAU {
+    public:
+        explicit libUTAU(std::span<const std::string_view> args);
 
-    void PrintUTAUPara() const;
+        libUTAU(int argc, char *argv[]);
 
-    void CheckPara(const AudioInfo &audioInfo);
+        void PrintUTAUPara() const;
 
-    void CheckPara(const WorldModel &audioModel);
+        void CheckPara(const AudioInfo &audioInfo);
 
-    [[nodiscard]] UTAUPara GetUTAUPara() const;
+        [[nodiscard]] UTAUPara GetUTAUPara() const;
 
-private:
-    UTAUPara utauPara;
-};
+    private:
+        UTAUPara utauPara;
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_LIBUTAU_H

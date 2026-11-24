@@ -4,7 +4,9 @@
 #include <limits>
 #include <vector>
 
-#include "Analysis/World/AutoAMP.h"
+#include "Audio/AutoAMP.h"
+
+using namespace lessampler;
 
 int main() {
     std::vector<double> input{0.5, -0.25, std::numeric_limits<double>::quiet_NaN()};

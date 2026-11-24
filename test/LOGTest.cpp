@@ -6,17 +6,18 @@
 
 #include "Core/Log.h"
 
+
 int main() {
-    lessampler_log::debug_flag().store(false);
+    lessampler::log::debug_flag().store(false);
     YALL_DEBUG_ << "This debug message must stay hidden";
-    CHECK(!lessampler_log::debug_flag().load());
+    CHECK(!lessampler::log::debug_flag().load());
 
     YALL_DEBUG_.EnableDebug();
-    CHECK(lessampler_log::debug_flag().load());
+    CHECK(lessampler::log::debug_flag().load());
     YALL_DEBUG_ << "Debug is enabled";
 
     YALL_DEBUG_.DisableDebug();
-    CHECK(!lessampler_log::debug_flag().load());
+    CHECK(!lessampler::log::debug_flag().load());
 
     YALL_INFO_ << std::format("Formatted value: {}", 42);
     YALL_WARN_ << "Warning message";

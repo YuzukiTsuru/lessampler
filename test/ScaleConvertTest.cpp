@@ -2,6 +2,8 @@
 
 #include "Host/UTAU/libUTAU/ScaleConvert.h"
 
+using namespace lessampler;
+
 int main() {
     const auto a4 = ScaleConvert("A4").GetScaleNum();
     REQUIRE(a4.has_value());

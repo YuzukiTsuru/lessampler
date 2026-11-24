@@ -15,16 +15,20 @@
 #include "Dialogs.h"
 #include "Core/Log.h"
 
-Dialogs::Dialogs() {
-    // Check that a backend is available
-    if (!pfd::settings::available()) {
-        YALL_WARN_ << "Portable File Dialogs are not available on this platform.";
-    }
-    // Set verbosity to true
-    pfd::settings::verbose(true);
-}
+namespace lessampler {
 
-void Dialogs::notify(const std::string &message, const std::string &title) {
-    // Notification
-    pfd::notify(title, message, pfd::icon::info);
-}
+    Dialogs::Dialogs() {
+        // Check that a backend is available
+        if (!pfd::settings::available()) {
+            YALL_WARN_ << "Portable File Dialogs are not available on this platform.";
+        }
+        // Set verbosity to true
+        pfd::settings::verbose(true);
+    }
+
+    void Dialogs::notify(const std::string &message, const std::string &title) {
+        // Notification
+        pfd::notify(title, message, pfd::icon::info);
+    }
+
+}// namespace lessampler

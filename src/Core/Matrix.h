@@ -16,98 +16,102 @@
 #include <utility>
 #include <vector>
 
-/*
+namespace lessampler {
+
+    /*
  * Row-major dense matrix backed by one contiguous allocation. Rows are exposed
  * as spans, so callers can read or write a row without copying it.
  */
-class Matrix {
-public:
-    Matrix() = default;
+    class Matrix {
+    public:
+        Matrix() = default;
 
-    Matrix(std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols), data_(rows * cols) {}
+        Matrix(std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols), data_(rows * cols) {}
 
-    Matrix(const Matrix &) = delete;
-    Matrix &operator=(const Matrix &) = delete;
+        Matrix(const Matrix &) = delete;
+        Matrix &operator=(const Matrix &) = delete;
 
-    Matrix(Matrix &&) noexcept = default;
-    Matrix &operator=(Matrix &&) noexcept = default;
+        Matrix(Matrix &&) noexcept = default;
+        Matrix &operator=(Matrix &&) noexcept = default;
 
-    [[nodiscard]] std::size_t rows() const noexcept { return rows_; }
+        [[nodiscard]] std::size_t rows() const noexcept { return rows_; }
 
-    [[nodiscard]] std::size_t cols() const noexcept { return cols_; }
+        [[nodiscard]] std::size_t cols() const noexcept { return cols_; }
 
-    [[nodiscard]] bool empty() const noexcept { return data_.empty(); }
+        [[nodiscard]] bool empty() const noexcept { return data_.empty(); }
 
-    [[nodiscard]] std::span<double> operator[](std::size_t row) {
-        return {data_.data() + row * cols_, cols_};
-    }
+        [[nodiscard]] std::span<double> operator[](std::size_t row) {
+            return {data_.data() + row * cols_, cols_};
+        }
 
-    [[nodiscard]] std::span<const double> operator[](std::size_t row) const {
-        return {data_.data() + row * cols_, cols_};
-    }
+        [[nodiscard]] std::span<const double> operator[](std::size_t row) const {
+            return {data_.data() + row * cols_, cols_};
+        }
 
-    [[nodiscard]] std::span<double> row(std::size_t index) { return (*this)[index]; }
+        [[nodiscard]] std::span<double> row(std::size_t index) { return (*this)[index]; }
 
-    [[nodiscard]] std::span<const double> row(std::size_t index) const { return (*this)[index]; }
+        [[nodiscard]] std::span<const double> row(std::size_t index) const { return (*this)[index]; }
 
-    [[nodiscard]] double *data() noexcept { return data_.data(); }
+        [[nodiscard]] double *data() noexcept { return data_.data(); }
 
-    [[nodiscard]] const double *data() const noexcept { return data_.data(); }
+        [[nodiscard]] const double *data() const noexcept { return data_.data(); }
 
-    [[nodiscard]] std::vector<double> &values() noexcept { return data_; }
+        [[nodiscard]] std::vector<double> &values() noexcept { return data_; }
 
-    [[nodiscard]] const std::vector<double> &values() const noexcept { return data_; }
+        [[nodiscard]] const std::vector<double> &values() const noexcept { return data_; }
 
-    void assign(std::size_t rows, std::size_t cols, double value) {
-        rows_ = rows;
-        cols_ = cols;
-        data_.assign(rows * cols, value);
-    }
+        void assign(std::size_t rows, std::size_t cols, double value) {
+            rows_ = rows;
+            cols_ = cols;
+            data_.assign(rows * cols, value);
+        }
 
-    void resize(std::size_t rows, std::size_t cols) {
-        rows_ = rows;
-        cols_ = cols;
-        data_.resize(rows * cols);
-    }
+        void resize(std::size_t rows, std::size_t cols) {
+            rows_ = rows;
+            cols_ = cols;
+            data_.resize(rows * cols);
+        }
 
-    /*
+        /*
      * Temporary row-pointer view for the WORLD C API. No sample data is copied.
      */
-    [[nodiscard]] std::vector<double *> row_pointers() {
-        std::vector<double *> pointers;
-        pointers.reserve(rows_);
-        for (std::size_t i = 0; i < rows_; ++i) {
-            pointers.push_back(data_.data() + i * cols_);
+        [[nodiscard]] std::vector<double *> row_pointers() {
+            std::vector<double *> pointers;
+            pointers.reserve(rows_);
+            for (std::size_t i = 0; i < rows_; ++i) {
+                pointers.push_back(data_.data() + i * cols_);
+            }
+            return pointers;
         }
-        return pointers;
-    }
 
-    [[nodiscard]] std::vector<const double *> row_pointers() const {
-        std::vector<const double *> pointers;
-        pointers.reserve(rows_);
-        for (std::size_t i = 0; i < rows_; ++i) {
-            pointers.push_back(data_.data() + i * cols_);
+        [[nodiscard]] std::vector<const double *> row_pointers() const {
+            std::vector<const double *> pointers;
+            pointers.reserve(rows_);
+            for (std::size_t i = 0; i < rows_; ++i) {
+                pointers.push_back(data_.data() + i * cols_);
+            }
+            return pointers;
         }
-        return pointers;
-    }
 
-    /*
+        /*
      * WORLD's AddParameters() takes double** even though it does not modify the
      * parameter rows. This view avoids copying the matrix for that API.
      */
-    [[nodiscard]] std::vector<double *> mutable_row_pointers() const {
-        std::vector<double *> pointers;
-        pointers.reserve(rows_);
-        for (std::size_t i = 0; i < rows_; ++i) {
-            pointers.push_back(const_cast<double *>(data_.data() + i * cols_));
+        [[nodiscard]] std::vector<double *> mutable_row_pointers() const {
+            std::vector<double *> pointers;
+            pointers.reserve(rows_);
+            for (std::size_t i = 0; i < rows_; ++i) {
+                pointers.push_back(const_cast<double *>(data_.data() + i * cols_));
+            }
+            return pointers;
         }
-        return pointers;
-    }
 
-private:
-    std::size_t rows_ = 0;
-    std::size_t cols_ = 0;
-    std::vector<double> data_;
-};
+    private:
+        std::size_t rows_ = 0;
+        std::size_t cols_ = 0;
+        std::vector<double> data_;
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_MATRIX_H

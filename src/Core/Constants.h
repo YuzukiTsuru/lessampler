@@ -13,11 +13,13 @@
 
 #include <string_view>
 
-namespace lessampler_constants {
+namespace lessampler {
+    namespace constants {
 
-    inline constexpr std::string_view config_file_name = "lessampler.fex";
-    inline constexpr std::string_view voicebank_config_file_name = "lessvoice.fex";
+        inline constexpr std::string_view config_file_name = "lessampler.fex";
+        inline constexpr std::string_view voicebank_config_file_name = "lessvoice.fex";
 
-}// namespace lessampler_constants
+    }// namespace constants
+}// namespace lessampler
 
 #endif//LESSAMPLER_CONSTANTS_H

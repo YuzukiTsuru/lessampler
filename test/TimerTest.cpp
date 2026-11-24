@@ -5,6 +5,8 @@
 
 #include "Core/Timer.h"
 
+using namespace lessampler;
+
 int main() {
     Timer timer;
     timer.SetTimer();

@@ -23,9 +23,9 @@ add_executable(libUTAUTest libUTAUTest.cpp)
 target_link_libraries(libUTAUTest PRIVATE UTAU)
 lessampler_add_test(libUTAUTest unit)
 
-add_executable(ConfigUnitTest ConfigUnitTest.cpp)
-target_link_libraries(ConfigUnitTest PRIVATE Config)
-lessampler_add_test(ConfigUnitTest unit)
+add_executable(ConfigLoaderTest ConfigLoaderTest.cpp)
+target_link_libraries(ConfigLoaderTest PRIVATE Config)
+lessampler_add_test(ConfigLoaderTest unit)
 
 add_executable(LOGTest LOGTest.cpp)
 lessampler_add_test(LOGTest unit)
@@ -33,47 +33,47 @@ lessampler_add_test(LOGTest unit)
 add_executable(TimerTest TimerTest.cpp)
 lessampler_add_test(TimerTest unit)
 
-add_executable(AudioModelBinTest AudioModelBinTest.cpp)
-target_link_libraries(AudioModelBinTest PRIVATE Analysis Audio)
-lessampler_add_test(AudioModelBinTest integration)
+add_executable(WorldModelCacheTest WorldModelCacheTest.cpp)
+target_link_libraries(WorldModelCacheTest PRIVATE Vocoder Audio)
+lessampler_add_test(WorldModelCacheTest integration)
 
-add_executable(AudioModelBinVersionTest AudioModelBinVersionTest.cpp)
-target_link_libraries(AudioModelBinVersionTest PRIVATE Analysis Audio)
-lessampler_add_test(AudioModelBinVersionTest integration)
+add_executable(WorldModelCacheVersionTest WorldModelCacheVersionTest.cpp)
+target_link_libraries(WorldModelCacheVersionTest PRIVATE Vocoder Audio)
+lessampler_add_test(WorldModelCacheVersionTest integration)
 
-add_executable(WorldModuleTest WorldModuleTest.cpp)
-target_link_libraries(WorldModuleTest PRIVATE Analysis Audio)
-lessampler_add_test(WorldModuleTest integration)
+add_executable(WorldAnalyzerTest WorldAnalyzerTest.cpp)
+target_link_libraries(WorldAnalyzerTest PRIVATE Vocoder Audio)
+lessampler_add_test(WorldAnalyzerTest integration)
 
-add_executable(GenerateAudioModelTest GenerateAudioModelTest.cpp)
-target_link_libraries(GenerateAudioModelTest PRIVATE Engine Analysis Audio Config)
-lessampler_add_test(GenerateAudioModelTest integration)
+add_executable(VoicebankModelerTest VoicebankModelerTest.cpp)
+target_link_libraries(VoicebankModelerTest PRIVATE Engine Vocoder Audio Config)
+lessampler_add_test(VoicebankModelerTest integration)
 
-add_executable(AudioProcessTest AudioProcessTest.cpp)
-target_link_libraries(AudioProcessTest PRIVATE
-        Analysis
+add_executable(WorldPipelineTest WorldPipelineTest.cpp)
+target_link_libraries(WorldPipelineTest PRIVATE
+        Vocoder
         Audio
         Config
         Shine
         UTAU
 )
-lessampler_add_test(AudioProcessTest integration)
+lessampler_add_test(WorldPipelineTest integration)
 
-add_executable(AudioModelTest AudioModelTest.cpp)
-target_link_libraries(AudioModelTest PRIVATE Analysis)
-lessampler_add_test(AudioModelTest integration)
+add_executable(WorldModelTest WorldModelTest.cpp)
+target_link_libraries(WorldModelTest PRIVATE Vocoder)
+lessampler_add_test(WorldModelTest integration)
 
-add_executable(AudioProcessUnitTest AudioProcessUnitTest.cpp)
-target_link_libraries(AudioProcessUnitTest PRIVATE Analysis)
-lessampler_add_test(AudioProcessUnitTest unit)
+add_executable(WorldTransformTest WorldTransformTest.cpp)
+target_link_libraries(WorldTransformTest PRIVATE Vocoder)
+lessampler_add_test(WorldTransformTest unit)
 
 add_executable(AutoAMPTest AutoAMPTest.cpp)
-target_link_libraries(AutoAMPTest PRIVATE Analysis)
+target_link_libraries(AutoAMPTest PRIVATE Vocoder)
 lessampler_add_test(AutoAMPTest unit)
 
-add_executable(SynthesisTest SynthesisTest.cpp)
-target_link_libraries(SynthesisTest PRIVATE Analysis)
-lessampler_add_test(SynthesisTest integration)
+add_executable(WorldSynthesizerTest WorldSynthesizerTest.cpp)
+target_link_libraries(WorldSynthesizerTest PRIVATE Vocoder)
+lessampler_add_test(WorldSynthesizerTest integration)
 
 add_executable(WavIOTest WavIOTest.cpp)
 target_link_libraries(WavIOTest PRIVATE Audio)
@@ -86,13 +86,13 @@ lessampler_add_test(ShineTest unit)
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/EndToEndBinary.h"
         CONTENT "#pragma once\n#define LESSAMPLER_BINARY_PATH R\"lessampler($<TARGET_FILE:lessampler>)lessampler\"\n")
 
-add_executable(BackendTest BackendTest.cpp)
-target_link_libraries(BackendTest PRIVATE Backend Engine Analysis Audio Config Shine UTAU)
+add_executable(RenderEngineTest RenderEngineTest.cpp)
+target_link_libraries(RenderEngineTest PRIVATE Vocoder Engine Audio Config Shine UTAU)
 if (LESSAMPLER_ENABLE_LLSM)
-    target_compile_definitions(BackendTest PRIVATE LESSAMPLER_ENABLE_LLSM=1)
-    target_link_libraries(BackendTest PRIVATE llsm2)
+    target_compile_definitions(RenderEngineTest PRIVATE LESSAMPLER_ENABLE_LLSM=1)
+    target_link_libraries(RenderEngineTest PRIVATE llsm2)
 endif ()
-lessampler_add_test(BackendTest integration)
+lessampler_add_test(RenderEngineTest integration)
 
 add_executable(EndToEndTest EndToEndTest.cpp)
 target_link_libraries(EndToEndTest PRIVATE Audio)

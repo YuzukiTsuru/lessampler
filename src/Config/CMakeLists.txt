@@ -5,8 +5,11 @@ add_library(Config
         ConfigLoader.h
         ConfigParser.cpp
         ConfigParser.h
+        ConfigResolver.cpp
+        ConfigResolver.h
         VoicebankConfig.cpp
         VoicebankConfig.h
+        VocoderKind.h
 )
 target_link_libraries(Config PUBLIC
         Core

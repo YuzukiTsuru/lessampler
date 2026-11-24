@@ -13,10 +13,14 @@
 
 #include <cstddef>
 
-struct AudioInfo {
-    int fs = 0;
-    std::size_t x_length = 0;
-    double frame_period = 0.0;
-};
+namespace lessampler {
+
+    struct AudioInfo {
+        int fs = 0;
+        std::size_t x_length = 0;
+        double frame_period = 0.0;
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_AUDIOINFO_H

@@ -18,27 +18,31 @@
 
 #include "Config.h"
 
-/*
+namespace lessampler {
+
+    /*
  * Apply a parsed TOML table to an existing configuration. Missing keys keep
  * their current value; invalid values raise parameter_error.
  */
-void apply_config(const toml::table &table, Config &configure);
+    void apply_config(const toml::table &table, Config &configure);
 
-/*
+    /*
  * Default lessampler.fex content, including comments.
  */
-[[nodiscard]] std::string default_config_toml();
+    [[nodiscard]] std::string default_config_toml();
 
-/*
+    /*
  * Serialize the current configuration as TOML. Used when migrating the old
  * INI format.
  */
-void write_config_toml(const std::filesystem::path &path, const Config &configure);
+    void write_config_toml(const std::filesystem::path &path, const Config &configure);
 
-/*
+    /*
  * Parse the pre-TOML lessampler.fex format. Returns false when the file cannot
  * be read or contains a value that cannot be converted.
  */
-bool parse_legacy_ini_file(const std::filesystem::path &path, Config &configure);
+    bool parse_legacy_ini_file(const std::filesystem::path &path, Config &configure);
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_CONFIGPARSER_H

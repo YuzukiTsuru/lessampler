@@ -16,8 +16,7 @@ target_link_libraries(lessampler PRIVATE
         Core
         Config
         Audio
-        Analysis
-        Backend
+        Vocoder
         Engine
         Shine
         UTAU

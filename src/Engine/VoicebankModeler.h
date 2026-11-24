@@ -8,34 +8,38 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LESSAMPLER_GENERATEAUDIOMODEL_H
-#define LESSAMPLER_GENERATEAUDIOMODEL_H
+#ifndef LESSAMPLER_VOICEBANKMODELER_H
+#define LESSAMPLER_VOICEBANKMODELER_H
 
 #include <filesystem>
 #include <vector>
 
 #include "Config/Config.h"
+#include "Config/ConfigResolver.h"
 
-class VoicebankModeler {
-public:
-    VoicebankModeler(const std::filesystem::path &path, Config configure);
+namespace lessampler {
 
     /*
-     * Analyze one WAV file and write its .lessaudio sidecar.
-     */
-    static void GenerateModelForFile(const std::filesystem::path &wav_path, const Config &configure);
+ * Batch host for building .lessaudio sidecars. Uses the same analysis path
+ * and per-voicebank config resolution as note rendering.
+ */
+    class VoicebankModeler {
+    public:
+        VoicebankModeler(const std::filesystem::path &path, Config configure);
 
-    void PrintWavFiles() const;
+        void PrintWavFiles() const;
 
-private:
-    std::filesystem::path target_voice_path;
-    std::vector<std::filesystem::path> wav_files;
-    Config configure;
+    private:
+        std::filesystem::path target_voice_path_;
+        std::vector<std::filesystem::path> wav_files_;
+        ConfigResolver configs_;
 
-private:
-    void GetWavFileLists();
+    private:
+        void GetWavFileLists();
 
-    void GenerateModelFromFile();
-};
+        void GenerateModelFromFile();
+    };
 
-#endif//LESSAMPLER_GENERATEAUDIOMODEL_H
+}// namespace lessampler
+
+#endif//LESSAMPLER_VOICEBANKMODELER_H

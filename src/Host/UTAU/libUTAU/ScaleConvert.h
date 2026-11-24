@@ -15,16 +15,20 @@
 #include <string>
 #include <string_view>
 
-class ScaleConvert {
-public:
-    explicit ScaleConvert(std::string_view scale_name);
+namespace lessampler {
 
-    [[nodiscard]] std::expected<double, std::string> GetScaleNum() const;
+    class ScaleConvert {
+    public:
+        explicit ScaleConvert(std::string_view scale_name);
 
-private:
-    static std::expected<double, std::string> ScaleConvertToDouble(std::string_view scale_name);
+        [[nodiscard]] std::expected<double, std::string> GetScaleNum() const;
 
-    std::expected<double, std::string> scale_num_;
-};
+    private:
+        static std::expected<double, std::string> ScaleConvertToDouble(std::string_view scale_name);
+
+        std::expected<double, std::string> scale_num_;
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_SCALECONVERT_H

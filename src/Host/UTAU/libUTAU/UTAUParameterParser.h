@@ -16,14 +16,18 @@
 
 #include "libUTAU.h"
 
-class UTAUParameterParser {
-public:
-    explicit UTAUParameterParser(std::span<const std::string_view> args);
+namespace lessampler {
 
-    [[nodiscard]] UTAUPara get_para() const;
+    class UTAUParameterParser {
+    public:
+        explicit UTAUParameterParser(std::span<const std::string_view> args);
 
-private:
-    UTAUPara utauPara;
-};
+        [[nodiscard]] UTAUPara get_para() const;
+
+    private:
+        UTAUPara utauPara;
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_UTAUPARAMETERPARSER_H

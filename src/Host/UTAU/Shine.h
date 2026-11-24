@@ -21,47 +21,44 @@
 #include "Core/RenderParams.h"
 
 #include "Core/AudioInfo.h"
-#include "Analysis/World/WorldModel.h"
 #include "Host/UTAU/libUTAU/libUTAU.h"
 
-class Shine {
-public:
-    enum class SHINE_MODE {
-        UTAU,
-    };
+namespace lessampler {
 
-public:
-    [[maybe_unused]] explicit Shine(RenderParams para);
+    class Shine {
+    public:
+        enum class SHINE_MODE {
+            UTAU,
+        };
 
-    /*
+    public:
+        [[maybe_unused]] explicit Shine(RenderParams para);
+
+        /*
      * Shine only for blank output
      */
-    [[maybe_unused]] Shine(int argc, char *argv[], SHINE_MODE mode);
+        [[maybe_unused]] Shine(int argc, char *argv[], SHINE_MODE mode);
 
-    [[maybe_unused]] Shine(int argc, char *argv[], const AudioInfo &audioInfo, SHINE_MODE mode);
+        [[maybe_unused]] Shine(int argc, char *argv[], const AudioInfo &audioInfo, SHINE_MODE mode);
 
-    [[maybe_unused]] Shine(std::span<const std::string_view> args, const AudioInfo &audioInfo, SHINE_MODE mode);
+        [[maybe_unused]] Shine(std::span<const std::string_view> args, const AudioInfo &audioInfo, SHINE_MODE mode);
 
-    [[maybe_unused]] Shine(int argc, char *argv[], const WorldModel &audioModel, SHINE_MODE mode);
+        ~Shine() = default;
 
-    [[maybe_unused]] Shine(std::span<const std::string_view> args, const WorldModel &audioModel, SHINE_MODE mode);
+        [[nodiscard]] RenderParams GetShine() const;
 
-    ~Shine() = default;
+    private:
+        RenderParams shine_para;
 
-    [[nodiscard]] RenderParams GetShine() const;
+    private:
+        void SetShine(const UTAUPara &utau_para, const AudioInfo &audioInfo);
 
-private:
-    RenderParams shine_para;
+        void SetShine(const UTAUPara &utau_para);
 
-private:
-    void SetShine(const UTAUPara &utau_para, const AudioInfo &audioInfo);
+        void DecodePitchBend(int fs, double frame_period, std::string_view pitch);
+    };
 
-    void SetShine(const UTAUPara &utau_para, const WorldModel &audioModel);
 
-    void SetShine(const UTAUPara &utau_para);
-
-    void DecodePitchBend(int fs, double frame_period, std::string_view pitch);
-};
-
+}// namespace lessampler
 
 #endif//LESSAMPLER_SHINE_H

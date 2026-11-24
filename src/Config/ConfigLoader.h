@@ -15,24 +15,28 @@
 
 #include "Config.h"
 
-class ConfigLoader {
-public:
-    explicit ConfigLoader(const std::filesystem::path &exec_path);
+namespace lessampler {
 
-    void SetConfig(const std::filesystem::path &exec_path);
+    class ConfigLoader {
+    public:
+        explicit ConfigLoader(const std::filesystem::path &exec_path);
 
-    ~ConfigLoader();
+        void SetConfig(const std::filesystem::path &exec_path);
 
-    [[nodiscard]] Config GetConfig() const;
+        ~ConfigLoader();
 
-private:
-    std::filesystem::path config_file_path;
-    Config configure;
+        [[nodiscard]] Config GetConfig() const;
 
-private:
-    void load_or_create();
+    private:
+        std::filesystem::path config_file_path;
+        Config configure;
 
-    void migrate_legacy_ini();
-};
+    private:
+        void load_or_create();
+
+        void migrate_legacy_ini();
+    };
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_CONFIGUNIT_H

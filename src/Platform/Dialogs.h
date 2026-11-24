@@ -13,14 +13,18 @@
 
 #include <portable-file-dialogs.h>
 
-class Dialogs {
-public:
-    Dialogs();
+namespace lessampler {
 
-    static void notify(const std::string &message, const std::string &title);
+    class Dialogs {
+    public:
+        Dialogs();
 
-private:
-};
+        static void notify(const std::string &message, const std::string &title);
 
+    private:
+    };
+
+
+}// namespace lessampler
 
 #endif//LESSAMPLER_DIALOGS_H
