@@ -1,4 +1,11 @@
-# Library ConfigUnit
-file(GLOB ConfigUnit_source *.cpp *.h)
-add_library(ConfigUnit ${ConfigUnit_source})
-target_link_libraries(ConfigUnit PRIVATE inicpp)
+add_library(ConfigUnit
+        ConfigUnit.cpp
+        ConfigUnit.h
+        ConfigVoiceBank.cpp
+        ConfigVoiceBank.h
+        ConfigParser.cpp
+        ConfigParser.h
+        lessConfigure.cpp
+        lessConfigure.h
+)
+target_link_libraries(ConfigUnit PUBLIC tomlplusplus::tomlplusplus lessampler_common)

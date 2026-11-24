@@ -8,66 +8,42 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by Ghost Gloomy on 2020/8/27.
-//
-
 #ifndef LESSAMPLER_AUDIOMODELIO_H
 #define LESSAMPLER_AUDIOMODELIO_H
 
-#include <iostream>
-#include <fstream>
 #include <filesystem>
-#include <cstring>
+#include <string_view>
 
 #include "AudioModel/lessAudioModel.h"
 #include "ConfigUnit/lessConfigure.h"
 
 class AudioModelIO {
 public:
-    AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel, lessConfigure configure);
+    AudioModelIO(std::filesystem::path Path, const lessAudioModel &audioModel, lessConfigure configure);
 
     explicit AudioModelIO(std::filesystem::path Path);
 
     ~AudioModelIO();
 
-    [[maybe_unused]] void SetFilePath(const std::filesystem::path &Path);
+    [[nodiscard]] const lessAudioModel &GetAudioModel() const;
 
-    [[maybe_unused]] void SetAudioModel(lessAudioModel audioModel);
+    [[nodiscard]] bool CheckAudioModel(const lessConfigure &configure) const;
 
-    [[maybe_unused]] std::filesystem::path GetFilePath();
+    void SaveAudioModel() const;
 
-    [[maybe_unused]] lessAudioModel GetAudioModel();
-
-    bool CheckAudioModel(lessConfigure configure);
-
-    void SaveAudioModel();
-
-    lessAudioModel ReadAudioModel(lessConfigure configure);
+    [[nodiscard]] const lessAudioModel &ReadAudioModel(const lessConfigure &configure);
 
 private:
-    lessAudioModel _audioModel{};
+    const lessAudioModel *_audioModel = nullptr;
+    lessAudioModel _ownedModel{};
     lessConfigure _configure{};
-    std::filesystem::path root_file_path{};
     std::filesystem::path in_file_path{};
     std::filesystem::path audio_model_file_path{};
 
-protected:
-    const std::string audio_model_file_ext = "lessaudio"; // lessaudio model file extition
-    const char lessaudio_header[6] = {'s', 'h', 'i', 'n', 'e', '\0'};  // lessaudio model file header
-    const char lessaudio_ending[5] = {'5', '4', '0', '2', '\0'};  // lessaudio model file end
+    static constexpr std::string_view audio_model_file_ext = "lessaudio";
 
 private:
-    std::ofstream WriteAudioContent();
-
-    void ReadAudioContent();
-
     void GenerateFilePath();
-
-    bool CheckAudioModelVersion();
-
-private:
-    static bool CheckAudioModelFile(const std::filesystem::path &path);
 };
 
-#endif //LESSAMPLER_AUDIOMODELIO_H
+#endif//LESSAMPLER_AUDIOMODELIO_H

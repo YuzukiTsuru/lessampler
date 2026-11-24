@@ -30,7 +30,7 @@ public:
     int required_frame = 0;
     double first_half_fixed_part = 0.0;
     double last_unused_part = 0.0;
-    double volumes = 0;
+    double volumes = 1.0;
     int modulation = 0;
     double wave_length = 0.0;
     double pre_cross_length = 0.0;
@@ -53,6 +53,7 @@ public:
     bool is_gender = false;
     bool is_breath = false;
     bool is_opening = false;
+
 public:
     // option data
     double gender_value = 0.0;
@@ -60,4 +61,4 @@ public:
     double opening = 0.0;
 };
 
-#endif //LESSAMPLER_SHINEPARA_H
+#endif//LESSAMPLER_SHINEPARA_H

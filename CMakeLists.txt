@@ -1,10 +1,11 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30...4.2)
 
-# Set Version, Release need cmake
+project(lessampler LANGUAGES C CXX)
+
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 0)
 
-# use git version as library version
+# Use the git commit count as the patch version and the short hash for display.
 find_package(Git QUIET)
 if (Git_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
     execute_process(
@@ -15,96 +16,149 @@ if (Git_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
     )
     execute_process(
             COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%h
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             OUTPUT_VARIABLE PROJECT_GIT_HASH
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
-            WORKING_DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}
     )
 else ()
     set(_git_version 0)
     set(PROJECT_GIT_HASH "")
 endif ()
+set(PROJECT_VERSION_PATCH ${_git_version})
+set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
-project(lessampler LANGUAGES C CXX VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${_git_version})
-
-set(CMAKE_CXX_STANDARD 20)
-
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" AND "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -EHsc")
+# C++26 requires GCC 15+, Clang 19+, or an MSVC toolchain driven in /std:c++latest mode.
+if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # CMake does not map CXX_STANDARD 26 to MSVC yet. CXX_STANDARD 23 selects
+    # /std:c++latest, which is the mode we want for the latest MSVC features.
+    set(CMAKE_CXX_STANDARD 23)
+else ()
+    set(CMAKE_CXX_STANDARD 26)
 endif ()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Add support for -DDEBUG_MODE=ON
-set(DEBUG_SUFFIX)
-if (CMAKE_BUILD_TYPE STREQUAL Debug)
-    ADD_DEFINITIONS(-DDEBUG_MODE)
-    set(DEBUG_SUFFIX "d")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15)
+    message(FATAL_ERROR "lessampler requires GCC 15 or newer, found ${CMAKE_CXX_COMPILER_VERSION}")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19)
+    message(FATAL_ERROR "lessampler requires Clang 19 or newer, found ${CMAKE_CXX_COMPILER_VERSION}")
 endif ()
-
-# Generate Configure file
-configure_file(
-        "${PROJECT_SOURCE_DIR}/config.h.in"
-        "${PROJECT_BINARY_DIR}/lessconfig.h"
-)
 
 if (MSVC)
-    configure_file(
-            "${PROJECT_SOURCE_DIR}/assets/lessampler.rc.in"
-            "${PROJECT_BINARY_DIR}/lessampler.rc"
-    )
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        configure_file(
+                "${PROJECT_SOURCE_DIR}/assets/lessampler.rc.in"
+                "${PROJECT_BINARY_DIR}/lessampler.rc"
+        )
+    endif ()
 endif ()
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-
 find_package(Threads REQUIRED)
 
+# Project options
+option(LESSAMPLER_BUILD_TESTS "Build the test executables and register them with CTest" ON)
+option(LESSAMPLER_BUILD_TOOLS "Build helper tools" ON)
+option(LESSAMPLER_ENABLE_SANITIZERS "Build with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
+option(LESSAMPLER_DUMP_DATA "Enable verbose per-sample debug dumps" OFF)
+option(LESSAMPLER_TIME_EVAL "Print timing evaluation messages" OFF)
+option(LESSAMPLER_WERROR "Treat compiler warnings as errors" OFF)
+
+# Common settings shared by every first-party target.
+add_library(lessampler_common INTERFACE)
+target_include_directories(lessampler_common INTERFACE
+        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_BINARY_DIR}"
+)
+if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_features(lessampler_common INTERFACE cxx_std_23)
+else ()
+    target_compile_features(lessampler_common INTERFACE cxx_std_26)
+endif ()
+target_compile_definitions(lessampler_common INTERFACE $<$<CONFIG:Debug>:DEBUG_MODE=1>)
+
+if (LESSAMPLER_DUMP_DATA)
+    target_compile_definitions(lessampler_common INTERFACE LESSAMPLER_DUMP_DATA=1)
+endif ()
+if (LESSAMPLER_TIME_EVAL)
+    target_compile_definitions(lessampler_common INTERFACE LESSAMPLER_TIME_EVAL=1)
+endif ()
+
+if (MSVC)
+    target_compile_options(lessampler_common INTERFACE /W4 /utf-8 /permissive-)
+else ()
+    target_compile_options(lessampler_common INTERFACE
+            -Wall -Wextra -Wpedantic -Wshadow -Wnon-virtual-dtor
+    )
+endif ()
+
+if (LESSAMPLER_WERROR)
+    if (MSVC)
+        target_compile_options(lessampler_common INTERFACE /WX)
+    else ()
+        target_compile_options(lessampler_common INTERFACE -Werror)
+    endif ()
+endif ()
+
+if (LESSAMPLER_ENABLE_SANITIZERS)
+    if (MSVC)
+        target_compile_options(lessampler_common INTERFACE /fsanitize=address)
+    else ()
+        target_compile_options(lessampler_common INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer)
+        target_link_options(lessampler_common INTERFACE -fsanitize=address,undefined)
+    endif ()
+endif ()
+
+# Third-party options. Keep them scoped to the subprojects that read them.
 set(WORLD_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(WORLD_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(FTXUI_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(FTXUI_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(FTXUI_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-set(INICPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(INICPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+
 set(BUILD_PROGRAMS OFF CACHE BOOL "" FORCE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(ENABLE_CPACK OFF CACHE BOOL "" FORCE)
 set(ENABLE_MPEG OFF CACHE BOOL "" FORCE)
 set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
-# Only for rapidjson
-set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
-set(RAPIDJSON_BUILD_DOC OFF CACHE BOOL "" FORCE)
-set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(RAPIDJSON_BUILD_THIRDPARTY_GTEST OFF CACHE BOOL "" FORCE)
-set(RAPIDJSON_BUILD_CXX11 OFF CACHE BOOL "" FORCE)
-set(RAPIDJSON_BUILD_CXX17 ON CACHE BOOL "" FORCE)
-set(RAPIDJSON_ENABLE_INSTRUMENTATION_OPT OFF CACHE BOOL "" FORCE)
+set(tomlplusplus_INSTALL OFF CACHE BOOL "" FORCE)
+set(tomlplusplus_BUILD_LIB OFF CACHE BOOL "" FORCE)
+set(tomlplusplus_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(tomlplusplus_BUILD_TOML_TEST OFF CACHE BOOL "" FORCE)
+set(tomlplusplus_BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE)
+set(TOMLPLUSPLUS_BUILD_MODULES OFF CACHE BOOL "" FORCE)
+set(tomlplusplus_REGENERATE OFF CACHE BOOL "" FORCE)
 
-# subdirectory
+# CMake 4 rejects third-party projects that still declare cmake_minimum_required < 3.5.
+# Setting this only around add_subdirectory() keeps our own policy version intact.
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 4.0)
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+endif ()
+
 add_subdirectory(lib/World EXCLUDE_FROM_ALL)
 add_subdirectory(lib/dialog EXCLUDE_FROM_ALL)
-add_subdirectory(lib/inicpp EXCLUDE_FROM_ALL)
-add_subdirectory(lib/ftxui EXCLUDE_FROM_ALL)
-add_subdirectory(lib/rapidjson EXCLUDE_FROM_ALL)
 add_subdirectory(lib/sndfile EXCLUDE_FROM_ALL)
+add_subdirectory(lib/tomlplusplus EXCLUDE_FROM_ALL)
 
-# include header files
-include_directories(
-        src
-        lib/dialog
-        lib/ColorCout/includes
-        lib/World/src
-        lib/World/tools
-        lib/ftxui/include
-        lib/inicpp/include
-        lib/rapidjson/include
-        lib/sndfile/include
-        ${PROJECT_BINARY_DIR}
-        ${PROJECT_BINARY_DIR}/lib/sndfile/include
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 4.0)
+    unset(CMAKE_POLICY_VERSION_MINIMUM)
+endif ()
+
+# Generate lessconfig.h before any target compiles.
+configure_file(
+        "${PROJECT_SOURCE_DIR}/config.h.in"
+        "${PROJECT_BINARY_DIR}/lessconfig.h"
 )
 
 add_subdirectory(src)
-add_subdirectory(test)
-add_subdirectory(tools)
+
+if (LESSAMPLER_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(test)
+endif ()
+
+if (LESSAMPLER_BUILD_TOOLS)
+    add_subdirectory(tools)
+endif ()

@@ -8,102 +8,114 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <sstream>
+#include "UTAUParameterParser.h"
 
-#if MSVC
-#include <algorithm>
-#endif
+#include <charconv>
+#include <cmath>
+#include <format>
+#include <string>
 
+#include "ScaleConvert.h"
 #include "Utils/exception.h"
 
-#include "UTAUParameterPaser.h"
-#include "ScaleConvert.h"
+namespace {
 
-UTAUParameterParser::UTAUParameterParser(int argc, char *argv[]) {
-    utauPara.local_name = argv[0];
-    utauPara.input_file_name = argv[1];
-    utauPara.output_file_name = argv[2];
-    utauPara.scale_name = argv[3];
-    ScaleConvert scaleConvert(utauPara.scale_name);
-    utauPara.scale_num = scaleConvert.GetScaleNum();
-
-    // velocity
-    if (argc > 4) {
-        std::istringstream sstream(argv[4]);
-        sstream >> utauPara.time_percent;
-        utauPara.velocity = pow(2, utauPara.time_percent / 100.0 - 1.0);
-        sstream.clear();
+    template<typename T>
+    T parse_number(std::string_view text, std::string_view name) {
+        T value{};
+        const auto *begin = text.data();
+        const auto *end = begin + text.size();
+        const auto result = std::from_chars(begin, end, value);
+        if (result.ec != std::errc{} || result.ptr != end) {
+            throw parameter_error(std::format("Invalid {}: {}", name, text));
+        }
+        return value;
     }
 
-    if (argc > 5) {
-        std::istringstream sstream(argv[5]);
-        sstream >> utauPara.flags;
-        sstream.clear();
+    std::string_view argument(std::span<const std::string_view> args, std::size_t index) {
+        return index < args.size() ? args[index] : std::string_view{};
     }
 
-    // offset
-    if (argc > 6) {
-        std::istringstream sstream(argv[6]);
-        sstream >> utauPara.offset;
-        sstream.clear();
+}// namespace
+
+UTAUParameterParser::UTAUParameterParser(std::span<const std::string_view> args) {
+    if (args.size() < 4) {
+        throw parameter_error("too few arguments for the UTAU resampler protocol");
     }
 
-    // require length
-    if (argc > 7) {
-        std::istringstream sstream(argv[7]);
-        sstream >> utauPara.required_length;
-        sstream.clear();
+    utauPara.local_name = std::string(args[0]);
+    utauPara.input_file_name = std::string(args[1]);
+    utauPara.output_file_name = std::string(args[2]);
+    utauPara.scale_name = std::string(args[3]);
+
+    if (args.size() > 4) {
+        utauPara.time_percent = parse_number<int>(args[4], "time percent");
+        utauPara.velocity = std::pow(2.0, utauPara.time_percent / 100.0 - 1.0);
+    } else {
+        utauPara.velocity = 1.0;
     }
 
-    // fixed length
-    if (argc > 8) {
-        std::istringstream sstream(argv[8]);
-        sstream >> utauPara.first_half_fixed_part;
-        sstream.clear();
+    if (args.size() > 5) {
+        utauPara.flags = std::string(args[5]);
     }
 
-    // blank length
-    if (argc > 9) {
-        std::istringstream sstream(argv[9]);
-        sstream >> utauPara.last_unused_part;
-        sstream.clear();
+    if (args.size() > 6) {
+        utauPara.offset = parse_number<double>(args[6], "offset");
     }
 
-    // volume
-    if (argc > 10) {
-        std::istringstream sstream(argv[10]);
-        sstream >> utauPara.volumes;
-        utauPara.volumes *= 0.01;
-        sstream.clear();
+    if (args.size() > 7) {
+        utauPara.required_length = parse_number<double>(args[7], "required length");
     }
 
-    // modulation
-    if (argc > 11) {
-        std::istringstream sstream(argv[11]);
-        sstream >> utauPara.modulation;
-        sstream.clear();
+    if (args.size() > 8) {
+        utauPara.first_half_fixed_part = parse_number<double>(args[8], "fixed length");
     }
 
-    // tempo
-    if (argc > 12) {
-        std::istringstream sstream(argv[12]);
-        sstream >> utauPara.tempo;
-        if (utauPara.tempo.find('!') != std::string::npos && utauPara.tempo.starts_with("!"))
-            utauPara.tempo_num = std::stoi(utauPara.tempo.substr(1, utauPara.tempo.length()));
-        else
-            utauPara.tempo_num = std::stoi(utauPara.tempo.substr(2, utauPara.tempo.length()));
-        sstream.clear();
+    if (args.size() > 9) {
+        utauPara.last_unused_part = parse_number<double>(args[9], "last unused length");
     }
 
-    // pitchbend
-    if (argc > 13) {
+    if (args.size() > 10) {
+        utauPara.volumes = parse_number<double>(args[10], "volume") * 0.01;
+    } else {
+        utauPara.volumes = 1.0;
+    }
+
+    if (args.size() > 11) {
+        utauPara.modulation = parse_number<int>(args[11], "modulation");
+    }
+
+    if (args.size() > 12) {
+        utauPara.tempo = std::string(args[12]);
+        std::string_view tempo = argument(args, 12);
+        if (tempo.starts_with('!')) {
+            tempo.remove_prefix(1);
+        }
+        if (tempo.empty()) {
+            utauPara.tempo_num = 120;
+        } else {
+            utauPara.tempo_num = static_cast<int>(std::lround(parse_number<double>(tempo, "tempo")));
+            if (utauPara.tempo_num <= 0) {
+                throw parameter_error("Tempo must be greater than zero");
+            }
+        }
+    } else {
+        utauPara.tempo_num = 120;
+    }
+
+    if (args.size() > 13) {
         utauPara.is_custom_pitch = true;
-        std::istringstream sstream(argv[13]);
-        sstream >> utauPara.pitch;
+        utauPara.pitch = std::string(args[13]);
     }
+
+    ScaleConvert scale_convert(utauPara.scale_name);
+    const auto scale = scale_convert.GetScaleNum();
+    if (!scale) {
+        throw parameter_error("Invalid note name '" + utauPara.scale_name + "': " + scale.error());
+    }
+    utauPara.scale_num = *scale;
 }
 
-UTAUPara UTAUParameterParser::get_para() {
+UTAUPara UTAUParameterParser::get_para() const {
     return utauPara;
 }

@@ -8,99 +8,33 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/21.
-//
-
-#include <cmath>
-#include <utility>
-
 #include "AutoAMP.h"
+
+#include <algorithm>
+#include <cmath>
+
 #include "Utils/LOG.h"
 
-AutoAMP::AutoAMP(ShinePara shine, double *x) : shine(std::move(shine)) {
-    this->x_length = this->shine.output_samples;
-    this->x = x;
-    this->x_out = new double[x_length];
-
-    YALL_DEBUG_ << "The X_LENGTH is: " + std::to_string(x_length);
-
-    GetMaxAMP();
-    YALL_DEBUG_ << "Get Max AMP is: " + std::to_string(MaxAMP);
-
-    SetDefaultValue();
-    YALL_DEBUG_ << "The Default PCM is: " + std::to_string(sample_value);
-
-    YALL_DEBUG_ << "Diminished Consonant Fricative...";
-    DiminishedConsonantFricative();
-
-    YALL_DEBUG_ << "Limit maximum amplitude";
-    LimitMaximumAmplitude();
-}
-
-AutoAMP::AutoAMP(double *x, int x_length, double amp_val) {
-    this->x_length = x_length;
-    this->x = x;
-    x_out = new double[x_length];
-    YALL_DEBUG_ << "The X_LENGTH is: " + std::to_string(x_length);
-    GetMaxAMP();
-    YALL_DEBUG_ << "Get Max AMP is: " + std::to_string(MaxAMP);
-    YALL_DEBUG_ << "Diminished Consonant Fricative...";
-    DiminishedConsonantFricative(amp_val);
-    YALL_DEBUG_ << "Limit maximum amplitude";
-    LimitMaximumAmplitude();
-}
-
-double *AutoAMP::GetAMP() {
-    return x_out;
-}
-
-void AutoAMP::GetMaxAMP() {
-    for (int i = 0; i < x_length - 1; ++i) {
-        if (!std::isnan(x[i])) {
-            if (MaxAMP < std::abs(x[i])) {
-                MaxAMP = std::abs(x[i]);
-            }
+double AutoAMP::MaxAmplitude(std::span<const double> samples) {
+    double maximum = 0.0;
+    for (double value: samples) {
+        if (!std::isnan(value)) {
+            maximum = std::max(maximum, std::abs(value));
         }
     }
-    if (MaxAMP == 0.0) {
+    return maximum;
+}
+
+void AutoAMP::ApplyInPlace(std::span<double> samples, double volume) {
+    const double maximum = MaxAmplitude(samples);
+    if (maximum == 0.0) {
         YALL_WARN_ << "Max AMP is Zero.";
+        std::fill(samples.begin(), samples.end(), 0.0);
+        return;
     }
-}
 
-void AutoAMP::SetDefaultValue() {
-    // TODO: This is a UTAU flag
-    sample_value = default_sample_value;
-}
-
-void AutoAMP::DiminishedConsonantFricative() {
-    for (int i = 0; i < x_length; ++i) {
-        // remove blank fricatives
-        if (std::isnan(x[i])) {
-            x_out[i] = 0.0;
-        } else {
-            x_out[i] = x[i] * 0.5 * shine.volumes / MaxAMP;
-        }
-    }
-}
-
-void AutoAMP::DiminishedConsonantFricative(double amp_volumes) {
-    for (int i = 0; i < x_length; ++i) {
-        // remove blank fricatives
-        if (std::isnan(x[i])) {
-            x_out[i] = 0.0;
-        } else {
-            x_out[i] = x[i] * 0.5 * amp_volumes / MaxAMP;
-        }
-    }
-}
-
-void AutoAMP::LimitMaximumAmplitude() {
-    for (int i = 0; i < x_length; ++i) {
-        if (x_out[i] > MaxValue) {
-            x_out[i] = MaxValue;
-        } else if (x_out[i] < MinValue) {
-            x_out[i] = MinValue;
-        }
+    const auto scale = 0.5 * volume / maximum;
+    for (double &value: samples) {
+        value = std::isnan(value) ? 0.0 : std::clamp(value * scale, MinValue, MaxValue);
     }
 }

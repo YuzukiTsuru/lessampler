@@ -5,17 +5,19 @@ add_subdirectory(FileIO)
 add_subdirectory(Shine)
 add_subdirectory(AudioProcess)
 
-file(GLOB lessampler_source *.cpp *.h)
+add_executable(lessampler main.cpp lessampler.cpp lessampler.h)
 
-if (MSVC)
-    list(APPEND ICON ${PROJECT_BINARY_DIR}/lessampler.rc)
-    add_executable(lessampler ${lessampler_source} ${ICON})
-else ()
-    add_executable(lessampler ${lessampler_source})
+if (MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_sources(lessampler PRIVATE ${PROJECT_BINARY_DIR}/lessampler.rc)
 endif ()
 
-target_link_libraries(lessampler PRIVATE AudioModel AudioProcess FileIO Dialogs UTAU ConfigUnit Threads::Threads)
-
-if (MSVC)
-    target_compile_options(lessampler PUBLIC "/utf-8")
-endif ()
+target_link_libraries(lessampler PRIVATE
+        AudioModel
+        AudioProcess
+        FileIO
+        Dialogs
+        UTAU
+        ConfigUnit
+        lessampler_common
+        Threads::Threads
+)

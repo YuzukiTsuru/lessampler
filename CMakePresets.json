@@ -1,0 +1,151 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 30,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "LESSAMPLER_BUILD_TESTS": "ON",
+        "LESSAMPLER_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "release-gcc",
+      "displayName": "Release with GCC 15",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "gcc-15",
+        "CMAKE_CXX_COMPILER": "g++-15"
+      }
+    },
+    {
+      "name": "debug-gcc",
+      "displayName": "Debug with GCC 15",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "gcc-15",
+        "CMAKE_CXX_COMPILER": "g++-15"
+      }
+    },
+    {
+      "name": "asan-gcc",
+      "displayName": "ASan/UBSan with GCC 15",
+      "inherits": "debug-gcc",
+      "cacheVariables": {
+        "LESSAMPLER_ENABLE_SANITIZERS": "ON"
+      }
+    },
+    {
+      "name": "ci-gcc",
+      "displayName": "CI release build with GCC 15",
+      "inherits": "release-gcc",
+      "binaryDir": "${sourceDir}/build/ci-gcc"
+    },
+    {
+      "name": "ci-clang",
+      "displayName": "CI release build with Clang 21",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/ci-clang",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang-21",
+        "CMAKE_CXX_COMPILER": "clang++-21"
+      }
+    },
+    {
+      "name": "ci-msvc",
+      "displayName": "CI build with MSVC",
+      "inherits": "base",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/ci-msvc",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release-gcc",
+      "configurePreset": "release-gcc"
+    },
+    {
+      "name": "debug-gcc",
+      "configurePreset": "debug-gcc"
+    },
+    {
+      "name": "asan-gcc",
+      "configurePreset": "asan-gcc"
+    },
+    {
+      "name": "ci-gcc",
+      "configurePreset": "ci-gcc",
+      "configuration": "Release"
+    },
+    {
+      "name": "ci-clang",
+      "configurePreset": "ci-clang"
+    },
+    {
+      "name": "ci-msvc",
+      "configurePreset": "ci-msvc",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "release-gcc",
+      "configurePreset": "release-gcc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug-gcc",
+      "configurePreset": "debug-gcc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "asan-gcc",
+      "configurePreset": "asan-gcc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-gcc",
+      "configurePreset": "ci-gcc",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-clang",
+      "configurePreset": "ci-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-msvc",
+      "configurePreset": "ci-msvc",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

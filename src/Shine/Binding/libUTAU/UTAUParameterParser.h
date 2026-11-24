@@ -8,23 +8,22 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/6/18.
-//
+#ifndef LESSAMPLER_UTAUPARAMETERPARSER_H
+#define LESSAMPLER_UTAUPARAMETERPARSER_H
 
-#ifndef LESSAMPLER_VECTORWRAPPER_H
-#define LESSAMPLER_VECTORWRAPPER_H
+#include <span>
+#include <string_view>
 
-#include <iostream>
-#include <vector>
+#include "libUTAU.h"
 
-template<typename T, int N>
-struct VectorWrapper {
-    explicit VectorWrapper(T (&D)[N]) {
-        std::copy(D, D + N, std::back_inserter(v));
-    }
+class UTAUParameterParser {
+public:
+    explicit UTAUParameterParser(std::span<const std::string_view> args);
 
-    std::vector<T> v;
+    [[nodiscard]] UTAUPara get_para() const;
+
+private:
+    UTAUPara utauPara;
 };
 
-#endif //LESSAMPLER_VECTORWRAPPER_H
+#endif//LESSAMPLER_UTAUPARAMETERPARSER_H

@@ -1,3 +1,12 @@
-file(GLOB audio_process_source *.cpp *.h)
-add_library(AudioProcess ${audio_process_source})
-target_link_libraries(AudioProcess PRIVATE Shine AudioModel Threads::Threads)
+add_library(AudioProcess
+        AudioProcess.cpp
+        AudioProcess.h
+        AutoAMP.cpp
+        AutoAMP.h
+)
+target_link_libraries(AudioProcess PRIVATE
+        Shine
+        AudioModel
+        lessampler_common
+        Threads::Threads
+)

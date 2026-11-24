@@ -1,4 +1,16 @@
-# Library FileIO
-file(GLOB FileIO_source *.cpp *.h)
-add_library(FileIO ${FileIO_source})
-target_link_libraries(FileIO sndfile)
+add_library(FileIO
+        AudioModelIO.cpp
+        AudioModelIO.h
+        GenerateAudioModel.cpp
+        GenerateAudioModel.h
+        WavIO.cpp
+        WavIO.h
+)
+target_link_libraries(FileIO PUBLIC
+        SndFile::sndfile
+        AudioModel
+        AudioProcess
+        ConfigUnit
+        lessampler_common
+        Threads::Threads
+)

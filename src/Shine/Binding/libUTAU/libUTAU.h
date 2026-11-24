@@ -11,14 +11,11 @@
 #ifndef LESSAMPLER_LIBUTAU_H
 #define LESSAMPLER_LIBUTAU_H
 
-#include <iostream>
-#include "FlagsDecoder.h"
-#include "AudioModel/lessAudioModel.h"
+#include <span>
+#include <string>
+#include <string_view>
 
-class UTAUFlags {
-public:
-    bool isLoopStratch = false;
-};
+#include "AudioModel/lessAudioModel.h"
 
 // AudioProcess Concept
 //  offset   fixed   pre_cross   blank
@@ -38,13 +35,13 @@ public:
     std::string output_file_name = {};
     std::string scale_name = {};
     int time_percent = 0;
-    double velocity = 0.0;
+    double velocity = 1.0;
     std::string flags = {};
     double offset = 0.0;
     double required_length = 0.0;
     double first_half_fixed_part = 0.0;
     double last_unused_part = 0.0;
-    double volumes = 0;
+    double volumes = 1.0;
     int modulation = 0;
     std::string tempo = {};
     std::string pitch = {};
@@ -58,25 +55,24 @@ public:
     double stretch_length = 0.0;
     int output_samples = 0;
     double scale_num = 0.0;
-    int tempo_num = 0;
+    int tempo_num = 120;
     bool is_custom_pitch = false;
 };
 
 class libUTAU {
 public:
+    explicit libUTAU(std::span<const std::string_view> args);
+
     libUTAU(int argc, char *argv[]);
 
     void PrintUTAUPara() const;
 
-    void CheckPara(const lessAudioModel& audioModel);
+    void CheckPara(const lessAudioModel &audioModel);
 
-    [[maybe_unused]] [[nodiscard]] UTAUPara GetUTAUPara() const;
-
-    [[nodiscard]] UTAUFlags GetUTAUFlags() const;
+    [[nodiscard]] UTAUPara GetUTAUPara() const;
 
 private:
     UTAUPara utauPara;
-    UTAUFlags utauFlags;
 };
 
-#endif //LESSAMPLER_LIBUTAU_H
+#endif//LESSAMPLER_LIBUTAU_H

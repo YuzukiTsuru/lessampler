@@ -8,13 +8,15 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <exception>
+
 #include <lessampler.h>
 
 int main(int argc, char *argv[]) {
     try {
         lessampler lessampler(argc, argv);
         lessampler.run();
-    } catch (const std::runtime_error &error) {
+    } catch (const std::exception &error) {
         YALL_ERROR_ << error.what();
         return -1;
     }

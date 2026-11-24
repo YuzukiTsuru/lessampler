@@ -8,27 +8,16 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by Ghost Gloomy on 2020/8/27.
-//
+#ifndef LESSAMPLER_CONSTANTS_H
+#define LESSAMPLER_CONSTANTS_H
 
-#ifndef LESSAMPLER_JSONFILEIO_H
-#define LESSAMPLER_JSONFILEIO_H
+#include <string_view>
 
-#include <iostream>
-#include "AudioModel/lessAudioModel.h"
+namespace lessampler_constants {
 
-class JSONFileIO {
-public:
-    JSONFileIO(lessAudioModel audioModel, std::string path);
+    inline constexpr std::string_view config_file_name = "lessampler.fex";
+    inline constexpr std::string_view voicebank_config_file_name = "lessvoice.fex";
 
-private:
-    lessAudioModel _audioModel;
-    std::string Path;
+}// namespace lessampler_constants
 
-private:
-    void SaveJsonModel();
-};
-
-
-#endif //LESSAMPLER_JSONFILEIO_H
+#endif//LESSAMPLER_CONSTANTS_H

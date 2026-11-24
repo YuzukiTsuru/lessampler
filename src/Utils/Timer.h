@@ -8,62 +8,47 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/6/23.
-//
+#ifndef LESSAMPLER_TIMER_H
+#define LESSAMPLER_TIMER_H
 
-#include <iostream>
 #include <chrono>
+#include <format>
+#include <string>
+#include <string_view>
 
 class Timer {
 public:
-    Timer() {
-        g_start_time = get_perf_count();
-        start_time = g_start_time;
-    };
+    Timer() : start_time(get_now()), global_start_time(start_time) {}
 
     void SetTimer() {
-        end_time = 0;
-        start_time = get_perf_count();
+        start_time = get_now();
     }
 
-    uint64_t GetTimer() {
-        end_time = get_perf_count();
-        return end_time - start_time;
+    [[nodiscard]] std::string GetTimer(std::string_view info) const {
+        return std::format("{}{}", info, format_duration(get_now() - start_time));
     }
 
-    std::string GetTimer(const std::string &info) {
-        end_time = get_perf_count();
-        return [&]() -> std::string {
-            auto time = end_time - start_time;
-            if (time / 1000 == 0)
-                return info + std::to_string(end_time - start_time) + "us";
-            else
-                return info + std::to_string((end_time - start_time) / 1000) + "ms";
-        }();
+    [[nodiscard]] std::string EndTimer() const {
+        return format_duration(get_now() - global_start_time);
     }
-
-    std::string EndTimer() {
-        g_end_time = get_perf_count();
-        return [&]() -> std::string {
-            auto time = g_end_time - g_start_time;
-            if (time / 1000 == 0)
-                return std::to_string(g_end_time - g_start_time) + "us";
-            else
-                return std::to_string((g_end_time - g_start_time) / 1000) + "ms";
-        }();
-    }
-
-protected:
-    uint64_t start_time = 0;
-    uint64_t end_time = 0;
-
-    uint64_t g_start_time = 0;
-    uint64_t g_end_time = 0;
 
 private:
-    static uint64_t get_perf_count() {
-        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-    };
+    using Clock = std::chrono::steady_clock;
+    using Duration = std::chrono::duration<double, std::milli>;
+
+    static Clock::time_point get_now() {
+        return Clock::now();
+    }
+
+    static std::string format_duration(Duration duration) {
+        if (duration.count() < 1.0) {
+            return std::format("{:.0f}us", duration.count() * 1000.0);
+        }
+        return std::format("{:.0f}ms", duration.count());
+    }
+
+    Clock::time_point start_time;
+    Clock::time_point global_start_time;
 };
 
+#endif//LESSAMPLER_TIMER_H

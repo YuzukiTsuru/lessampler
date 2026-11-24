@@ -1,7 +1,15 @@
-# Library UTAU
-file(GLOB utau_source *.cpp *.h)
-add_library(UTAU ${utau_source})
+add_library(UTAU
+        libUTAU.cpp
+        libUTAU.h
+        PitchBendDecoder.cpp
+        PitchBendDecoder.h
+        ScaleConvert.cpp
+        ScaleConvert.h
+        UTAUParameterParser.cpp
+        UTAUParameterParser.h
+)
+target_link_libraries(UTAU PUBLIC lessampler_common)
 
 if (MSVC)
-    set_target_properties(UTAU PROPERTIES COMPILE_FLAGS "/wd4819")
+    target_compile_options(UTAU PRIVATE /wd4819)
 endif ()

@@ -5,43 +5,33 @@
  *  the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  * You should have received a copy of the GNU Lesser General Public License v3.0
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
-
-//
-// Created by gloom on 2022/8/21.
-//
 
 #ifndef LESSAMPLER_CONFIGVOICEBANK_H
 #define LESSAMPLER_CONFIGVOICEBANK_H
 
 #include <filesystem>
-#include <iostream>
-
-#include <inicpp/inicpp.h>
 
 #include "lessConfigure.h"
 
 class ConfigVoiceBank {
 public:
-    ConfigVoiceBank(std::filesystem::path _voice_path, lessConfigure _configure);
+    ConfigVoiceBank(const std::filesystem::path &voice_file_path, lessConfigure configure);
 
-    explicit ConfigVoiceBank(lessConfigure _configure);
+    explicit ConfigVoiceBank(lessConfigure configure);
 
     void SetVoiceConfig();
+
+    [[nodiscard]] lessConfigure GetConfig() const;
 
 private:
     lessConfigure configure;
     std::filesystem::path voice_path;
     std::filesystem::path voice_config_path;
-    inicpp::config config;
-    inicpp::schema config_schema;
-    std::string config_file_data_string;
 
 private:
     void parse_config();
-
 };
 
-
-#endif //LESSAMPLER_CONFIGVOICEBANK_H
+#endif//LESSAMPLER_CONFIGVOICEBANK_H

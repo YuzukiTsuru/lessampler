@@ -26,7 +26,7 @@ public:
 class header_check_error : public std::runtime_error {
 public:
     header_check_error(const std::string &what, const std::string &expect) : std::runtime_error(
-            "Header: " + what + " is not same as " + expect + ".") {};
+                                                                                     "Header: " + what + " is not same as " + expect + ".") {};
 };
 
 class file_version_error : public std::runtime_error {
@@ -49,4 +49,4 @@ public:
     explicit audio_file_error(const std::string &what) : std::runtime_error("Audio File Error: " + what + ".") {};
 };
 
-#endif //LESSAMPLER_EXCEPTION_H
+#endif//LESSAMPLER_EXCEPTION_H

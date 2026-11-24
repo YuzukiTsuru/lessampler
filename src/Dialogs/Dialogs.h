@@ -23,4 +23,4 @@ private:
 };
 
 
-#endif //LESSAMPLER_DIALOGS_H
+#endif//LESSAMPLER_DIALOGS_H

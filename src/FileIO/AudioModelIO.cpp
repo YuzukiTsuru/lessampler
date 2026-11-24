@@ -8,218 +8,347 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#include "AudioModelIO.h"
+
+#include <algorithm>
+#include <array>
+#include <bit>
+#include <cstdint>
+#include <cstring>
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <span>
+#include <string>
+#include <system_error>
+#include <type_traits>
 #include <utility>
 
-#include "AudioModelIO.h"
 #include "Utils/LOG.h"
 #include "Utils/exception.h"
 
-AudioModelIO::AudioModelIO(std::filesystem::path Path, lessAudioModel audioModel, lessConfigure configure) :
-        in_file_path(std::move(Path)), _audioModel(std::move(audioModel)), _configure(std::move(configure)) {
-    root_file_path = in_file_path;
+namespace {
+
+    constexpr std::array<char, 4> kMagic{'L', 'S', 'A', 'M'};
+    constexpr std::array<char, 4> kTrailer{'E', 'N', 'D', '2'};
+    constexpr std::uint32_t kFormatVersion = 2;
+    constexpr std::uint64_t kMaxFrames = 10'000'000;
+    constexpr std::uint32_t kMaxStringLength = 4096;
+    constexpr std::uint64_t kMaxSamples = 100'000'000;
+
+    struct SourceFingerprint {
+        std::uint64_t size = 0;
+        std::int64_t mtime = 0;
+    };
+
+    struct ModelMetadata {
+        std::uint32_t version = 0;
+        std::string checksum;
+        SourceFingerprint source;
+        std::uint64_t x_length = 0;
+        std::int32_t fs = 0;
+        double frame_period = 0.0;
+        std::uint32_t w_length = 0;
+        std::uint32_t fft_size = 0;
+        std::uint64_t f0_length = 0;
+    };
+
+    SourceFingerprint fingerprint_of(const std::filesystem::path &path) {
+        std::error_code error;
+        const auto size = std::filesystem::file_size(path, error);
+        if (error) {
+            return {};
+        }
+
+        const auto mtime = std::filesystem::last_write_time(path, error);
+        if (error) {
+            return {size, 0};
+        }
+
+        return {size, static_cast<std::int64_t>(mtime.time_since_epoch().count())};
+    }
+
+    template<typename T>
+    void write_scalar(std::ostream &out, T value) {
+        static_assert(std::is_trivially_copyable_v<T>);
+        std::array<std::byte, sizeof(T)> bytes{};
+        std::memcpy(bytes.data(), &value, sizeof(T));
+        if constexpr (std::endian::native == std::endian::big) {
+            std::ranges::reverse(bytes);
+        }
+        out.write(reinterpret_cast<const char *>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+    }
+
+    template<typename T>
+    T read_scalar(std::istream &in) {
+        static_assert(std::is_trivially_copyable_v<T>);
+        std::array<std::byte, sizeof(T)> bytes{};
+        in.read(reinterpret_cast<char *>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+        if (!in) {
+            throw audio_file_error("truncated .lessaudio file");
+        }
+        if constexpr (std::endian::native == std::endian::big) {
+            std::ranges::reverse(bytes);
+        }
+        T value{};
+        std::memcpy(&value, bytes.data(), sizeof(T));
+        return value;
+    }
+
+    void write_magic(std::ostream &out, const std::array<char, 4> &magic) {
+        out.write(magic.data(), static_cast<std::streamsize>(magic.size()));
+    }
+
+    void read_magic(std::istream &in, const std::array<char, 4> &expected, std::string_view what) {
+        std::array<char, 4> actual{};
+        in.read(actual.data(), static_cast<std::streamsize>(actual.size()));
+        if (!in || actual != expected) {
+            throw header_check_error(std::string(what), std::string(expected.data(), expected.size()));
+        }
+    }
+
+    void write_doubles(std::ostream &out, std::span<const double> values) {
+        if constexpr (std::endian::native == std::endian::little) {
+            out.write(reinterpret_cast<const char *>(values.data()),
+                      static_cast<std::streamsize>(values.size() * sizeof(double)));
+        } else {
+            for (double value: values) {
+                write_scalar<double>(out, value);
+            }
+        }
+    }
+
+    void read_doubles(std::istream &in, std::span<double> values) {
+        if constexpr (std::endian::native == std::endian::little) {
+            in.read(reinterpret_cast<char *>(values.data()),
+                    static_cast<std::streamsize>(values.size() * sizeof(double)));
+            if (!in) {
+                throw audio_file_error("truncated .lessaudio file");
+            }
+        } else {
+            for (double &value: values) {
+                value = read_scalar<double>(in);
+            }
+        }
+    }
+
+    void write_string(std::ostream &out, std::string_view value) {
+        if (value.size() > kMaxStringLength) {
+            throw parameter_error("String is too long for .lessaudio");
+        }
+        write_scalar<std::uint32_t>(out, static_cast<std::uint32_t>(value.size()));
+        out.write(value.data(), static_cast<std::streamsize>(value.size()));
+    }
+
+    std::string read_string(std::istream &in) {
+        const auto length = read_scalar<std::uint32_t>(in);
+        if (length > kMaxStringLength) {
+            throw audio_file_error("Invalid string length in .lessaudio file");
+        }
+        std::string value(length, '\0');
+        in.read(value.data(), static_cast<std::streamsize>(length));
+        if (!in) {
+            throw audio_file_error("truncated .lessaudio file");
+        }
+        return value;
+    }
+
+    ModelMetadata read_metadata(std::istream &in) {
+        read_magic(in, kMagic, "model header");
+
+        ModelMetadata metadata;
+        metadata.version = read_scalar<std::uint32_t>(in);
+        if (metadata.version != kFormatVersion) {
+            throw file_version_error("Unsupported .lessaudio format");
+        }
+
+        metadata.checksum = read_string(in);
+        metadata.source.size = read_scalar<std::uint64_t>(in);
+        metadata.source.mtime = read_scalar<std::int64_t>(in);
+        metadata.x_length = read_scalar<std::uint64_t>(in);
+        metadata.fs = read_scalar<std::int32_t>(in);
+        metadata.frame_period = read_scalar<double>(in);
+        metadata.w_length = read_scalar<std::uint32_t>(in);
+        metadata.fft_size = read_scalar<std::uint32_t>(in);
+        metadata.f0_length = read_scalar<std::uint64_t>(in);
+
+        if (metadata.fs <= 0 || metadata.frame_period <= 0.0 || metadata.fft_size == 0 || metadata.w_length != metadata.fft_size / 2 + 1 || metadata.f0_length == 0 || metadata.f0_length > kMaxFrames || metadata.x_length > kMaxSamples) {
+            throw audio_file_error("Invalid metadata in .lessaudio file");
+        }
+
+        return metadata;
+    }
+
+    void validate_against(const ModelMetadata &metadata, const lessConfigure &configure,
+                          const SourceFingerprint &source) {
+        if (metadata.checksum != configure.fingerprint()) {
+            throw file_version_error("Configuration does not match .lessaudio checksum");
+        }
+        if (metadata.source.size != source.size || metadata.source.mtime != source.mtime) {
+            throw file_version_error("Source WAV changed since .lessaudio was generated");
+        }
+    }
+
+    std::uint64_t remaining_bytes(std::istream &in) {
+        const auto position = in.tellg();
+        if (position < 0) {
+            throw audio_file_error("Cannot determine .lessaudio file position");
+        }
+        in.seekg(0, std::ios::end);
+        const auto end = in.tellg();
+        in.seekg(position);
+        if (end < position) {
+            throw audio_file_error("Truncated .lessaudio file");
+        }
+        return static_cast<std::uint64_t>(end - position);
+    }
+
+    Matrix read_frames(std::istream &in, std::uint64_t frame_count, std::uint32_t w_length) {
+        const auto row_bytes = static_cast<std::uint64_t>(sizeof(std::uint32_t)) + static_cast<std::uint64_t>(w_length) * sizeof(double);
+        if (frame_count > kMaxFrames || row_bytes == 0 || frame_count > remaining_bytes(in) / row_bytes) {
+            throw audio_file_error("Too many frames in .lessaudio file");
+        }
+
+        Matrix frames(static_cast<std::size_t>(frame_count), w_length);
+        for (std::size_t i = 0; i < frames.rows(); ++i) {
+            const auto row_length = read_scalar<std::uint32_t>(in);
+            if (row_length != w_length) {
+                throw audio_file_error("Invalid frame width in .lessaudio file");
+            }
+            read_doubles(in, frames[i]);
+        }
+        return frames;
+    }
+
+    void write_frames(std::ostream &out, const Matrix &frames) {
+        write_scalar<std::uint64_t>(out, static_cast<std::uint64_t>(frames.rows()));
+        for (std::size_t i = 0; i < frames.rows(); ++i) {
+            write_scalar<std::uint32_t>(out, static_cast<std::uint32_t>(frames.cols()));
+            write_doubles(out, frames[i]);
+        }
+    }
+
+}// namespace
+
+AudioModelIO::AudioModelIO(std::filesystem::path Path, const lessAudioModel &audioModel, lessConfigure configure)
+    : _audioModel(&audioModel), _configure(std::move(configure)), in_file_path(std::move(Path)) {
     GenerateFilePath();
 }
 
 AudioModelIO::AudioModelIO(std::filesystem::path Path) : in_file_path(std::move(Path)) {
-    root_file_path = in_file_path;
+    _audioModel = &_ownedModel;
     GenerateFilePath();
 }
 
 AudioModelIO::~AudioModelIO() = default;
 
-[[maybe_unused]] void AudioModelIO::SetFilePath(const std::filesystem::path &Path) {
-    root_file_path = Path;
-    GenerateFilePath();
+const lessAudioModel &AudioModelIO::GetAudioModel() const {
+    return *_audioModel;
 }
 
-[[maybe_unused]] void AudioModelIO::SetAudioModel(lessAudioModel audioModel) {
-    _audioModel = std::move(audioModel);
-}
-
-[[maybe_unused]] lessAudioModel AudioModelIO::GetAudioModel() {
-    return _audioModel;
-}
-
-[[maybe_unused]] std::filesystem::path AudioModelIO::GetFilePath() {
-    return root_file_path;
-}
-
-void AudioModelIO::SaveAudioModel() {
-    // TODO: impl LZ4Stream to compress files
-    auto audio_out_model = WriteAudioContent();
-    audio_out_model.close();
-}
-
-lessAudioModel AudioModelIO::ReadAudioModel(lessConfigure configure) {
-    _configure = std::move(configure);
-    ReadAudioContent();
-    return _audioModel;
-}
-
-bool AudioModelIO::CheckAudioModelFile(const std::filesystem::path &path) {
-    return std::filesystem::exists(path);
-}
-
-bool AudioModelIO::CheckAudioModel(lessConfigure configure) {
-    _configure = std::move(configure);
-
-    YALL_DEBUG_ << "Check AudioModel File: " + in_file_path.string();
-
-    if (!CheckAudioModelFile(audio_model_file_path)) {
-        YALL_DEBUG_ << "Audio Model NOT Exist.";
+bool AudioModelIO::CheckAudioModel(const lessConfigure &configure) const {
+    if (!std::filesystem::exists(audio_model_file_path)) {
         return false;
-    } else {
-        if (!CheckAudioModelVersion()){
-            YALL_WARN_ << "Audio Model Exist, But Version Check Fail. Regenerate...";
+    }
+
+    try {
+        std::ifstream in(audio_model_file_path, std::ios::binary);
+        if (!in) {
             return false;
         }
-        YALL_DEBUG_ << "Audio Model Exist.";
+
+        const auto metadata = read_metadata(in);
+        validate_against(metadata, configure, fingerprint_of(in_file_path));
         return true;
+    } catch (const std::exception &error) {
+        YALL_WARN_ << std::format("Audio model is not reusable: {}", error.what());
+        return false;
     }
 }
 
-std::ofstream AudioModelIO::WriteAudioContent() {
-    std::ofstream audio_out_model(audio_model_file_path, std::ios::out | std::ios::binary);
-
-    // Write Header
-    audio_out_model.write(lessaudio_header, sizeof(char) * 6);
-
-    // Write Check
-    std::streamsize ver_string_size = _configure.get_version().size();
-    auto ver_string = _configure.get_version();
-    audio_out_model.write(reinterpret_cast<const char *>(&ver_string_size), sizeof(std::streamsize));
-    audio_out_model.write(ver_string.c_str(), ver_string_size * sizeof(char));
-
-    // Write model basic data
-    int x_length = _audioModel.x.size();
-    audio_out_model.write(reinterpret_cast<const char *>(&x_length), sizeof(int));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.fs), sizeof(int));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.frame_period), sizeof(double));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.w_length), sizeof(int));
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.fft_size), sizeof(int));
-
-    // Write model data
-    // Store f0 size
-    std::streamsize f0_size = _audioModel.f0.size();
-    audio_out_model.write(reinterpret_cast<const char *>(&f0_size), sizeof(std::streamsize));
-    // Store f0 contents
-    audio_out_model.write(reinterpret_cast<const char *>(&_audioModel.f0[0]), f0_size * sizeof(double));
-
-    std::streamsize sp_size = _audioModel.spectrogram.size();
-    audio_out_model.write(reinterpret_cast<const char *>(&sp_size), sizeof(std::streamsize));
-    for (auto &item: _audioModel.spectrogram) {
-        // Store sp size
-        std::streamsize size = item.size();
-        audio_out_model.write(reinterpret_cast<const char *>(&size), sizeof(std::streamsize));
-
-        // Store sp contents
-        audio_out_model.write(reinterpret_cast<const char *>(&item[0]), item.size() * sizeof(double));
+void AudioModelIO::SaveAudioModel() const {
+    const auto &model = GetAudioModel();
+    const auto temporary_path = audio_model_file_path.string() + ".tmp";
+    std::ofstream out(temporary_path, std::ios::binary | std::ios::trunc);
+    if (!out) {
+        throw file_open_error(temporary_path);
     }
 
-    std::streamsize ap_size = _audioModel.aperiodicity.size();
-    audio_out_model.write(reinterpret_cast<const char *>(&ap_size), sizeof(std::streamsize));
-    for (auto &item: _audioModel.aperiodicity) {
-        // Store ap size
-        auto size = item.size();
-        audio_out_model.write(reinterpret_cast<const char *>(&size), sizeof(std::streamsize));
+    write_magic(out, kMagic);
+    write_scalar<std::uint32_t>(out, kFormatVersion);
+    write_string(out, _configure.fingerprint());
 
-        // Store ap contents
-        audio_out_model.write(reinterpret_cast<const char *>(&item[0]), item.size() * sizeof(double));
+    const auto source = fingerprint_of(in_file_path);
+    write_scalar<std::uint64_t>(out, source.size);
+    write_scalar<std::int64_t>(out, source.mtime);
+    write_scalar<std::uint64_t>(out, static_cast<std::uint64_t>(model.x_length));
+    write_scalar<std::int32_t>(out, static_cast<std::int32_t>(model.fs));
+    write_scalar<double>(out, model.frame_period);
+    write_scalar<std::uint32_t>(out, static_cast<std::uint32_t>(model.w_length));
+    write_scalar<std::uint32_t>(out, static_cast<std::uint32_t>(model.fft_size));
+
+    write_scalar<std::uint64_t>(out, static_cast<std::uint64_t>(model.f0.size()));
+    write_doubles(out, model.f0);
+
+    write_frames(out, model.spectrogram);
+    write_frames(out, model.aperiodicity);
+
+    write_magic(out, kTrailer);
+    out.close();
+    if (!out) {
+        throw file_open_error(temporary_path);
     }
 
-    // Write Ending
-    audio_out_model.write(lessaudio_ending, sizeof(char) * 5);
-
-    return audio_out_model;
-}
-
-void AudioModelIO::ReadAudioContent() {
-    std::ifstream audio_in_model(audio_model_file_path, std::ios::in | std::ios::binary);
-
-    // Check Header
-    auto header = new char[6];
-    audio_in_model.read(header, sizeof(char) * 6);
-    if (std::string(lessaudio_header) != std::string(header)) {
-        throw header_check_error(header, lessaudio_header);
-    }
-
-    std::streamsize ver_string_size;
-    audio_in_model.read(reinterpret_cast<char *>(&ver_string_size), sizeof(std::streamsize));
-    std::vector<char> _temp(ver_string_size);
-    audio_in_model.read(reinterpret_cast<char *>(&_temp[0]), std::streamsize(ver_string_size * sizeof(char)));
-    std::string ver_string(_temp.begin(), _temp.end());
-
-    if (ver_string != _configure.get_version()){
-        throw file_version_error("Please Regenerate Audio Model");
-    }
-
-    // Read basic audio
-    int x_length;
-    audio_in_model.read(reinterpret_cast<char *>(&x_length), sizeof(int));
-    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.fs), sizeof(int));
-    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.frame_period), sizeof(double));
-    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.w_length), sizeof(int));
-    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.fft_size), sizeof(int));
-
-    _audioModel.x.resize(x_length);
-
-    // Read f0 data
-    std::streamsize f0_length_size = 0;
-    audio_in_model.read(reinterpret_cast<char *>(&f0_length_size), sizeof(std::streamsize));
-    _audioModel.f0.resize(f0_length_size);
-    audio_in_model.read(reinterpret_cast<char *>(&_audioModel.f0[0]), std::streamsize(f0_length_size * sizeof(double)));
-
-    std::streamsize sp_length_size = 0;
-    audio_in_model.read(reinterpret_cast<char *>(&sp_length_size), sizeof(std::streamsize));
-    for (std::streamsize n = 0; n < sp_length_size; ++n) {
-        std::streamsize sp_inner_length_size = 0;
-        audio_in_model.read(reinterpret_cast<char *>(&sp_inner_length_size), sizeof(std::streamsize));
-        _audioModel.spectrogram.resize(sp_length_size, std::vector<double>(sp_inner_length_size));
-        audio_in_model.read(reinterpret_cast<char *>(&_audioModel.spectrogram[n][0]), std::streamsize(sp_inner_length_size * sizeof(double)));
-    }
-
-    std::streamsize ap_length_size = 0;
-    audio_in_model.read(reinterpret_cast<char *>(&ap_length_size), sizeof(std::streamsize));
-    for (std::streamsize n = 0; n < ap_length_size; ++n) {
-        std::streamsize ap_inner_length_size = 0;
-        audio_in_model.read(reinterpret_cast<char *>(&ap_inner_length_size), sizeof(std::streamsize));
-        _audioModel.aperiodicity.resize(ap_length_size, std::vector<double>(ap_inner_length_size));
-        audio_in_model.read(reinterpret_cast<char *>(&_audioModel.aperiodicity[n][0]), std::streamsize(ap_inner_length_size * sizeof(double)));
-    }
-
-    // Check end
-    auto end = new char[6];
-    audio_in_model.read(end, sizeof(char) * 6);
-    if (std::string(lessaudio_ending) != std::string(end)) {
-        throw header_check_error(end, lessaudio_ending);
+    std::error_code error;
+    std::filesystem::remove(audio_model_file_path, error);
+    error.clear();
+    std::filesystem::rename(temporary_path, audio_model_file_path, error);
+    if (error) {
+        throw file_open_error(audio_model_file_path.string());
     }
 }
 
+const lessAudioModel &AudioModelIO::ReadAudioModel(const lessConfigure &configure) {
+    std::ifstream in(audio_model_file_path, std::ios::binary);
+    if (!in) {
+        throw file_open_error(audio_model_file_path.string());
+    }
+
+    const auto metadata = read_metadata(in);
+    validate_against(metadata, configure, fingerprint_of(in_file_path));
+
+    if (metadata.f0_length > remaining_bytes(in) / sizeof(double)) {
+        throw audio_file_error("Truncated f0 data in .lessaudio file");
+    }
+
+    _ownedModel = lessAudioModel{};
+    _ownedModel.x_length = static_cast<std::size_t>(metadata.x_length);
+    _ownedModel.fs = metadata.fs;
+    _ownedModel.frame_period = metadata.frame_period;
+    _ownedModel.w_length = static_cast<int>(metadata.w_length);
+    _ownedModel.fft_size = static_cast<int>(metadata.fft_size);
+
+    _ownedModel.f0.resize(static_cast<std::size_t>(metadata.f0_length));
+    read_doubles(in, _ownedModel.f0);
+
+    const auto frame_count = read_scalar<std::uint64_t>(in);
+    if (frame_count != metadata.f0_length) {
+        throw audio_file_error("Spectrogram frame count does not match f0 length");
+    }
+    _ownedModel.spectrogram = read_frames(in, frame_count, metadata.w_length);
+
+    const auto aperiodicity_count = read_scalar<std::uint64_t>(in);
+    if (aperiodicity_count != metadata.f0_length) {
+        throw audio_file_error("Aperiodicity frame count does not match f0 length");
+    }
+    _ownedModel.aperiodicity = read_frames(in, aperiodicity_count, metadata.w_length);
+
+    read_magic(in, kTrailer, "model trailer");
+    _audioModel = &_ownedModel;
+    return _ownedModel;
+}
 
 void AudioModelIO::GenerateFilePath() {
-    audio_model_file_path = root_file_path.replace_extension(audio_model_file_ext);
-}
-
-bool AudioModelIO::CheckAudioModelVersion() {
-    std::ifstream audio_in_model(audio_model_file_path, std::ios::in | std::ios::binary);
-
-    // Check Header
-    auto header = new char[6];
-    audio_in_model.read(header, sizeof(char) * 6);
-    if (std::string(lessaudio_header) != std::string(header)) {
-        return false;
-    }
-
-    // Check Model Para
-    std::streamsize ver_string_size;
-    audio_in_model.read(reinterpret_cast<char *>(&ver_string_size), sizeof(std::streamsize));
-    std::vector<char> _temp(ver_string_size);
-    audio_in_model.read(reinterpret_cast<char *>(&_temp[0]), std::streamsize(ver_string_size * sizeof(char)));
-    std::string ver_string(_temp.begin(), _temp.end());
-
-    if (ver_string != _configure.get_version()) {
-        return false;
-    }
-    return true;
+    audio_model_file_path = in_file_path;
+    audio_model_file_path.replace_extension(std::string(audio_model_file_ext));
 }

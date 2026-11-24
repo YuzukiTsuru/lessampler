@@ -8,19 +8,13 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/4.
-//
-
 #ifndef LESSAMPLER_LESSCONFIGURE_H
 #define LESSAMPLER_LESSCONFIGURE_H
 
-#include <iostream>
+#include <string>
+#include <string_view>
 
 class lessConfigure {
-public:
-    std::string get_version();
-
 public:
     enum class F0_MODE {
         F0_MODE_UNKNOWN = 0,
@@ -42,15 +36,15 @@ public:
     double f0_allow_range = 0.1;
     double ap_threshold = 0.10;
 
-public:
-    static std::string get_f0_mode_str(lessConfigure::F0_MODE f0_mode);
+    /*
+     * Hash of every setting that changes WORLD analysis. It is stored in
+     * .lessaudio files so a configuration change invalidates cached models.
+     */
+    [[nodiscard]] std::string fingerprint() const;
 
-private:
-    std::string version_data;
+    [[nodiscard]] static std::string_view f0_mode_name(F0_MODE mode);
 
-private:
-    // get config ver
-    void make_ver();
+    [[nodiscard]] static F0_MODE parse_f0_mode(std::string_view name);
 };
 
-#endif //LESSAMPLER_LESSCONFIGURE_H
+#endif//LESSAMPLER_LESSCONFIGURE_H

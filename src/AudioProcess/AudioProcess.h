@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2022. YuzukiTsuru <GloomyGhost@GloomyGhost.com>.
  * lessampler is free software: you can redistribute it and/or modify
@@ -9,41 +8,30 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/7.
-//
-
 #ifndef LESSAMPLER_AUDIOPROCESS_H
 #define LESSAMPLER_AUDIOPROCESS_H
+
+#include <span>
 
 #include "AudioModel/lessAudioModel.h"
 #include "Shine/ShinePara.h"
 
 class AudioProcess {
 public:
-    AudioProcess(lessAudioModel audioModel, ShinePara shine);
+    AudioProcess(const lessAudioModel &audioModel, ShinePara shine);
 
-    lessAudioModel GetTransAudioModel();
+    [[nodiscard]] const lessAudioModel &GetTransAudioModel() const;
 
 private:
-    lessAudioModel audioModel{};
     lessAudioModel transAudioModel{};
     ShinePara shine;
 
 private:
-    void InitTransAudioModel();
+    void PitchEqualizing(std::span<double> f0) const;
 
-    void PicthEqualizing();
+    [[nodiscard]] double GetAvgFreq(std::span<const double> f0) const;
 
-    [[nodiscard]] double GetAvgFreq() const;
-
-    void TimeStretch();
-
-private:
-    [[maybe_unused]] static void interp1(const double *x, const double *y, int x_length, const double *xi, int xi_length, double *yi);
-
-    [[maybe_unused]] static void histc(const double *x, int x_length, const double *edges, int edges_length, int *index);
+    void TimeStretch(const lessAudioModel &audioModel, std::span<const double> f0);
 };
 
-
-#endif //LESSAMPLER_AUDIOPROCESS_H
+#endif//LESSAMPLER_AUDIOPROCESS_H

@@ -8,27 +8,19 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/2.
-//
-
 #ifndef LESSAMPLER_WORLDMODULE_H
 #define LESSAMPLER_WORLDMODULE_H
 
-#include <iostream>
-#include <vector>
+#include <span>
 
-#include "WorldPara.h"
 #include "ConfigUnit/lessConfigure.h"
-
+#include "WorldPara.h"
 
 class WorldModule {
 public:
-    WorldModule(double *x, int x_length, int fs, lessConfigure config);
+    WorldModule(std::span<const double> x, int fs, const lessConfigure &config);
 
-    ~WorldModule();
-
-    WorldPara GetModule();
+    [[nodiscard]] WorldPara TakeModule();
 
 private:
     void F0EstimationDio();
@@ -40,7 +32,7 @@ private:
     void AperiodicityEstimation();
 
 protected:
-    double *x = nullptr;
+    const double *x = nullptr;
     int x_length = 0;
 
     WorldPara worldPara;
@@ -48,4 +40,4 @@ protected:
     lessConfigure configure;
 };
 
-#endif //LESSAMPLER_WORLDMODULE_H
+#endif//LESSAMPLER_WORLDMODULE_H

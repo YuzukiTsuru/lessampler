@@ -8,26 +8,24 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by gloom on 2022/5/2.
-//
-
 #ifndef LESSAMPLER_LESSAUDIOMODEL_H
 #define LESSAMPLER_LESSAUDIOMODEL_H
 
+#include <cstddef>
 #include <vector>
 
-typedef struct lessAudioModel_ {
+#include "Utils/Matrix.h"
+
+struct lessAudioModel {
     double frame_period = 0.0;
     int fs = 0;
     int w_length = 0;
     int fft_size = 0;
+    std::size_t x_length = 0;
 
-    std::vector<double> x;
     std::vector<double> f0;
-    std::vector<double> time_axis;
-    std::vector<std::vector<double>> spectrogram;
-    std::vector<std::vector<double>> aperiodicity;
-} lessAudioModel;
+    Matrix spectrogram;
+    Matrix aperiodicity;
+};
 
 #endif//LESSAMPLER_LESSAUDIOMODEL_H
