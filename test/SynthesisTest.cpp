@@ -36,6 +36,9 @@ int main() {
     CHECK(finite);
     CHECK(peak > 0.0);
 
+    Synthesis repeated(model, 4410);
+    CHECK(repeated.GetWavData() == output);
+
     Synthesis empty(model, 0);
     CHECK(empty.GetWavData().empty());
 
