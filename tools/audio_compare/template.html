@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>__TITLE__</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Console palette: smoked paper / studio dark, teal accent, track colors. */
+  :root {
+    --bg: #eef1ed;
+    --surface: #f9fbf8;
+    --surface-2: #e3e9e3;
+    --ink: #18211e;
+    --muted: #5f6d66;
+    --line: #d1d8d2;
+    --accent: #26736b;
+    --accent-ink: #f6fffc;
+    --focus: #2b5f9e;
+    --danger: #a33f38;
+    --t-baseline: #6b7379;
+    --t-natural: #2f7d6e;
+    --t-warm: #b85c2e;
+    --t-power: #a33f38;
+    --t-feature: #3f61a8;
+    --t-polish: #7650a8;
+    --shadow: 0 12px 34px rgb(24 33 30 / 0.07);
+    --radius: 14px;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --display: "Space Grotesk", "Inter", system-ui, sans-serif;
+    --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101614;
+      --surface: #17201d;
+      --surface-2: #202a26;
+      --ink: #e8efe9;
+      --muted: #94a39b;
+      --line: #2a3732;
+      --accent: #6fbcb0;
+      --accent-ink: #0d1a17;
+      --focus: #8fb4e8;
+      --danger: #e08175;
+      --t-baseline: #9aa2a8;
+      --t-natural: #6fbcb0;
+      --t-warm: #e1905c;
+      --t-power: #e08175;
+      --t-feature: #8fb4e8;
+      --t-polish: #b9a0e0;
+      --shadow: 0 12px 34px rgb(0 0 0 / 0.28);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101614;
+    --surface: #17201d;
+    --surface-2: #202a26;
+    --ink: #e8efe9;
+    --muted: #94a39b;
+    --line: #2a3732;
+    --accent: #6fbcb0;
+    --accent-ink: #0d1a17;
+    --focus: #8fb4e8;
+    --danger: #e08175;
+    --t-baseline: #9aa2a8;
+    --t-natural: #6fbcb0;
+    --t-warm: #e1905c;
+    --t-power: #e08175;
+    --t-feature: #8fb4e8;
+    --t-polish: #b9a0e0;
+    --shadow: 0 12px 34px rgb(0 0 0 / 0.28);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    background: var(--surface);
+    z-index: 30;
+  }
+  .wrap {
+    width: min(1180px, 100%);
+    margin-inline: auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .masthead { padding-block: 2.3rem 1.25rem; border-bottom: 1px solid var(--line); }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.55rem;
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.6rem;
+    text-wrap: balance;
+  }
+  .lede {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 1rem;
+  }
+  .fact {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+    margin-top: 1.2rem;
+    max-width: 520px;
+  }
+  .stat {
+    border-left: 2px solid var(--accent);
+    padding: 0.15rem 0 0.15rem 0.8rem;
+  }
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .stat-value {
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin-top: 1px;
+  }
+  .stat-value small { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0; }
+  .transport-shell {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.04);
+  }
+  .transport-inner {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.55rem 0.75rem;
+    padding-block: 0.65rem;
+  }
+  .play {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    flex: 0 0 auto;
+    transition: transform 120ms ease, filter 120ms ease;
+  }
+  .play:hover { filter: brightness(1.06); }
+  .play:active { transform: scale(0.96); }
+  .play svg { width: 18px; height: 18px; display: block; }
+  .clock {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    min-width: 102px;
+  }
+  .clock strong { color: var(--ink); font-weight: 500; }
+  .seek {
+    position: relative;
+    flex: 1 1 220px;
+    min-width: 0;
+    height: 30px;
+    display: flex;
+    align-items: center;
+  }
+  .seek::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: var(--progress, 0%);
+    height: 4px;
+    border-radius: 999px;
+    background: var(--accent);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .seek input {
+    width: 100%;
+    margin: 0;
+    height: 30px;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+  }
+  .seek input:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+  .seek input::-webkit-slider-runnable-track { height: 4px; background: var(--line); border-radius: 999px; }
+  .seek input::-moz-range-track { height: 4px; background: var(--line); border-radius: 999px; }
+  .seek input::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    margin-top: -5px;
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .seek input::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+  }
+  .vol {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .vol input { width: 82px; accent-color: var(--accent); }
+  .vol span { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.38rem 0.62rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .transport-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+    padding-block: 0 0.65rem;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .transport-row .group { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+  .transport-row .group + .group { padding-left: 0.55rem; border-left: 1px solid var(--line); }
+  .ab-value { color: var(--ink); font-variant-numeric: tabular-nums; padding-inline: 0.1rem; }
+  .transport-row .hint { margin-left: auto; color: var(--muted); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+    gap: 14px;
+    padding-block: 1.25rem 1.8rem;
+  }
+  .track {
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    --track: var(--t-baseline);
+  }
+  .track::before {
+    content: "";
+    display: block;
+    height: 3px;
+    margin: -14px -14px 12px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: var(--track);
+  }
+  .track.is-solo { box-shadow: inset 0 0 0 1px var(--track), var(--shadow); }
+  .track.is-muted .wave-wrap { opacity: 0.4; }
+  .track-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+  .track-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.4rem 0.5rem; min-width: 0; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--track); flex: 0 0 auto; align-self: center; }
+  .track h2 {
+    font-family: var(--display);
+    font-size: 19px;
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1.1;
+  }
+  .tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 6px;
+  }
+  .track-actions { display: flex; gap: 4px; flex: 0 0 auto; }
+  .toggle {
+    width: 27px;
+    height: 27px;
+    border-radius: 7px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .toggle:hover { border-color: var(--track); color: var(--ink); }
+  .toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .toggle[aria-pressed="true"] { background: var(--track); border-color: var(--track); color: #fff; }
+  :root[data-theme="dark"] .toggle[aria-pressed="true"] { color: #101614; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .toggle[aria-pressed="true"] { color: #101614; }
+  }
+  .track-sub {
+    margin: 0.35rem 0 0.6rem;
+    color: var(--muted);
+    font-size: 12px;
+    min-height: 2.5em;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0.6rem; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px 5px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .chip b { color: var(--ink); font-weight: 500; }
+  .wave-wrap {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--surface-2);
+    overflow: hidden;
+    transition: opacity 120ms ease;
+  }
+  canvas.wave {
+    display: block;
+    width: 100%;
+    height: 78px;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  canvas.wave:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .wave-hint {
+    position: absolute;
+    right: 7px;
+    bottom: 4px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .track-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.55rem;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .track-foot input { flex: 1 1 auto; min-width: 0; accent-color: var(--track); }
+  .status { white-space: nowrap; color: var(--muted); }
+  .status.solo { color: var(--track); }
+  .status.error { color: var(--danger); }
+  .notes {
+    border-top: 1px solid var(--line);
+    padding-block: 1.4rem 3rem;
+    max-width: 78ch;
+  }
+  .notes h2 {
+    font-family: var(--display);
+    font-size: 19px;
+    letter-spacing: -0.015em;
+    margin: 0 0 0.5rem;
+  }
+  .notes p, .notes li { color: var(--muted); font-size: 13px; }
+  .notes ul { margin: 0.4rem 0 1rem; padding-left: 1.1rem; }
+  .notes li + li { margin-top: 0.3rem; }
+  .notes code {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+    background: var(--surface-2);
+    border-radius: 4px;
+    padding: 1px 4px;
+  }
+  .footnote {
+    border-top: 1px solid var(--line);
+    padding-top: 0.8rem;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .noscript {
+    margin: 1.2rem 0;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    color: var(--danger);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  @media (max-width: 640px) {
+    .masthead { padding-block: 1.5rem 1rem; }
+    .transport-inner { gap: 0.45rem; }
+    .clock { min-width: 0; font-size: 11px; }
+    .vol { display: none; }
+    .seek { order: 5; flex: 1 1 100%; }
+    #loopButton { order: 4; margin-left: auto; }
+    .transport-row .hint { display: none; }
+    .transport-row .group + .group { border-left: 0; padding-left: 0; }
+    .track h2 { font-size: 18px; }
+    .track-sub { min-height: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; transition: none !important; }
+  }
+</style>
+
+<div class="masthead">
+  <div class="wrap">
+    <div class="kicker" id="pageKicker"></div>
+    <h1 id="pageTitle"></h1>
+    <p class="lede" id="pageLede"></p>
+    <div class="facts" id="facts" aria-label="渲染信息"></div>
+    <div class="stats" id="stats"></div>
+  </div>
+</div>
+
+<div class="transport-shell">
+  <div class="wrap">
+    <div class="transport-inner">
+      <button class="play" id="playButton" type="button" aria-label="播放">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path id="playIcon" d="M6 3.5v13l11-6.5z" fill="currentColor"></path></svg>
+      </button>
+      <div class="clock"><strong id="currentTime">0:00.0</strong> / <span id="duration"></span></div>
+      <div class="seek">
+        <input id="seek" type="range" min="0" max="244.964" step="0.01" value="0" aria-label="播放位置">
+      </div>
+      <label class="vol" for="masterVolume">总音量 <input id="masterVolume" type="range" min="0" max="100" value="65" aria-label="总音量"><span id="masterValue">65%</span></label>
+      <button class="btn" id="loopButton" type="button" aria-pressed="false">A–B 循环</button>
+    </div>
+    <div class="transport-row">
+      <div class="group">
+        <span>A <span class="ab-value" id="aValue">35.0</span> s</span>
+        <button class="btn" id="setA" type="button">设 A</button>
+        <span>B <span class="ab-value" id="bValue">50.0</span> s</span>
+        <button class="btn" id="setB" type="button">设 B</button>
+      </div>
+      <div class="group" aria-label="跳转">
+        <button class="btn" type="button" data-jump="0">从头</button>
+        <button class="btn" type="button" data-jump="35">35 s 高音</button>
+        <button class="btn" type="button" data-jump="75">75 s 高音</button>
+        <button class="btn" type="button" data-jump="125.714">125.7 s 接缝</button>
+        <button class="btn" type="button" data-jump="184">184 s</button>
+      </div>
+      <div class="hint">空格 播放 · 1–6 solo · 0 取消 solo</div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <main>
+    <section class="grid" id="tracks" aria-label="渲染轨道">
+      <noscript><p class="noscript">这个页面需要 JavaScript 才能同步播放。</p></noscript>
+    </section>
+    <section class="notes">
+      <h2>怎么听</h2>
+      <div id="notesBody"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const DATA = __DATA__;
+  const TRACKS = DATA.tracks;
+  const PEAKS = DATA.peaks;
+  const DURATION = DATA.duration;
+
+  const state = {
+    playing: false,
+    time: 0,
+    master: 0.65,
+    loop: false,
+    a: 35.0,
+    b: 50.0,
+    solo: new Set(),
+    mute: new Set(),
+    volume: {}
+  };
+  const els = {};
+  const trackRoot = document.getElementById("tracks");
+  const playButton = document.getElementById("playButton");
+  const playIcon = document.getElementById("playIcon");
+  const currentTimeEl = document.getElementById("currentTime");
+  const seek = document.getElementById("seek");
+  const loopButton = document.getElementById("loopButton");
+  const aValue = document.getElementById("aValue");
+  const bValue = document.getElementById("bValue");
+  const masterVolume = document.getElementById("masterVolume");
+  const masterValue = document.getElementById("masterValue");
+  const clockId = TRACKS[0].id;
+  let raf = 0;
+  let lastDraw = 0;
+  let lastSync = 0;
+
+  document.title = DATA.title;
+  document.getElementById("pageKicker").textContent = DATA.kicker;
+  document.getElementById("pageTitle").textContent = DATA.heading || DATA.title;
+  document.getElementById("pageLede").textContent = DATA.lede;
+  document.getElementById("facts").innerHTML = DATA.facts.map((fact) => `<span class="fact">${fact}</span>`).join("");
+  document.getElementById("stats").innerHTML = DATA.stats.map((stat) =>
+    `<div class="stat"><div class="stat-label">${stat.label}</div><div class="stat-value">${stat.before} <small>→</small> ${stat.after}</div></div>`
+  ).join("");
+  document.getElementById("notesBody").innerHTML = DATA.notes_html;
+  seek.max = String(DURATION);
+
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const fmt = (value) => {
+    const t = Math.max(0, value);
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60);
+    const tenth = Math.floor((t - Math.floor(t)) * 10);
+    return `${m}:${String(s).padStart(2, "0")}.${tenth}`;
+  };
+
+  function trackColor(id) {
+    const card = els[id] && els[id].card;
+    return card ? getComputedStyle(card).getPropertyValue("--track").trim() : "#888";
+  }
+
+  function isAudible(id) {
+    if (state.solo.size > 0) return state.solo.has(id);
+    return !state.mute.has(id);
+  }
+
+  function gainFor(id) {
+    if (!isAudible(id)) return 0;
+    return clamp(state.master * (state.volume[id] ?? 0.85), 0, 1);
+  }
+
+  function applyVolumes() {
+    for (const track of TRACKS) {
+      const entry = els[track.id];
+      if (!entry) continue;
+      entry.audio.volume = gainFor(track.id);
+      entry.solo.setAttribute("aria-pressed", String(state.solo.has(track.id)));
+      entry.mute.setAttribute("aria-pressed", String(state.mute.has(track.id)));
+      entry.card.classList.toggle("is-solo", state.solo.has(track.id));
+      entry.card.classList.toggle("is-muted", !isAudible(track.id));
+      let statusText = entry.ready ? "同步" : "加载中";
+      if (state.solo.has(track.id)) statusText = "solo";
+      else if (state.solo.size > 0) statusText = "solo 其他";
+      else if (state.mute.has(track.id)) statusText = "已静音";
+      entry.status.textContent = statusText;
+      entry.status.className = "status" + (state.solo.has(track.id) ? " solo" : "");
+    }
+  }
+
+  function buildTracks() {
+    for (const track of TRACKS) {
+      const card = document.createElement("article");
+      card.className = "track";
+      card.style.setProperty("--track", track.color.startsWith("--") ? `var(${track.color})` : track.color);
+      const chips = [
+        ["峰值", `${track.peak} dBFS`],
+        ["有效 RMS", `${track.rms} dBFS`],
+        ["接缝", track.dips],
+        ["MOS", track.mos]
+      ];
+      if (track.high) chips.push(["高音 MOS", track.high]);
+      card.innerHTML = `
+        <div class="track-head">
+          <div class="track-title">
+            <span class="dot" aria-hidden="true"></span>
+            <h2>${track.name}</h2>
+            <span class="tag">${track.tag}</span>
+          </div>
+          <div class="track-actions">
+            <button class="toggle" type="button" data-role="solo" aria-label="Solo ${track.name}" aria-pressed="false">S</button>
+            <button class="toggle" type="button" data-role="mute" aria-label="Mute ${track.name}" aria-pressed="false">M</button>
+          </div>
+        </div>
+        <p class="track-sub">${track.sub}</p>
+        <div class="chips">${chips.map(([k, v]) => `<span class="chip">${k} <b>${v}</b></span>`).join("")}</div>
+        <div class="wave-wrap">
+          <canvas class="wave" width="600" height="78" role="slider" tabindex="0"
+            aria-label="${track.name} 波形，左右方向键跳转" aria-valuemin="0" aria-valuemax="${DURATION.toFixed(3)}" aria-valuenow="0"></canvas>
+          <span class="wave-hint">点击跳转</span>
+        </div>
+        <div class="track-foot">
+          <span>音量</span>
+          <input type="range" min="0" max="100" value="85" aria-label="${track.name} 音量">
+          <span class="status">加载中</span>
+        </div>`;
+      trackRoot.appendChild(card);
+      const audio = new Audio(track.file);
+      audio.preload = "metadata";
+      audio.volume = 0;
+      const entry = {
+        card,
+        canvas: card.querySelector("canvas"),
+        solo: card.querySelector('[data-role="solo"]'),
+        mute: card.querySelector('[data-role="mute"]'),
+        volume: card.querySelector(".track-foot input"),
+        status: card.querySelector(".status"),
+        audio,
+        ready: false
+      };
+      els[track.id] = entry;
+      state.volume[track.id] = 0.85;
+      entry.solo.addEventListener("click", () => toggleSolo(track.id));
+      entry.mute.addEventListener("click", () => toggleMute(track.id));
+      entry.volume.addEventListener("input", () => {
+        state.volume[track.id] = Number(entry.volume.value) / 100;
+        applyVolumes();
+      });
+      audio.addEventListener("loadedmetadata", () => {
+        entry.ready = true;
+        if (state.time > 0) {
+          try { audio.currentTime = Math.min(state.time, Math.max(0, audio.duration - 0.02)); } catch (_) {}
+        }
+        applyVolumes();
+        drawAll();
+      });
+      audio.addEventListener("canplay", () => {
+        entry.ready = true;
+        applyVolumes();
+      });
+      audio.addEventListener("error", () => {
+        entry.status.textContent = "加载失败";
+        entry.status.className = "status error";
+      });
+      audio.addEventListener("ended", () => {
+        if (track.id === clockId) pause();
+      });
+      bindWave(entry.canvas, track.id);
+    }
+    applyVolumes();
+  }
+
+  function bindWave(canvas, id) {
+    const seekFromEvent = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      seekTo(clamp((event.clientX - rect.left) / rect.width, 0, 1) * DURATION);
+    };
+    let dragging = false;
+    canvas.addEventListener("pointerdown", (event) => {
+      dragging = true;
+      canvas.setPointerCapture(event.pointerId);
+      seekFromEvent(event);
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (dragging) seekFromEvent(event);
+    });
+    const stop = (event) => {
+      dragging = false;
+      try { canvas.releasePointerCapture(event.pointerId); } catch (_) {}
+    };
+    canvas.addEventListener("pointerup", stop);
+    canvas.addEventListener("pointercancel", stop);
+    canvas.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        seekTo(state.time + (event.key === "ArrowRight" ? 2 : -2));
+      } else if (event.key === "Home") {
+        event.preventDefault();
+        seekTo(0);
+      } else if (event.key === "End") {
+        event.preventDefault();
+        seekTo(DURATION);
+      }
+    });
+  }
+
+  function toggleSolo(id) {
+    if (state.solo.has(id)) state.solo.delete(id);
+    else state.solo.add(id);
+    applyVolumes();
+  }
+
+  function toggleMute(id) {
+    if (state.mute.has(id)) state.mute.delete(id);
+    else state.mute.add(id);
+    applyVolumes();
+  }
+
+  function clearSolo() {
+    state.solo.clear();
+    applyVolumes();
+  }
+
+  function seekTo(time) {
+    const value = clamp(time, 0, DURATION);
+    state.time = value;
+    for (const track of TRACKS) {
+      const audio = els[track.id].audio;
+      try {
+        if (Number.isFinite(audio.duration) && audio.duration > 0) {
+          audio.currentTime = Math.min(value, Math.max(0, audio.duration - 0.02));
+        } else {
+          audio.currentTime = value;
+        }
+      } catch (_) {}
+    }
+    updateTransport();
+    drawAll();
+  }
+
+  async function playAll() {
+    if (state.playing) { pause(); return; }
+    seekTo(state.time);
+    state.playing = true;
+    updateTransport();
+    const jobs = TRACKS.map((track) => {
+      const audio = els[track.id].audio;
+      try {
+        const result = audio.play();
+        return result && result.catch ? result.catch(() => {}) : Promise.resolve();
+      } catch (_) {
+        return Promise.resolve();
+      }
+    });
+    await Promise.allSettled(jobs);
+    if (state.playing) {
+      lastSync = performance.now();
+      raf = requestAnimationFrame(tick);
+    }
+  }
+
+  function pause() {
+    state.playing = false;
+    cancelAnimationFrame(raf);
+    for (const track of TRACKS) {
+      try { els[track.id].audio.pause(); } catch (_) {}
+    }
+    updateTransport();
+  }
+
+  function tick(now) {
+    if (!state.playing) return;
+    const clock = els[clockId].audio;
+    let time = clock.currentTime;
+    if (state.loop) {
+      if (time >= state.b) {
+        seekTo(state.a);
+        time = state.a;
+      } else if (time < state.a - 0.05) {
+        seekTo(state.a);
+        time = state.a;
+      }
+    }
+    state.time = clamp(time, 0, DURATION);
+    if (now - lastSync > 1000) {
+      lastSync = now;
+      for (const track of TRACKS) {
+        const audio = els[track.id].audio;
+        if (!audio.paused && Number.isFinite(audio.duration) &&
+            Math.abs(audio.currentTime - state.time) > 0.12) {
+          try { audio.currentTime = Math.min(state.time, Math.max(0, audio.duration - 0.02)); } catch (_) {}
+        }
+      }
+    }
+    if (now - lastDraw > 50) {
+      updateTransport();
+      drawAll();
+      lastDraw = now;
+    }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function updateTransport() {
+    currentTimeEl.textContent = fmt(state.time);
+    document.getElementById("duration").textContent = fmt(DURATION);
+    seek.value = String(state.time);
+    seek.style.setProperty("--progress", `${(state.time / DURATION) * 100}%`);
+    playButton.setAttribute("aria-label", state.playing ? "暂停" : "播放");
+    playIcon.setAttribute("d", state.playing ? "M6 3.5h3v13H6zM11 3.5h3v13h-3z" : "M6 3.5v13l11-6.5z");
+    loopButton.setAttribute("aria-pressed", String(state.loop));
+    aValue.textContent = state.a.toFixed(1);
+    bValue.textContent = state.b.toFixed(1);
+    for (const track of TRACKS) {
+      const canvas = els[track.id].canvas;
+      canvas.setAttribute("aria-valuenow", state.time.toFixed(2));
+    }
+  }
+
+  function drawAll() {
+    for (const track of TRACKS) drawWave(track.id);
+  }
+
+  function drawWave(id) {
+    const entry = els[id];
+    if (!entry) return;
+    const canvas = entry.canvas;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(1, Math.floor(rect.width * dpr));
+    const height = Math.max(1, Math.floor(rect.height * dpr));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const w = rect.width;
+    const h = rect.height;
+    ctx.clearRect(0, 0, w, h);
+    const color = trackColor(id);
+    const source = PEAKS[id] || [];
+    const columns = Math.min(source.length || 80, Math.max(80, Math.floor(w * 1.25)));
+    const bars = [];
+    for (let i = 0; i < columns; ++i) {
+      const from = Math.floor((i / columns) * source.length);
+      const to = Math.max(from + 1, Math.floor(((i + 1) / columns) * source.length));
+      let peak = 0;
+      for (let j = from; j < to && j < source.length; ++j) peak = Math.max(peak, source[j] || 0);
+      bars.push(peak);
+    }
+    if (state.loop) {
+      const left = (state.a / DURATION) * w;
+      const right = (state.b / DURATION) * w;
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.09;
+      ctx.fillRect(left, 0, Math.max(0, right - left), h);
+      ctx.globalAlpha = 0.38;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, 0); ctx.lineTo(left, h);
+      ctx.moveTo(right, 0); ctx.lineTo(right, h);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    const progress = clamp(state.time / DURATION, 0, 1);
+    const barWidth = Math.max(1, (w / columns) * 0.62);
+    for (let i = 0; i < bars.length; ++i) {
+      const x = (i / columns) * w;
+      const amp = bars[i];
+      const barHeight = Math.max(1, amp * (h * 0.43));
+      const played = (i / columns) <= progress;
+      ctx.fillStyle = color;
+      ctx.globalAlpha = played ? 0.88 : 0.28;
+      ctx.fillRect(x, h / 2 - barHeight, barWidth, barHeight * 2);
+    }
+    ctx.globalAlpha = 0.16;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    const px = progress * w;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px, 0);
+    ctx.lineTo(px, h);
+    ctx.stroke();
+  }
+
+  function setLoop(value) {
+    state.loop = value;
+    if (state.loop && (state.time < state.a || state.time > state.b)) seekTo(state.a);
+    updateTransport();
+    drawAll();
+  }
+
+  playButton.addEventListener("click", playAll);
+  seek.addEventListener("input", () => seekTo(Number(seek.value)));
+  masterVolume.addEventListener("input", () => {
+    state.master = Number(masterVolume.value) / 100;
+    masterValue.textContent = `${masterVolume.value}%`;
+    applyVolumes();
+  });
+  loopButton.addEventListener("click", () => setLoop(!state.loop));
+  document.getElementById("setA").addEventListener("click", () => {
+    state.a = Math.min(state.time, state.b - 0.1);
+    updateTransport();
+    drawAll();
+  });
+  document.getElementById("setB").addEventListener("click", () => {
+    state.b = Math.max(state.time, state.a + 0.1);
+    updateTransport();
+    drawAll();
+  });
+  for (const button of document.querySelectorAll("[data-jump]")) {
+    button.addEventListener("click", () => {
+      const target = Number(button.dataset.jump);
+      if (state.loop) {
+        state.a = target;
+        state.b = Math.min(target + 5, DURATION);
+      }
+      seekTo(target);
+      updateTransport();
+      drawAll();
+    });
+  }
+  document.addEventListener("keydown", (event) => {
+    const tag = (event.target && event.target.tagName) || "";
+    if (tag === "INPUT" || tag === "BUTTON" || tag === "TEXTAREA" || tag === "SELECT") return;
+    if (event.code === "Space") {
+      event.preventDefault();
+      playAll();
+    } else if (/^[1-6]$/.test(event.key)) {
+      const track = TRACKS[Number(event.key) - 1];
+      if (track) toggleSolo(track.id);
+    } else if (event.key === "0") {
+      clearSolo();
+    }
+  });
+  window.addEventListener("resize", drawAll);
+  if (window.matchMedia) {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    if (media.addEventListener) media.addEventListener("change", drawAll);
+  }
+  if (window.MutationObserver) {
+    new MutationObserver(drawAll).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"]
+    });
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawAll);
+
+  buildTracks();
+  updateTransport();
+  requestAnimationFrame(drawAll);
+</script>
+</body>
+</html>
