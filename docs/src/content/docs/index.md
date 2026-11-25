@@ -1,7 +1,7 @@
 ---
 title: lessampler
 description: lessampler is a Singing Voice Synthesizer
-template: splash
+tableOfContents: false
 hero:
   tagline: lessampler is a Singing Voice Synthesizer
   image:
