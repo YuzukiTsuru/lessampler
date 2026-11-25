@@ -39,10 +39,14 @@ if (LESSAMPLER_ENABLE_NEURAL)
     lessampler_setup_onnxruntime()
 
     add_library(VocoderNeural STATIC
+            Neural/FeatureAssembler.cpp
+            Neural/FeatureAssembler.h
             Neural/MelSpectrogram.cpp
             Neural/MelSpectrogram.h
             Neural/NeuralBackend.cpp
             Neural/NeuralBackend.h
+            Neural/NeuralFeatures.cpp
+            Neural/NeuralFeatures.h
             Neural/NeuralModel.cpp
             Neural/NeuralModel.h
             Neural/NeuralPolisher.cpp

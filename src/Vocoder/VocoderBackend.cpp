@@ -20,6 +20,7 @@
 #endif
 
 #if defined(LESSAMPLER_ENABLE_NEURAL)
+#include "Vocoder/Neural/FeatureAssembler.h"
 #include "Vocoder/Neural/NeuralBackend.h"
 #include "Vocoder/Neural/NeuralPolisher.h"
 #endif
@@ -74,6 +75,27 @@ namespace lessampler {
 #else
             (void) samples;
             (void) fs;
+            (void) configure;
+            throw parameter_error("The neural backend is not enabled in this build");
+#endif
+        }
+
+        bool NeuralFeatureAssemblyAvailable() {
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+            return true;
+#else
+            return false;
+#endif
+        }
+
+        FeatureAssembleResult AssembleFeatureTimeline(std::span<const FeatureSegment> segments, int sample_rate,
+                                                      double peak_limit, const Config &configure) {
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+            return lessampler::AssembleFeatureTimeline(segments, sample_rate, peak_limit, configure);
+#else
+            (void) segments;
+            (void) sample_rate;
+            (void) peak_limit;
             (void) configure;
             throw parameter_error("The neural backend is not enabled in this build");
 #endif

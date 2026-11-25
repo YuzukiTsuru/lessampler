@@ -22,6 +22,7 @@
 #include "Config/Config.h"
 #include "Config/VocoderKind.h"
 #include "Core/RenderParams.h"
+#include "Vocoder/FeatureTypes.h"
 
 namespace lessampler {
 
@@ -74,6 +75,16 @@ namespace lessampler {
      * missing.
      */
         [[nodiscard]] PolishResult PolishWaveform(std::span<const double> samples, int fs, const Config &configure);
+
+        /*
+     * Feature-level assembly: note WAVs -> global mel/F0 -> one vocoder pass.
+     * This keeps the per-note timbre instead of resynthesizing a finished mix.
+     */
+        [[nodiscard]] bool NeuralFeatureAssemblyAvailable();
+
+        [[nodiscard]] FeatureAssembleResult AssembleFeatureTimeline(std::span<const FeatureSegment> segments,
+                                                                    int sample_rate, double peak_limit,
+                                                                    const Config &configure);
 
         class VocoderBackend {
         public:

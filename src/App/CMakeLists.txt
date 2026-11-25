@@ -20,6 +20,7 @@ target_link_libraries(lessampler PRIVATE
         Engine
         Shine
         UTAU
+        Wavtool
         Threads::Threads
 )
 

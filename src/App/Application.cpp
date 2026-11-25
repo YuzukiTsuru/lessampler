@@ -27,6 +27,7 @@
 #include "Engine/RenderEngine.h"
 #include "Engine/VoicebankModeler.h"
 #include "Host/UTAU/Shine.h"
+#include "Host/Wavtool/WavtoolPlan.h"
 #include "Vocoder/VocoderBackend.h"
 
 #include "lessconfig.h"
@@ -119,6 +120,7 @@ namespace lessampler {
                      "  lessampler --help | --version\n"
                      "  lessampler <voicebank-directory>\n"
                      "  lessampler --polish <in.wav> <out.wav>\n"
+                     "  lessampler --feature-plan <plan.toml>\n"
                      "  lessampler <in.wav> <out.wav> <note> [time%] [flags] [offset] [required]\n"
                      "             [fixed] [blank] [volume] [modulation] [tempo] [pitchbend]\n"
                   << std::endl;
@@ -150,6 +152,16 @@ namespace lessampler {
                 throw parameter_error("--polish is unavailable: the neural backend is not enabled in this build");
             }
             return Command::polish;
+        }
+        if (first == "--feature-plan") {
+            if (argc_ != 3) {
+                show_usage();
+                return Command::usage;
+            }
+            if (!backend::NeuralFeatureAssemblyAvailable()) {
+                throw parameter_error("--feature-plan is unavailable: the neural backend is not enabled in this build");
+            }
+            return Command::feature_plan;
         }
 
         if (argc_ == 2) {
@@ -225,6 +237,25 @@ namespace lessampler {
         LOG_OK << "Polished " + std::string(argv_[2]) + " -> " + std::string(argv_[3]);
     }
 
+    void Application::feature_plan() {
+        const auto plan = wavtool::WavtoolPlan::Parse(argv_[2]);
+        std::vector<FeatureSegment> segments;
+        segments.reserve(plan.notes.size());
+        for (const auto &note: plan.notes) {
+            segments.push_back(FeatureSegment{note.input, note.position_ms, note.skip_ms,
+                                              note.length_ms, note.envelope});
+        }
+        if (!plan.output.parent_path().empty()) {
+            std::filesystem::create_directories(plan.output.parent_path());
+        }
+        Timer timer;
+        const int sample_rate = plan.sample_rate > 0 ? plan.sample_rate : 44100;
+        auto result = backend::AssembleFeatureTimeline(segments, sample_rate, plan.peak_normalize, configure_);
+        LOG_INFO << timer.GetTimer("Feature assembly: ");
+        WavIO::WriteWav(plan.output, result.samples, result.sample_rate);
+        LOG_OK << "Feature assembly written to " + plan.output.string();
+    }
+
     void Application::run() {
         if (configure_.debug_mode) {
             lessampler::log::SetDebug(true);
@@ -241,6 +272,9 @@ namespace lessampler {
                 return;
             case Command::polish:
                 polish_audio();
+                return;
+            case Command::feature_plan:
+                feature_plan();
                 return;
             case Command::render_note:
                 LOG_INFO << "lessampler Copyright (c) 2018 - 2026, YuzukiTsuru, Version: " + std::string(PROJECT_GIT_HASH);
