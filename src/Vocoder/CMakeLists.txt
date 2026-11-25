@@ -45,6 +45,8 @@ if (LESSAMPLER_ENABLE_NEURAL)
             Neural/NeuralBackend.h
             Neural/NeuralModel.cpp
             Neural/NeuralModel.h
+            Neural/NeuralPolisher.cpp
+            Neural/NeuralPolisher.h
     )
     lessampler_link_onnxruntime(VocoderNeural)
     target_link_libraries(VocoderNeural PUBLIC

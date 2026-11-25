@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -55,6 +56,24 @@ namespace lessampler {
             std::vector<double> samples;
             int fs = 0;
         };
+
+        struct PolishResult {
+            std::vector<double> samples;
+            int fs = 0;
+        };
+
+        /*
+     * Whole-song neural re-rendering is available only when the neural
+     * backend is compiled in.
+     */
+        [[nodiscard]] bool NeuralPolishAvailable();
+
+        /*
+     * Re-render an assembled mix through the NHVSing-compatible model with a
+     * single continuous timeline. Throws when neural support or the model is
+     * missing.
+     */
+        [[nodiscard]] PolishResult PolishWaveform(std::span<const double> samples, int fs, const Config &configure);
 
         class VocoderBackend {
         public:

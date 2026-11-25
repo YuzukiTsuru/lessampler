@@ -10,6 +10,8 @@
 
 #include "VocoderBackend.h"
 
+#include <utility>
+
 #include "Core/Exception.h"
 #include "Vocoder/World/WorldBackend.h"
 
@@ -19,6 +21,7 @@
 
 #if defined(LESSAMPLER_ENABLE_NEURAL)
 #include "Vocoder/Neural/NeuralBackend.h"
+#include "Vocoder/Neural/NeuralPolisher.h"
 #endif
 
 namespace lessampler {
@@ -54,6 +57,26 @@ namespace lessampler {
             backends += " neural";
 #endif
             return backends;
+        }
+
+        bool NeuralPolishAvailable() {
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+            return true;
+#else
+            return false;
+#endif
+        }
+
+        PolishResult PolishWaveform(std::span<const double> samples, int fs, const Config &configure) {
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+            auto result = PolishWithNeural(samples, fs, configure);
+            return {std::move(result.samples), result.sample_rate};
+#else
+            (void) samples;
+            (void) fs;
+            (void) configure;
+            throw parameter_error("The neural backend is not enabled in this build");
+#endif
         }
 
     }// namespace backend

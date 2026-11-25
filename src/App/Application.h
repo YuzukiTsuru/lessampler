@@ -35,6 +35,7 @@ namespace lessampler {
             usage,
             model_voicebank,
             render_note,
+            polish,
         };
 
         [[nodiscard]] Command parse_args() const;
@@ -44,6 +45,8 @@ namespace lessampler {
         static void render_blank(int argc, char **argv);
 
         void model_voicebank();
+
+        void polish_audio();
 
         static void show_logo();
 

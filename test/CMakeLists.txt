@@ -121,6 +121,10 @@ if (LESSAMPLER_ENABLE_NEURAL)
     add_executable(NeuralFeatureTest NeuralFeatureTest.cpp)
     target_link_libraries(NeuralFeatureTest PRIVATE VocoderNeural)
     lessampler_add_test(NeuralFeatureTest unit)
+
+    add_executable(PolishTest PolishTest.cpp)
+    target_link_libraries(PolishTest PRIVATE Vocoder)
+    lessampler_add_test(PolishTest unit)
 endif ()
 
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/EndToEndBinary.h"
