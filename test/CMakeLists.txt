@@ -83,6 +83,27 @@ add_executable(WavIOTest WavIOTest.cpp)
 target_link_libraries(WavIOTest PRIVATE Audio)
 lessampler_add_test(WavIOTest unit)
 
+add_executable(EnvelopeTest EnvelopeTest.cpp)
+target_link_libraries(EnvelopeTest PRIVATE Wavtool)
+lessampler_add_test(EnvelopeTest unit)
+
+add_executable(WavAssemblyTest WavAssemblyTest.cpp)
+target_link_libraries(WavAssemblyTest PRIVATE Wavtool)
+lessampler_add_test(WavAssemblyTest unit)
+
+add_executable(WavtoolProtocolTest WavtoolProtocolTest.cpp)
+target_link_libraries(WavtoolProtocolTest PRIVATE Wavtool)
+lessampler_add_test(WavtoolProtocolTest unit)
+
+file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/WavtoolBinaryPath.h"
+        CONTENT "#pragma once\n#define LESSWAVTOOL_BINARY_PATH R\"lesswavtool($<TARGET_FILE:lesswavtool>)lesswavtool\"\n")
+
+add_executable(WavtoolCliTest WavtoolCliTest.cpp)
+target_link_libraries(WavtoolCliTest PRIVATE Wavtool)
+target_include_directories(WavtoolCliTest PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+add_dependencies(WavtoolCliTest lesswavtool)
+lessampler_add_test(WavtoolCliTest integration)
+
 add_executable(ShineTest ShineTest.cpp)
 target_link_libraries(ShineTest PRIVATE Shine UTAU)
 lessampler_add_test(ShineTest unit)
