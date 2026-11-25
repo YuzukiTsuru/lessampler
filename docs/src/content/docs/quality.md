@@ -28,7 +28,7 @@ The script creates `build/quality-venv` with CPU PyTorch 2.5.1, torchaudio, s3pr
 
 ```bash
 python3 test/quality/evaluate.py \
-  --ust "data/シャノワールの冒険書/main_調声済み.ust" \
+  --ust "xxx.ust" \
   --lessampler build/max-gcc/bin/lessampler \
   --mos singmos \
   --json build/quality/report.json \
