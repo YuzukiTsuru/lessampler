@@ -12,10 +12,6 @@
 
 You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessampler/releases)
 
-## Demo
-
-<https://www.gloomyghost.com/lessampler/#/demo/>
-
 ## Features
 
 - Multiple models

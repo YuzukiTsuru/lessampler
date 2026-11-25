@@ -41,7 +41,6 @@ export const sidebar = [
 		items: [
 			{ label: 'GitHub', link: 'https://github.com/YuzukiTsuru/lessampler' },
 			{ label: 'Releases', link: 'https://github.com/YuzukiTsuru/lessampler/releases' },
-			{ label: 'Demo', link: 'https://www.gloomyghost.com/lessampler/#/demo/' },
 		],
 	},
 ];
