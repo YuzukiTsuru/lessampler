@@ -30,7 +30,9 @@
 #include "Engine/RenderEngine.h"
 #include "Engine/VoicebankModeler.h"
 #include "Host/UTAU/Shine.h"
+#include "Host/Wavtool/WavAssembly.h"
 #include "Host/Wavtool/WavtoolPlan.h"
+#include "Host/Wavtool/WavtoolProtocol.h"
 #include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/VocoderBackend.h"
 
@@ -84,7 +86,9 @@ namespace lessampler {
     Application::Application(int argc, char **argv) : argc_(argc), argv_(argv) {
         exec_path_ = std::filesystem::weakly_canonical(std::filesystem::path(argv_[0])).parent_path();
         LOG_DEBUG << "exec path: " + exec_path_.string();
+    }
 
+    void Application::load_config() {
         ConfigLoader loader(exec_path_);
         configure_ = loader.GetConfig();
     }
@@ -128,6 +132,12 @@ namespace lessampler {
                      "  lessampler --f0 <in.wav> <out.csv>\n"
                      "  lessampler <in.wav> <out.wav> <note> [time%] [flags] [offset] [required]\n"
                      "             [fixed] [blank] [volume] [modulation] [tempo] [pitchbend]\n"
+                     "  lessampler --plan <plan.toml>\n"
+                     "  lessampler <out.wav> <in.wav> <skip_ms> <length_ms> <p1> <p2> <p3> <v1>\n"
+                     "             <v2> <v3> <v4> <overlap> <p4> <p5> <v5>\n"
+                     "\n"
+                     "The last form is the classic UTAU wavtool protocol; it is selected by\n"
+                     "passing exactly 15 positional arguments.\n"
                   << std::endl;
     }
 
@@ -147,6 +157,18 @@ namespace lessampler {
         if (first == "--version" || first == "-V") {
             show_logo();
             return Command::version;
+        }
+        if (first == "--plan") {
+            if (argc_ != 3) {
+                wavtool::WavtoolProtocol::PrintUsage(std::cerr);
+                return Command::wavtool_usage;
+            }
+            return Command::wavtool_plan;
+        }
+        // The classic UTAU wavtool protocol always passes 15 positional arguments.
+        // A UTAU resampler call passes at most 13, so the count is unambiguous.
+        if (argc_ == 16 && !first.starts_with("--")) {
+            return Command::wavtool;
         }
         if (first == "--polish") {
             if (argc_ != 4) {
@@ -233,6 +255,47 @@ namespace lessampler {
         WavIO::WriteWav(params.output_file_name, blank, kBlankSampleRate);
     }
 
+    int Application::run_wavtool() {
+        try {
+            std::vector<std::string_view> args;
+            args.reserve(static_cast<std::size_t>(argc_));
+            for (int i = 0; i < argc_; ++i) {
+                args.emplace_back(argv_[i] == nullptr ? "" : argv_[i]);
+            }
+
+            const auto request = wavtool::WavtoolProtocol::Parse(args);
+
+            int sample_rate = kBlankSampleRate;
+            int channels = 1;
+            if (std::filesystem::exists(request.input)) {
+                const auto info = WavIO::ProbeWav(request.input);
+                sample_rate = info.sample_rate;
+                channels = info.channels;
+            }
+
+            auto output = wavtool::WavAssembly::LoadOrCreate(request.output, sample_rate, channels);
+            wavtool::WavAssembly::AppendRelative(output,
+                                                 wavtool::WavSegment{request.input, request.skip_ms, request.length_ms, request.envelope},
+                                                 request.overlap_ms);
+            wavtool::WavAssembly::Write(output, request.output);
+            return 0;
+        } catch (const std::exception &error) {
+            std::cerr << error.what() << '\n';
+            return 1;
+        }
+    }
+
+    int Application::run_wavtool_plan() {
+        try {
+            const auto plan = wavtool::WavtoolPlan::Parse(std::filesystem::path(argv_[2]));
+            wavtool::WavtoolPlan::Run(plan);
+            return 0;
+        } catch (const std::exception &error) {
+            std::cerr << error.what() << '\n';
+            return 1;
+        }
+    }
+
     void Application::model_voicebank() {
         LOG_INFO << "Start modeling against the audio files in the provided destination folder...";
         VoicebankModeler modeler(std::filesystem::path(argv_[1]), configure_);
@@ -290,35 +353,55 @@ namespace lessampler {
         LOG_OK << "Feature assembly written to " + plan.output.string();
     }
 
-    void Application::run() {
-        if (configure_.debug_mode) {
-            lessampler::log::SetDebug(true);
-        }
+    int Application::run() {
+        const Command command = parse_args();
 
-        switch (parse_args()) {
+        // Wavtool calls are independent of the analysis configuration; handle
+        // them before loading lessampler.less so a broken config cannot stop a
+        // UTAU host from concatenating.
+        switch (command) {
+            case Command::wavtool:
+                return run_wavtool();
+            case Command::wavtool_plan:
+                return run_wavtool_plan();
+            case Command::wavtool_usage:
+                return 2;
             case Command::help:
             case Command::version:
             case Command::none:
             case Command::usage:
-                return;
+                return 0;
+            default:
+                break;
+        }
+
+        load_config();
+        if (configure_.debug_mode) {
+            lessampler::log::SetDebug(true);
+        }
+
+        switch (command) {
             case Command::model_voicebank:
                 model_voicebank();
-                return;
+                break;
             case Command::polish:
                 polish_audio();
-                return;
+                break;
             case Command::feature_plan:
                 feature_plan();
-                return;
+                break;
             case Command::f0_dump:
                 f0_dump();
-                return;
+                break;
             case Command::render_note:
                 LOG_INFO << "lessampler Copyright (c) 2018 - 2026, YuzukiTsuru, Version: " + std::string(PROJECT_GIT_HASH);
                 LOG_INFO << "Audio File: " + std::string(argv_[1]);
                 render_note();
-                return;
+                break;
+            default:
+                break;
         }
+        return 0;
     }
 
 }// namespace lessampler

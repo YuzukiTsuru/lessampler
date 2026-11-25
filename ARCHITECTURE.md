@@ -79,8 +79,10 @@ backend-specific data, so adding a backend does not change the engine.
 ## Assembly and neural paths
 
 `scripts/render_ust.py` computes the UTAU placement, invokes the resampler per
-note, and either hands the buffers to `lesswavtool` or to feature-level neural
-assembly. The wavtool applies UST envelopes and overlap placement; the neural
+note, and either hands the buffers back to `lessampler` in wavtool mode or to
+feature-level neural assembly. The same binary selects wavtool mode from the
+classic 15-argument UTAU form or from `--plan`. The wavtool applies UST
+envelopes and overlap placement; the neural
 path can resynthesize the finished mix (`--polish`) or assemble per-note
 mel/F0 features and run the vocoder once (`--feature-plan`). See
 [docs/rendering.md](docs/rendering.md) and [docs/neural.md](docs/neural.md).

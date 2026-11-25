@@ -6,7 +6,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 work="${1:-$root/build/data-render}"
 output="${2:-$root/build/data-render/main.wav}"
 lessampler="${LESSAMPLER:-$root/build/max-gcc/bin/lessampler}"
-wavtool="${LESSWAVTOOL:-$(dirname "$lessampler")/lesswavtool}"
+wavtool="${LESSWAVTOOL:-$lessampler}"
 
 if [[ ! -x "$lessampler" ]]; then
     echo "lessampler not found: $lessampler" >&2
@@ -14,8 +14,8 @@ if [[ ! -x "$lessampler" ]]; then
     exit 1
 fi
 if [[ ! -x "$wavtool" ]]; then
-    echo "lesswavtool not found: $wavtool" >&2
-    echo "Build it first: cmake --preset max-gcc && cmake --build --preset max-gcc -j" >&2
+    echo "wavtool binary not found: $wavtool" >&2
+    echo "lessampler provides the wavtool mode; build it first: cmake --preset max-gcc && cmake --build --preset max-gcc -j" >&2
     exit 1
 fi
 

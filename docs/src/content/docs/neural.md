@@ -29,7 +29,7 @@ The mel front end matches NHVSing's training preprocessing and was verified agai
 
 `lessampler --feature-plan plan.toml` avoids double vocoding. It reuses the wavtool plan, slices each note WAV by `skip_ms`/`length_ms`, extracts raw mel and F0, applies the UST envelope in mel/F0 space, and sums the notes on one global timeline. A single global level shift maps the assembled mix to the model's target RMS while preserving per-note dynamics. NHVSing runs once over the whole song; the output is level-matched to a reference mix built from the same note buffers.
 
-Feature-level assembly is meant for WORLD or LLSM note renders. Feeding it per-note neural renders would run the vocoder twice. `scripts/render_ust.py --feature` selects it instead of `lesswavtool`.
+Feature-level assembly is meant for WORLD or LLSM note renders. Feeding it per-note neural renders would run the vocoder twice. `scripts/render_ust.py --feature` selects it instead of wavtool assembly.
 
 ## Settings
 

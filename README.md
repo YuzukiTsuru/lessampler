@@ -56,7 +56,7 @@ cmake --build --preset max-gcc -j
 ctest --preset max-gcc --output-on-failure
 ```
 
-The executables land in `build/max-gcc/bin/`: `lessampler` (resampler / CLI) and `lesswavtool` (concatenation host). `lessampler.less` is created next to the binary on first run.
+The executable lands in `build/max-gcc/bin/lessampler`; it is the resampler, the wavtool and the CLI. `lessampler.less` is created next to the binary on first run.
 
 ## Backends
 
@@ -68,7 +68,7 @@ WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural NHVSing backend a
 
 ## Rendering a UST
 
-`scripts/render_ust.py` renders a `.ust` with `lessampler` and assembles the notes with `lesswavtool`. The host applies preutterance/overlap placement, UST envelopes, velocity, `prefix.map` pitch folders, and the oto cutoff:
+`scripts/render_ust.py` renders a `.ust` with `lessampler` and assembles the notes with the same binary in wavtool mode. The host applies preutterance/overlap placement, UST envelopes, velocity, `prefix.map` pitch folders, and the oto cutoff:
 
 ```bash
 ./scripts/render_data.sh
@@ -78,11 +78,10 @@ python3 scripts/render_ust.py \
   --voicebank path/to/voicebank \
   --output build/song.wav \
   --lessampler build/max-gcc/bin/lessampler \
-  --wavtool build/max-gcc/bin/lesswavtool \
   --polish
 ```
 
-`--feature` selects feature-level neural assembly instead; `--polish` runs whole-song resynthesis after the wavtool. The protocol, plan format, placement geometry, and remaining limitations are in [docs/rendering.md](docs/rendering.md).
+`--feature` selects feature-level neural assembly instead; `--polish` runs whole-song resynthesis after the wavtool. The wavtool mode is selected by the classic 15-argument UTAU form or by `--plan`; the protocol, plan format, placement geometry, and remaining limitations are in [docs/rendering.md](docs/rendering.md).
 
 ## Documentation
 

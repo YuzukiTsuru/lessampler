@@ -45,7 +45,7 @@ ctest --preset neural-gcc --output-on-failure
 - Requires GCC 15+, Clang 19+, or MSVC in `/std:c++latest` mode. CMake does not map `CXX_STANDARD 26` for MSVC or AppleClang; the Windows preset uses MSVC's latest mode, and the macOS preset uses Homebrew GCC 15.
 - Presets: `debug-gcc`, `release-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm`, `ci-clang`, `ci-msvc`, `neural-gcc`, `max-gcc` (LLSM + neural), `ci-max`, and `ci-msvc-max`. The `build/<preset>` directories are gitignored. CI's primary jobs use the maximal presets and publish `lessampler-<version>-<os>-<arch>` archives via CPack; `.github/workflows/release.yml` attaches them to tagged GitHub Releases.
 - CMakeLists use explicit source lists. Adding a source file requires editing the relevant domain `CMakeLists.txt`.
-- CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `VocoderNeural` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, `Wavtool`, the `lessampler` executable, and the `lesswavtool` executable.
+- CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `VocoderNeural` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, `Wavtool`, and the single `lessampler` executable (resampler, wavtool, and CLI).
 - `lessampler_common` is an INTERFACE target carrying C++26 features, include paths, warnings, and compile definitions. Link it through the library targets; do not add global `include_directories`.
 - `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_ENABLE_LLSM`, `LESSAMPLER_ENABLE_NEURAL`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, `LESSAMPLER_WERROR`, and `LESSAMPLER_ENABLE_SINGMOS_TESTS` are the project options. `LESSAMPLER_SINGMOS_PYTHON` selects the interpreter for the optional SingMOS test.
 - `LESSAMPLER_ENABLE_LLSM=ON` builds the optional libllsm2 vocoder from the `lib/llsm` and `lib/ciglet` submodules. libllsm2 is GPLv3, so the resulting binary is GPLv3; the default WORLD-only binary stays LGPL-3.0.
@@ -56,7 +56,7 @@ ctest --preset neural-gcc --output-on-failure
 
 `lessampler.less` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.less`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`, `[neural]`. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; selecting a backend that is not compiled in throws a `parameter_error`. The neural backend requires `[neural] model_path` to point at an NHVSing-compatible ONNX file and accepts `threads` and `target_rms`. Old `lessampler.fex` files, both TOML and legacy INI, are migrated to `lessampler.less` and kept as `lessampler.fex.bak`; an unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration. File names are defined in `src/Core/Constants.h`.
 
-`lesswavtool` is built into the same `bin/` directory. It implements the classic UTAU wavtool protocol and a `--plan plan.toml` batch mode used by `scripts/render_ust.py`. The batch plan places note buffers on an absolute timeline, applies UST envelopes, and mixes in `double` before one 16-bit write. Classic mode reads the existing output, skips `STP`, applies the envelope, and mixes at `output_end - overlap`.
+`lessampler` is also the UTAU wavtool. The binary selects wavtool mode from the classic 15-positional-argument call or from `--plan <plan.toml>`; a UTAU resampler call passes at most 13 arguments, so the count is unambiguous. Wavtool calls are dispatched before `lessampler.less` is loaded. The batch plan places note buffers on an absolute timeline, applies UST envelopes, and mixes in `double` before one 16-bit write. Classic mode reads the existing output, skips `STP`, applies the envelope, and mixes at `output_end - overlap`. `scripts/render_ust.py` drives this mode.
 
 Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 
@@ -68,6 +68,8 @@ Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 | `lessampler --polish <in.wav> <out.wav>` | whole-song neural resynthesis using `[neural] model_path` (neural builds only) |
 | `lessampler --feature-plan <plan.toml>` | feature-level assembly: note WAVs -> global mel/F0 -> one vocoder pass (neural builds only) |
 | `lessampler --f0 <in.wav> <out.csv>` | export the configured F0 track as `time_ms,f0_hz` |
+| `lessampler --plan <plan.toml>` | wavtool batch mode: assemble a TOML plan |
+| exactly 15 positional arguments | classic UTAU wavtool mode: append `<in.wav>` to `<out.wav>` |
 | `lessampler <in.wav> <out.wav> <note> ...` (>= 4 args) | UTAU resampler mode: render `<in.wav>` to `<out.wav>` |
 
 UTAU argument positions, parsed by `src/Host/UTAU/libUTAU/UTAUParameterParser.cpp`:
@@ -98,8 +100,8 @@ If the input WAV does not exist, a silent WAV of the requested length is written
 4. **Synthesis** — `VocoderBackend::Synthesize` renders one note from the note-independent analysis and `RenderParams`.
 5. **Amplitude** — `RenderEngine` applies `AutoAMP` in place (`0.5 * volume / max(abs)`, clamped to [-1, 1]).
 6. **Output** — `WavIO::WriteWav` writes mono 16-bit PCM via libsndfile. `WavIO::ReadWav` returns a mono `WavData` (multi-channel input is averaged per frame).
-7. **Neural polish (optional)** — `lessampler --polish` takes the assembled song, estimates F0 with the shared front end, extracts 128-bin log-mel, runs one NHVSing pass over the whole timeline, and matches the output RMS to the mix. `scripts/render_ust.py --polish` runs it after `lesswavtool` and keeps the raw mix as `<output>-mix.wav`.
-8. **Feature-level assembly (optional)** — `lessampler --feature-plan plan.toml` slices each note WAV, extracts mel/F0, applies the UST envelope, assembles one global feature timeline, and runs the vocoder once. `scripts/render_ust.py --feature` uses it instead of `lesswavtool`; it is meant for WORLD/LLSM note renders and is mutually exclusive with `--polish`.
+7. **Neural polish (optional)** — `lessampler --polish` takes the assembled song, estimates F0 with the shared front end, extracts 128-bin log-mel, runs one NHVSing pass over the whole timeline, and matches the output RMS to the mix. `scripts/render_ust.py --polish` runs it after wavtool assembly and keeps the raw mix as `<output>-mix.wav`.
+8. **Feature-level assembly (optional)** — `lessampler --feature-plan plan.toml` slices each note WAV, extracts mel/F0, applies the UST envelope, assembles one global feature timeline, and runs the vocoder once. `scripts/render_ust.py --feature` uses it instead of wavtool assembly; it is meant for WORLD/LLSM note renders and is mutually exclusive with `--polish`.
 
 The `VocoderBackend` contract deliberately separates the two operations:
 
@@ -130,7 +132,7 @@ The neural backend (`Vocoder/Neural`) reuses the WORLD `.lessaudio` cache and `W
 
 ### Wavtool assembly
 
-lessampler itself renders one note per process; `lesswavtool` performs the UTAU-style concatenation. `scripts/render_ust.py` computes the effective preutterance/overlap (oto values, UST overrides, ACPT, velocity pull), requests a buffer long enough for `L + STP` and the fixed region, and records each note in a TOML plan. `WavtoolPlan::Run` places `skip` frames into the absolute timeline at `note_start - preutterance`, applies the UST envelope, and sums in `double`; `WavAssembly::Write` clamps and writes once. The classic protocol does the same operation incrementally with a seek-back by the overlap. The envelope geometry and `%` placeholder are documented in `ARCHITECTURE.md`.
+lessampler renders one note per process; the same binary in wavtool mode performs the UTAU-style concatenation. `scripts/render_ust.py` computes the effective preutterance/overlap (oto values, UST overrides, ACPT, velocity pull), requests a buffer long enough for `L + STP` and the fixed region, and records each note in a TOML plan. `WavtoolPlan::Run` places `skip` frames into the absolute timeline at `note_start - preutterance`, applies the UST envelope, and sums in `double`; `WavAssembly::Write` clamps and writes once. The classic protocol does the same operation incrementally with a seek-back by the overlap. The envelope geometry and `%` placeholder are documented in `ARCHITECTURE.md`.
 
 ## Core data types
 

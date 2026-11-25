@@ -125,9 +125,11 @@ namespace lessampler::wavtool {
 
     void WavtoolProtocol::PrintUsage(std::ostream &stream) {
         stream << "Usage:\n"
-                  "  lesswavtool <out.wav> <in.wav> <skip_ms> <length_ms>\n"
-                  "               [p1 p2 p3 v1 v2 v3 v4 overlap p4 p5 v5]\n"
-                  "  lesswavtool --plan <plan.toml>\n";
+                  "  lessampler <out.wav> <in.wav> <skip_ms> <length_ms>\n"
+                  "             <p1> <p2> <p3> <v1> <v2> <v3> <v4> <overlap> <p4> <p5> <v5>\n"
+                  "  lessampler --plan <plan.toml>\n"
+                  "\n"
+                  "The classic protocol requires all 15 positional arguments.\n";
     }
 
 }// namespace lessampler::wavtool

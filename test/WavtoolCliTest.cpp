@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "Audio/WavIO.h"
-#include "WavtoolBinaryPath.h"
+#include "WavtoolCliPaths.h"
 
 using namespace lessampler;
 
@@ -48,11 +48,13 @@ int main() {
     WavIO::WriteWav(input, samples, 1000);
 
     const auto output = root / "out.wav";
-    const auto tool = std::filesystem::path(LESSWAVTOOL_BINARY_PATH);
+    const auto tool = std::filesystem::path(LESSAMPLER_BINARY_PATH);
     REQUIRE(std::filesystem::exists(tool));
 
     {
-        const auto result = run(quote(tool) + " " + quote(output) + " " + quote(input) + " 0 100");
+        // The classic wavtool protocol is selected by its 15 positional arguments.
+        const auto result = run(quote(tool) + " " + quote(output) + " " + quote(input) +
+                                " 0 100 0 5 35 0 100 100 0 0 0 10 100");
         CHECK_EQ(result, 0);
         const auto read = WavIO::ReadWav(output);
         CHECK_EQ(read.sample_rate, 1000);
@@ -104,7 +106,7 @@ int main() {
         CHECK_NEAR(read.samples[75], 1.0, 2e-3);
     }
 
-    CHECK(run(quote(tool) + " " + quote(output)) != 0);
+    CHECK(run(quote(tool) + " --plan") != 0);
 
     std::filesystem::remove_all(root);
     return test::finish();

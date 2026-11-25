@@ -95,22 +95,22 @@ add_executable(WavtoolProtocolTest WavtoolProtocolTest.cpp)
 target_link_libraries(WavtoolProtocolTest PRIVATE Wavtool)
 lessampler_add_test(WavtoolProtocolTest unit)
 
-file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/WavtoolBinaryPath.h"
-        CONTENT "#pragma once\n#define LESSWAVTOOL_BINARY_PATH R\"lesswavtool($<TARGET_FILE:lesswavtool>)lesswavtool\"\n")
+file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/WavtoolCliPaths.h"
+        CONTENT "#pragma once\n#define LESSAMPLER_BINARY_PATH R\"ls($<TARGET_FILE:lessampler>)ls\"\n")
 
 add_executable(WavtoolCliTest WavtoolCliTest.cpp)
 target_link_libraries(WavtoolCliTest PRIVATE Wavtool)
 target_include_directories(WavtoolCliTest PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-add_dependencies(WavtoolCliTest lesswavtool)
+add_dependencies(WavtoolCliTest lessampler)
 lessampler_add_test(WavtoolCliTest integration)
 
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/WavtoolEndToEndPaths.h"
-        CONTENT "#pragma once\n#define LESSAMPLER_BINARY_PATH R\"ls($<TARGET_FILE:lessampler>)ls\"\n#define LESSWAVTOOL_BINARY_PATH R\"lw($<TARGET_FILE:lesswavtool>)lw\"\n")
+        CONTENT "#pragma once\n#define LESSAMPLER_BINARY_PATH R\"ls($<TARGET_FILE:lessampler>)ls\"\n")
 
 add_executable(WavtoolEndToEndTest WavtoolEndToEndTest.cpp)
 target_link_libraries(WavtoolEndToEndTest PRIVATE Wavtool)
 target_include_directories(WavtoolEndToEndTest PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-add_dependencies(WavtoolEndToEndTest lessampler lesswavtool)
+add_dependencies(WavtoolEndToEndTest lessampler)
 lessampler_add_test(WavtoolEndToEndTest integration)
 
 add_executable(ShineTest ShineTest.cpp)

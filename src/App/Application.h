@@ -25,7 +25,7 @@ namespace lessampler {
     public:
         Application(int argc, char **argv);
 
-        void run();
+        [[nodiscard]] int run();
 
     private:
         enum class Command {
@@ -33,6 +33,9 @@ namespace lessampler {
             help,
             version,
             usage,
+            wavtool,
+            wavtool_plan,
+            wavtool_usage,
             model_voicebank,
             render_note,
             polish,
@@ -42,9 +45,15 @@ namespace lessampler {
 
         [[nodiscard]] Command parse_args() const;
 
+        void load_config();
+
         void render_note();
 
         static void render_blank(int argc, char **argv);
+
+        int run_wavtool();
+
+        int run_wavtool_plan();
 
         void model_voicebank();
 

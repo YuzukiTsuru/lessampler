@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-"""Render a UTAU .ust file with lessampler and lesswavtool.
+"""Render a UTAU .ust file with lessampler.
 
 This is a UTAU host, not a resampler. It selects the oto.ini entry for each
 note, computes the classic preutterance/overlap placement, invokes lessampler
-once per note, and then hands all note buffers to lesswavtool with their UST
-envelopes. The wavtool performs the overlap seek-back and the final mix.
+once per note, and then hands all note buffers back to the same binary in
+wavtool mode with their UST envelopes. The wavtool performs the overlap
+seek-back and the final mix.
 """
 from __future__ import annotations
 
 import argparse
 import math
-import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -335,16 +334,8 @@ def toml_quote(text: str) -> str:
 
 
 def find_wavtool(lessampler: Path, explicit: Path | None) -> Path:
-    if explicit is not None:
-        return explicit
-    name = "lesswavtool.exe" if os.name == "nt" else "lesswavtool"
-    sibling = lessampler.with_name(name)
-    if sibling.is_file():
-        return sibling
-    found = shutil.which("lesswavtool")
-    if found:
-        return Path(found)
-    return sibling
+    """The wavtool is the lessampler binary itself; --wavtool overrides it."""
+    return explicit if explicit is not None else lessampler
 
 
 def render(args: argparse.Namespace) -> None:
@@ -356,7 +347,7 @@ def render(args: argparse.Namespace) -> None:
         raise SystemExit(f"lessampler binary not found: {args.lessampler}")
     wavtool = find_wavtool(args.lessampler, args.wavtool)
     if not wavtool.is_file():
-        raise SystemExit(f"lesswavtool binary not found: {wavtool}")
+        raise SystemExit(f"wavtool binary not found: {wavtool}")
 
     prefix_map = parse_prefix_map(args.voicebank)
     sample_rates: dict[Path, int] = {}
@@ -583,7 +574,7 @@ def render(args: argparse.Namespace) -> None:
         else:
             result = subprocess.run([str(wavtool), "--plan", str(plan_path)], capture_output=True, text=True)
             if result.returncode != 0:
-                raise SystemExit(result.stderr.strip() or "lesswavtool failed")
+                raise SystemExit(result.stderr.strip() or "wavtool assembly failed")
 
             if args.polish:
                 mix_path = output_path.with_name(output_path.stem + "-mix" + output_path.suffix)
@@ -604,12 +595,13 @@ def render(args: argparse.Namespace) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Render a UTAU .ust with lessampler and lesswavtool")
+    parser = argparse.ArgumentParser(description="Render a UTAU .ust with lessampler")
     parser.add_argument("--ust", required=True, type=Path)
     parser.add_argument("--voicebank", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--lessampler", type=Path, default=Path("build/max-gcc/bin/lessampler"))
-    parser.add_argument("--wavtool", type=Path, default=None)
+    parser.add_argument("--wavtool", type=Path, default=None,
+                        help="override the wavtool binary (defaults to --lessampler)")
     parser.add_argument("--polish", action="store_true",
                         help="re-render the assembled mix through the neural vocoder (requires [neural] model_path)")
     parser.add_argument("--feature", action="store_true",

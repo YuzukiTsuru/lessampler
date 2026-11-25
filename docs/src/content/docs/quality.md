@@ -36,7 +36,7 @@ python3 test/quality/evaluate.py \
   data/render/main-feature.wav
 ```
 
-`--mos` defaults to `none`, which produces the objective metrics without torch. `--min-mos` makes the command exit with status 2 when a file scores below the threshold. WAV input must be 16-bit PCM, which is what `lessampler` and `lesswavtool` write.
+`--mos` defaults to `none`, which produces the objective metrics without torch. `--min-mos` makes the command exit with status 2 when a file scores below the threshold. WAV input must be 16-bit PCM, which is what `lessampler` writes.
 
 ## CTest
 

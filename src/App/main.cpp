@@ -18,7 +18,7 @@ using namespace lessampler;
 int main(int argc, char *argv[]) {
     try {
         Application application(argc, argv);
-        application.run();
+        return application.run();
     } catch (const std::exception &error) {
         LOG_ERROR << error.what();
         return -1;

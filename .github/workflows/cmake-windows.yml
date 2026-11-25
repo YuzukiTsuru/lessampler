@@ -45,8 +45,11 @@ jobs:
           Expand-Archive -Path $zip.FullName -DestinationPath dist -Force
           $exe = Get-ChildItem dist -Recurse -Filter lessampler.exe | Select-Object -First 1
           & $exe.FullName --version
-          $wavtool = Get-ChildItem dist -Recurse -Filter lesswavtool.exe | Select-Object -First 1
-          & $wavtool.FullName --help
+          $smoke = Join-Path $env:TEMP "lessampler-wavtool-smoke.wav"
+          $missing = Join-Path $env:TEMP "lessampler-missing.wav"
+          Remove-Item $smoke -ErrorAction SilentlyContinue
+          & $exe.FullName $smoke $missing 0 100 0 5 35 0 100 100 0 0 0 10 100
+          if (-not (Test-Path $smoke)) { throw "wavtool mode did not write output" }
 
       - name: Upload package
         uses: actions/upload-artifact@v7

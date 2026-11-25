@@ -36,7 +36,7 @@ lessampler renders singing from UTAU `.ust` projects. It implements the resample
 
 - WORLD analysis and synthesis with `.lessaudio` sidecars.
 - Optional LLSM and NHVSing-compatible neural backends.
-- `lessampler`, the resampler and CLI, and `lesswavtool`, the UTAU concatenation host.
+- `lessampler`, a single binary with the resampler, the UTAU wavtool and the CLI.
 - Whole-song neural polish and feature-level neural assembly.
 - A standardized SingMOS-Pro and objective quality report.
 

@@ -45,7 +45,6 @@ int main() {
     const auto source = std::filesystem::path(LESSAMPLER_TEST_DATA_DIR) / "vaiueo2d.wav";
     REQUIRE(std::filesystem::exists(source));
     REQUIRE(std::filesystem::exists(std::filesystem::path(LESSAMPLER_BINARY_PATH)));
-    REQUIRE(std::filesystem::exists(std::filesystem::path(LESSWAVTOOL_BINARY_PATH)));
 
     const auto note0 = root / "note0.wav";
     const auto note1 = root / "note1.wav";
@@ -73,7 +72,7 @@ int main() {
          << "length_ms = 1000.0\n";
     plan.close();
 
-    CHECK_EQ(run(quote(LESSWAVTOOL_BINARY_PATH) + " --plan " + quote(plan_path)), 0);
+    CHECK_EQ(run(quote(LESSAMPLER_BINARY_PATH) + " --plan " + quote(plan_path)), 0);
     REQUIRE(std::filesystem::exists(output));
 
     const auto read = WavIO::ReadWav(output);

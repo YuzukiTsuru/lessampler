@@ -18,7 +18,7 @@ cmake --build --preset max-gcc -j
 ctest --preset max-gcc --output-on-failure
 ```
 
-Do not clone with `--depth 1`; the pinned submodule commits are not necessarily at the branch tips. The executables land in `build/<preset>/bin/`: `lessampler` and `lesswavtool`. The config file is created next to `lessampler`.
+Do not clone with `--depth 1`; the pinned submodule commits are not necessarily at the branch tips. The executable lands in `build/<preset>/bin/lessampler`; it contains the resampler, the wavtool and the CLI. The config file is created next to `lessampler`.
 
 ## Presets
 

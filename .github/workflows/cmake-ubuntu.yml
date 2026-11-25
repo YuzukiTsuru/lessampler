@@ -44,7 +44,8 @@ jobs:
           mkdir -p /tmp/lessampler-package
           tar -xzf build/ci-max/lessampler-*.tar.gz -C /tmp/lessampler-package
           /tmp/lessampler-package/*/lessampler --version
-          /tmp/lessampler-package/*/lesswavtool --help
+          /tmp/lessampler-package/*/lessampler /tmp/wavtool-smoke.wav /tmp/missing.wav 0 100 0 5 35 0 100 100 0 0 0 10 100
+          test -s /tmp/wavtool-smoke.wav
 
       - name: Upload package
         uses: actions/upload-artifact@v7

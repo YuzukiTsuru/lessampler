@@ -11,7 +11,7 @@ using namespace lessampler::wavtool;
 
 int main() {
     const std::array<std::string_view, 16> args{
-            "lesswavtool", "out.wav", "in.wav", "10", "100",
+            "lessampler", "out.wav", "in.wav", "10", "100",
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"};
 
     const auto request = WavtoolProtocol::Parse(args);
@@ -31,7 +31,7 @@ int main() {
     CHECK_NEAR(request.envelope.p5, 10.0, 1e-9);
     CHECK_NEAR(request.envelope.v5, 11.0, 1e-9);
 
-    const std::array<std::string_view, 5> minimal{"lesswavtool", "out.wav", "in.wav", "0", "100"};
+    const std::array<std::string_view, 5> minimal{"lessampler", "out.wav", "in.wav", "0", "100"};
     const auto defaults = WavtoolProtocol::Parse(minimal);
     CHECK_NEAR(defaults.overlap_ms, 0.0, 1e-9);
     CHECK_NEAR(defaults.envelope.p1, 0.0, 1e-9);
@@ -52,7 +52,7 @@ int main() {
 
     bool rejected = false;
     try {
-        (void) WavtoolProtocol::Parse(std::array<std::string_view, 4>{"lesswavtool", "out.wav", "in.wav", "0"});
+        (void) WavtoolProtocol::Parse(std::array<std::string_view, 4>{"lessampler", "out.wav", "in.wav", "0"});
     } catch (const parameter_error &) {
         rejected = true;
     }

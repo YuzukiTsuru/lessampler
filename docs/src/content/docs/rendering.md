@@ -1,21 +1,21 @@
 ---
 title: "Rendering a UST"
-description: "lesswavtool, the UST host, placement and envelopes."
+description: "The wavtool mode, the UST host, placement and envelopes."
 ---
 
-`scripts/render_ust.py` is a UTAU host. It reads a `.ust`, selects the closest `oto.ini` entry for each note, invokes `lessampler` once per note, and assembles the buffers with `lesswavtool`.
+`scripts/render_ust.py` is a UTAU host. It reads a `.ust`, selects the closest `oto.ini` entry for each note, invokes `lessampler` once per note, and assembles the buffers with the same binary in wavtool mode.
 
-## lesswavtool
+## Wavtool mode
 
-`lesswavtool` is the concatenation half of the pipeline:
+`lessampler` is both the resampler and the concatenation host. A UTAU resampler call passes at most 13 positional arguments; the classic wavtool protocol passes exactly 15, so the binary selects wavtool mode from the argument count. A plan file selects the batch mode explicitly:
 
 ```text
-lesswavtool <out.wav> <in.wav> <skip_ms> <length_ms>
-            [p1 p2 p3 v1 v2 v3 v4 overlap p4 p5 v5]
-lesswavtool --plan plan.toml
+lessampler <out.wav> <in.wav> <skip_ms> <length_ms>
+           <p1> <p2> <p3> <v1> <v2> <v3> <v4> <overlap> <p4> <p5> <v5>
+lessampler --plan plan.toml
 ```
 
-The host places each rendered note at `note_start - preutterance`, applies the UST envelope over the used segment, and mixes overlapping tails with a seek-back. It honours UST `Velocity`, `PreUtterance`/`VoiceOverlap`, `prefix.map` pitch folders, the oto cutoff, and velocity-dependent preutterance adjustment. The batch plan places segments on an absolute timeline and mixes once in `double`, avoiding repeated 16-bit read-modify-write passes.
+Wavtool mode does not load `lessampler.less`, so a broken analysis configuration cannot stop a UTAU host from concatenating. The host places each rendered note at `note_start - preutterance`, applies the UST envelope over the used segment, and mixes overlapping tails with a seek-back. It honours UST `Velocity`, `PreUtterance`/`VoiceOverlap`, `prefix.map` pitch folders, the oto cutoff, and velocity-dependent preutterance adjustment. The batch plan places segments on an absolute timeline and mixes once in `double`, avoiding repeated 16-bit read-modify-write passes.
 
 The envelope is piecewise linear:
 
@@ -46,11 +46,10 @@ python3 scripts/render_ust.py \
   --voicebank path/to/voicebank \
   --output build/song.wav \
   --lessampler build/max-gcc/bin/lessampler \
-  --wavtool build/max-gcc/bin/lesswavtool \
   --polish
 ```
 
-`--wavtool` defaults to the `lesswavtool` next to the lessampler binary. `--polish` adds whole-song neural resynthesis and keeps the raw mix as `<output>-mix.wav`. `--feature` instead assembles per-note mel/F0 features and runs the vocoder once; it is mutually exclusive with `--polish`. Without either, the wavtool overlap is the final stage.
+`--wavtool` overrides the concatenation binary and defaults to the `--lessampler` binary. `--polish` adds whole-song neural resynthesis and keeps the raw mix as `<output>-mix.wav`. `--feature` instead assembles per-note mel/F0 features and runs the vocoder once; it is mutually exclusive with `--polish`. Without either, the wavtool overlap is the final stage.
 
 `lessampler --f0 <in.wav> <out.csv>` exports the configured F0 track as `time_ms,f0_hz` for external analysis.
 
