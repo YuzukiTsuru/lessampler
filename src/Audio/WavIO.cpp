@@ -11,6 +11,7 @@
 #include "WavIO.h"
 
 #include <memory>
+#include <utility>
 
 #include "Core/Exception.h"
 
@@ -58,6 +59,26 @@ namespace lessampler {
     }
 
     WavData WavIO::ReadWav(const std::filesystem::path &path) {
+        auto frames = ReadWavFrames(path);
+
+        const auto channels = static_cast<std::size_t>(frames.channels);
+        WavData data;
+        data.sample_rate = frames.sample_rate;
+        data.channels = frames.channels;
+        data.samples.resize(frames.frames());
+
+        for (std::size_t frame = 0; frame < data.samples.size(); ++frame) {
+            double sum = 0.0;
+            for (std::size_t channel = 0; channel < channels; ++channel) {
+                sum += frames.samples[frame * channels + channel];
+            }
+            data.samples[frame] = sum / static_cast<double>(channels);
+        }
+
+        return data;
+    }
+
+    WavFrames WavIO::ReadWavFrames(const std::filesystem::path &path) {
         SF_INFO info{};
         info.format = 0;
 
@@ -74,33 +95,31 @@ namespace lessampler {
         const auto frames = static_cast<std::size_t>(info.frames);
         std::vector<double> buffer(frames * channels);
 
-        const sf_count_t read = sf_read_double(file.get(), buffer.data(), static_cast<sf_count_t>(buffer.size()));
+        const sf_count_t read = sf_readf_double(file.get(), buffer.data(), static_cast<sf_count_t>(frames));
         if (read < 0) {
             throw audio_file_error("failed to read " + path.string());
         }
 
-        const auto read_frames = static_cast<std::size_t>(read) / channels;
-        WavData data;
-        data.sample_rate = info.samplerate;
-        data.channels = info.channels;
-        data.samples.resize(read_frames);
-
-        for (std::size_t frame = 0; frame < read_frames; ++frame) {
-            double sum = 0.0;
-            for (std::size_t channel = 0; channel < channels; ++channel) {
-                sum += buffer[frame * channels + channel];
-            }
-            data.samples[frame] = sum / static_cast<double>(channels);
-        }
-
-        return data;
+        buffer.resize(static_cast<std::size_t>(read) * channels);
+        return WavFrames{std::move(buffer), info.samplerate, info.channels};
     }
 
     void WavIO::WriteWav(const std::filesystem::path &path, std::span<const double> x, int fs) {
+        WriteWavFrames(path, x, fs, 1);
+    }
+
+    void WavIO::WriteWavFrames(const std::filesystem::path &path, std::span<const double> interleaved, int fs, int channels) {
+        if (fs <= 0 || channels <= 0) {
+            throw audio_file_error("invalid WAV layout for " + path.string());
+        }
+        if (interleaved.empty() || interleaved.size() % static_cast<std::size_t>(channels) != 0) {
+            throw audio_file_error("invalid interleaved sample count for " + path.string());
+        }
+
         SF_INFO info{};
-        info.channels = 1;
+        info.channels = channels;
         info.samplerate = fs;
-        info.frames = static_cast<sf_count_t>(x.size());
+        info.frames = static_cast<sf_count_t>(interleaved.size() / static_cast<std::size_t>(channels));
         info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
 
         SndFilePtr file(open_file(path, SFM_WRITE, info));
@@ -108,8 +127,8 @@ namespace lessampler {
             throw audio_file_error(path.string());
         }
 
-        const auto written = sf_write_double(file.get(), x.data(), static_cast<sf_count_t>(x.size()));
-        if (written != static_cast<sf_count_t>(x.size())) {
+        const auto written = sf_write_double(file.get(), interleaved.data(), static_cast<sf_count_t>(interleaved.size()));
+        if (written != static_cast<sf_count_t>(interleaved.size())) {
             throw audio_file_error("failed to write " + path.string());
         }
     }

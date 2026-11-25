@@ -65,6 +65,26 @@ int main() {
     CHECK_NEAR(stereo_read.samples[2], 0.5, 1e-4);
     CHECK_NEAR(stereo_read.samples[3], -1.0, 1e-4);
 
+    const auto stereo_frames = WavIO::ReadWavFrames(stereo_path);
+    CHECK_EQ(stereo_frames.sample_rate, 44100);
+    CHECK_EQ(stereo_frames.channels, 2);
+    CHECK_EQ(stereo_frames.frames(), 4);
+    REQUIRE(stereo_frames.samples.size() == interleaved.size());
+    for (std::size_t i = 0; i < interleaved.size(); ++i) {
+        CHECK_NEAR(stereo_frames.samples[i], interleaved[i], 1e-4);
+    }
+
+    const auto frames_path = root / "frames.wav";
+    WavIO::WriteWavFrames(frames_path, interleaved, 44100, 2);
+    const auto frames_read = WavIO::ReadWavFrames(frames_path);
+    CHECK_EQ(frames_read.sample_rate, 44100);
+    CHECK_EQ(frames_read.channels, 2);
+    CHECK_EQ(frames_read.frames(), 4);
+    REQUIRE(frames_read.samples.size() == interleaved.size());
+    for (std::size_t i = 0; i < interleaved.size(); ++i) {
+        CHECK_NEAR(frames_read.samples[i], interleaved[i], 1e-4);
+    }
+
     bool rejected = false;
     try {
         WavIO::ReadWav(root / "missing.wav");
