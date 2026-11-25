@@ -45,6 +45,8 @@ jobs:
           Expand-Archive -Path $zip.FullName -DestinationPath dist -Force
           $exe = Get-ChildItem dist -Recurse -Filter lessampler.exe | Select-Object -First 1
           & $exe.FullName --version
+          $wavtool = Get-ChildItem dist -Recurse -Filter lesswavtool.exe | Select-Object -First 1
+          & $wavtool.FullName --help
 
       - name: Upload package
         uses: actions/upload-artifact@v7
