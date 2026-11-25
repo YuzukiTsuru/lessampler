@@ -152,6 +152,23 @@ piecewise-linear gain:
 in `double` and clamps only when writing 16-bit PCM. The wavtool does not
 phase-align segments; the overlap crossfade is the classic behaviour.
 
+## Neural polish
+
+`lessampler --polish <mix.wav> <out.wav>` is the optional song-level stage. It
+uses `Vocoder/Neural/NeuralPolisher` to resample the assembled mix to 44.1 kHz,
+estimate F0 with the shared DIO/Harvest + StoneMask front end, extract the
+NHVSing 128-bin log-mel features, and run one model pass over the whole
+timeline. The output is RMS-matched to the mix, resampled back to the voicebank
+rate, and trimmed to the input length.
+
+The per-note neural backend still resets model state for every note. The polish
+stage exists to remove that limitation: the model sees the whole phrase, so a
+seam between two separately rendered notes is no longer a model boundary. It
+re-synthesizes timbre, so it is opt-in. `backend::NeuralPolishAvailable()`
+answers whether the build has it; `PolishWithNeural` throws when the model path
+is empty or missing. `scripts/render_ust.py --polish` calls it after
+`lesswavtool` and keeps the raw mix at `<output>-mix.wav`.
+
 ## Caches
 
 All caches are sidecars next to the source WAV:

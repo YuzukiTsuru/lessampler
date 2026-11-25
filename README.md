@@ -136,6 +136,18 @@ target_rms = 0.111
 
 The model is fixed at 44.1 kHz; other voicebank rates are resampled for feature extraction and back to the source rate. ONNX Runtime is used instead of ncnn because the exported NHVSing graph relies on dynamic `Scan`, `CumSum`, and random-excitation operators that `onnx2ncnn` does not import. I verified that both NHVSing and OpenVPI NSF-HiFiGAN ONNX graphs fail `onnx2ncnn` conversion for this reason; a ncnn path would need a feedforward model or a C++ port of the DSP excitation.
 
+### Whole-song neural polish
+
+The per-note neural backend still starts a fresh model for every note; the wavtool's overlap crossfade hides most of the boundary, but the phase inside the model is still per-note. `lessampler --polish` re-renders the assembled mix as one timeline instead:
+
+```bash
+lessampler --polish build/song.wav build/song-polished.wav
+```
+
+It estimates F0 with the configured WORLD front end, extracts the same 128-bin log-mel features, runs the NHVSing model once over the whole song, matches the output RMS to the mix, and writes a continuous waveform. On the 245 s reference song this is 42,198 frames, about 60 s and 5.5 GB peak memory. The model sees the whole phrase, so notes rendered by separate processes no longer reset phase at every boundary. It re-synthesizes the timbre as well; compare it with the raw mix before choosing it.
+
+`--polish` requires a neural build and `[neural] model_path`; the backend setting is not used. `scripts/render_ust.py --polish` runs the polish stage after `lesswavtool` and keeps the raw mix next to the result as `<name>-mix.wav`.
+
 ### Release packages
 
 CI builds the maximal configuration on Ubuntu, macOS, and Windows: WORLD plus every optional backend compiled on that platform. Tagged pushes (`v*`) run `.github/workflows/release.yml`, which uploads `lessampler-<version>-<os>-<arch>` archives and SHA-256 checksums to GitHub Releases.
@@ -232,10 +244,11 @@ python3 scripts/render_ust.py \
   --voicebank path/to/voicebank \
   --output build/song.wav \
   --lessampler build/max-gcc/bin/lessampler \
-  --wavtool build/max-gcc/bin/lesswavtool
+  --wavtool build/max-gcc/bin/lesswavtool \
+  --polish
 ```
 
-`--wavtool` defaults to the `lesswavtool` next to the lessampler binary. The host does not do phase alignment or whole-song continuous synthesis; those are separate future features.
+`--wavtool` defaults to the `lesswavtool` next to the lessampler binary. `--polish` adds the whole-song neural resynthesis described above and keeps the raw mix as `build/song-mix.wav`. Without it, the wavtool's overlap crossfade is the final stage.
 
 `scripts/seam_report.py` prints short-time energy dips around UST note starts and the longest near-zero run. It is useful for comparing an old render with a new one:
 

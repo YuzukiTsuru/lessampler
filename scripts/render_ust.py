@@ -571,12 +571,22 @@ def render(args: argparse.Namespace) -> None:
         if result.returncode != 0:
             raise SystemExit(result.stderr.strip() or "lesswavtool failed")
 
+        if args.polish:
+            mix_path = output_path.with_name(output_path.stem + "-mix" + output_path.suffix)
+            output_path.replace(mix_path)
+            polish = subprocess.run([str(args.lessampler), "--polish", str(mix_path), str(output_path)],
+                                    capture_output=True, text=True)
+            if polish.returncode != 0:
+                mix_path.replace(output_path)
+                raise SystemExit(polish.stderr.strip() or "neural polish failed")
+
     with wave.open(str(output_path), "rb") as handle:
         duration = handle.getnframes() / handle.getframerate()
 
     for index, lyric in skipped:
         print(f"[warn] note {index}: no oto entry for {lyric!r}", file=sys.stderr)
-    print(f"rendered {rendered}/{total} notes, {duration:.3f}s -> {args.output}")
+    suffix = " (polished)" if args.polish else ""
+    print(f"rendered {rendered}/{total} notes, {duration:.3f}s{suffix} -> {args.output}")
 
 
 def main() -> int:
@@ -586,6 +596,8 @@ def main() -> int:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--lessampler", type=Path, default=Path("build/max-gcc/bin/lessampler"))
     parser.add_argument("--wavtool", type=Path, default=None)
+    parser.add_argument("--polish", action="store_true",
+                        help="re-render the assembled mix through the neural vocoder (requires [neural] model_path)")
     args = parser.parse_args()
     render(args)
     return 0
