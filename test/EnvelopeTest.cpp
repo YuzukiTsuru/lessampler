@@ -3,9 +3,9 @@
 #include <cmath>
 #include <vector>
 
-#include "Host/Wavtool/Envelope.h"
+#include "Audio/Envelope.h"
 
-using namespace lessampler::wavtool;
+using namespace lessampler;
 
 int main() {
     const auto fallback = Envelope::Default();

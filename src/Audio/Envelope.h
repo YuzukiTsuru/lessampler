@@ -15,7 +15,7 @@
 #include <string_view>
 #include <vector>
 
-namespace lessampler::wavtool {
+namespace lessampler {
 
     /*
  * UTAU note envelope.
@@ -56,6 +56,6 @@ namespace lessampler::wavtool {
         double v5 = 100.0;
     };
 
-}// namespace lessampler::wavtool
+}// namespace lessampler
 
 #endif//LESSAMPLER_WAVTOOL_ENVELOPE_H

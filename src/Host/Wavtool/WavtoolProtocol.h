@@ -16,7 +16,7 @@
 #include <span>
 #include <string_view>
 
-#include "Host/Wavtool/Envelope.h"
+#include "Audio/Envelope.h"
 
 namespace lessampler::wavtool {
 

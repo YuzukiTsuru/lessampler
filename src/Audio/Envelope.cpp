@@ -8,7 +8,7 @@
  * along with lessampler. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Host/Wavtool/Envelope.h"
+#include "Audio/Envelope.h"
 
 #include <algorithm>
 #include <charconv>
@@ -19,7 +19,7 @@
 
 #include "Core/Exception.h"
 
-namespace lessampler::wavtool {
+namespace lessampler {
 
     namespace {
 
@@ -177,4 +177,4 @@ namespace lessampler::wavtool {
         return gains;
     }
 
-}// namespace lessampler::wavtool
+}// namespace lessampler

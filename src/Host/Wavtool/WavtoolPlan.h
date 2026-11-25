@@ -15,7 +15,7 @@
 #include <filesystem>
 #include <vector>
 
-#include "Host/Wavtool/Envelope.h"
+#include "Audio/Envelope.h"
 
 namespace lessampler::wavtool {
 

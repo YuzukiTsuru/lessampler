@@ -1,6 +1,4 @@
 add_library(Wavtool
-        Envelope.cpp
-        Envelope.h
         WavAssembly.cpp
         WavAssembly.h
         WavtoolProtocol.cpp
