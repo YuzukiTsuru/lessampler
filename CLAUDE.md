@@ -54,9 +54,11 @@ ctest --preset neural-gcc --output-on-failure
 
 ## Running
 
-`lessampler.less` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.less`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`, `[neural]`. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; selecting a backend that is not compiled in throws a `parameter_error`. The neural backend requires `[neural] model_path` to point at an NHVSing-compatible ONNX file and accepts `threads` and `target_rms`. Old `lessampler.fex` files, both TOML and legacy INI, are migrated to `lessampler.less` and kept as `lessampler.fex.bak`; an unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration. File names are defined in `src/Core/Constants.h`.
+`lessampler.less` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.less`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`, `[neural]`, `[master]`. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; selecting a backend that is not compiled in throws a `parameter_error`. The neural backend requires `[neural] model_path` to point at an NHVSing-compatible ONNX file and accepts `threads` and `target_rms`. `[f0] f0_ceil` defaults to 800 Hz. `[master] preset` is `"none"`, `"natural"`, `"warm"`, or `"power"` and is used by `--polish`; it is not part of the analysis fingerprint. Old `lessampler.fex` files, both TOML and legacy INI, are migrated to `lessampler.less` and kept as `lessampler.fex.bak`; an unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration. File names are defined in `src/Core/Constants.h`.
 
-`lessampler` is also the UTAU wavtool. The binary selects wavtool mode from the classic 15-positional-argument call or from `--plan <plan.toml>`; a UTAU resampler call passes at most 13 arguments, so the count is unambiguous. Wavtool calls are dispatched before `lessampler.less` is loaded. The batch plan places note buffers on an absolute timeline, applies UST envelopes, and mixes in `double` before one 16-bit write. Classic mode reads the existing output, skips `STP`, applies the envelope, and mixes at `output_end - overlap`. `scripts/render_ust.py` drives this mode.
+`lessampler` is also the UTAU wavtool. The binary selects wavtool mode from the classic 15-positional-argument call or from `--plan <plan.toml>`; a UTAU resampler call passes at most 13 arguments, so the count is unambiguous. Wavtool calls are dispatched before `lessampler.less` is loaded. The batch plan places note buffers on an absolute timeline, applies UST envelopes, de-clicks segment edges, and mixes in `double` before one 16-bit write. Classic mode reads the existing output, skips `STP`, applies the envelope, and mixes at `output_end - overlap`. The batch plan accepts `master = "none|natural|warm|power"`; `scripts/render_ust.py` writes `warm` by default. Classic mode cannot run the stateful master chain and only gets edge de-click plus the final peak guard.
+
+`scripts/render_ust.py` applies UST `VBR` vibrato on the note tail, caps an overlong fixed/consonant region to keep at least 30 ms of vowel, and warns for each capped note. The analysis exposes `[f0] f0_ceil` (default 800 Hz) for soprano banks.
 
 Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 
@@ -65,7 +67,7 @@ Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 | `--help`, `--version` | print usage or the version banner |
 | none | logo and usage |
 | `lessampler <dir>` | analysis-only: models every `.wav` in `<dir>` in parallel, writing `<name>.lessaudio` beside each WAV |
-| `lessampler --polish <in.wav> <out.wav>` | whole-song neural resynthesis using `[neural] model_path` (neural builds only) |
+| `lessampler --polish <in.wav> <out.wav> [preset]` | whole-song neural resynthesis using `[neural] model_path` (neural builds only); optional master preset |
 | `lessampler --feature-plan <plan.toml>` | feature-level assembly: note WAVs -> global mel/F0 -> one vocoder pass (neural builds only) |
 | `lessampler --f0 <in.wav> <out.csv>` | export the configured F0 track as `time_ms,f0_hz` |
 | `lessampler --plan <plan.toml>` | wavtool batch mode: assemble a TOML plan |

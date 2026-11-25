@@ -81,7 +81,7 @@ python3 scripts/render_ust.py \
   --polish
 ```
 
-`--feature` selects feature-level neural assembly instead; `--polish` runs whole-song resynthesis after the wavtool. The wavtool mode is selected by the classic 15-argument UTAU form or by `--plan`; the protocol, plan format, placement geometry, and remaining limitations are in [docs/src/content/docs/guides/rendering.md](docs/src/content/docs/guides/rendering.md).
+`--feature` selects feature-level neural assembly instead; `--polish` runs whole-song resynthesis after the wavtool. `--master` selects the final tone/level preset (`none`, `natural`, `warm` (default), or `power`), applied after assembly and after any neural pass. The wavtool mode is selected by the classic 15-argument UTAU form or by `--plan`; the protocol, plan format, placement geometry, and remaining limitations are in [docs/src/content/docs/guides/rendering.md](docs/src/content/docs/guides/rendering.md).
 
 ## Documentation
 

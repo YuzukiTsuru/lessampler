@@ -19,7 +19,7 @@ $$
 y[n]=\sum_{\omega}H(\omega)\cos\left(\omega n+\phi_\omega\right)+\text{noise}[n].
 $$
 
-Each frame contributes its harmonic and noise terms; `WorldSynthesizer` drives WORLD's realtime synthesizer with a 64-sample buffer and overlap-adds the frames into the output vector.
+Each frame contributes its harmonic and noise terms; `WorldSynthesizer` drives WORLD's realtime synthesizer with a 64-sample buffer and overlap-adds the frames into the output vector. WORLD renders the interval of frame `k-1` when frame `k` is added, so the driver adds the final frame once more and drains it; otherwise every note ends with a 0-7 ms exact-zero tail. A 1.5 ms raised-cosine fade is applied to both note edges before the per-note gain stage.
 
 ## LLSM
 

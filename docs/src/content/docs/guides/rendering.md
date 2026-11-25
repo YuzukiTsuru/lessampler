@@ -51,12 +51,15 @@ python3 scripts/render_ust.py \
 
 `--wavtool` overrides the concatenation binary and defaults to the `--lessampler` binary. `--polish` adds whole-song neural resynthesis and keeps the raw mix as `<output>-mix.wav`. `--feature` instead assembles per-note mel/F0 features and runs the vocoder once; it is mutually exclusive with `--polish`. Without either, the wavtool overlap is the final stage.
 
+`--master` selects the final tone and level preset: `none`, `natural` (limiter only), `warm` (default), or `power`. The warm chain adds a 40 Hz high-pass, a low shelf, a presence peak, gentle compression, parallel saturation, and a -1 dBFS look-ahead limiter. Use `--master none` to compare against the old raw mix.
+
 `lessampler --f0 <in.wav> <out.csv>` exports the configured F0 track as `time_ms,f0_hz` for external analysis.
 
 ## Limitations
 
 - 13 `x` breath notes are skipped because the bundled voicebank has no matching oto alias.
-- PBM shapes and VBR are not applied.
+- PBM pitch-bend shapes are not applied. UST `VBR` vibrato is applied on the note tail.
+- A fixed/consonant region longer than the wavtool segment is capped to keep at least 30 ms of vowel; the host prints a warning for each capped note.
 - The wavtool does not phase-align segments; the overlap crossfade is the classic behaviour.
-- AutoAMP normalizes each rendered note to `0.5 * volume`, so relative dynamics are flattened.
+- AutoAMP normalizes each rendered note to `0.5 * volume`, so relative dynamics are flattened; the master chain restores macro dynamics.
 - Whole-song inference holds the full timeline in memory; very long songs need chunking and crossfading.
