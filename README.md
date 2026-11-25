@@ -90,6 +90,8 @@ python3 scripts/render_ust.py \
 
 ## Documentation
 
+The documentation is published at <https://yuzukitsuru.github.io/lessampler/>. The source pages are in [`docs/`](docs/):
+
 - [Build](docs/build.md)
 - [Configuration](docs/configuration.md)
 - [Rendering a UST](docs/rendering.md)

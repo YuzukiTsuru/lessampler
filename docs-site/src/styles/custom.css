@@ -1,0 +1,21 @@
+:root {
+	/* Starlight's default content width is 45rem; the tables in these docs are wide. */
+	--sl-content-width: 60rem;
+	--sl-color-accent-low: #c8f3eb;
+	--sl-color-accent: #169c85;
+	--sl-color-accent-high: #0b4f43;
+}
+
+:root[data-theme='dark'] {
+	--sl-color-accent-low: #063b34;
+	--sl-color-accent: #2dd4bf;
+	--sl-color-accent-high: #a7f3e9;
+}
+
+.sl-markdown-content table {
+	width: 100%;
+}
+
+.sl-markdown-content td {
+	vertical-align: top;
+}

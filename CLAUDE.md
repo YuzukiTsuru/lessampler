@@ -223,10 +223,14 @@ ctest --preset release-gcc --output-on-failure
 - Test data path is passed as `LESSAMPLER_TEST_DATA_DIR`; tests read `vaiueo2d.wav`/`ne.wav` and write only to temporary directories. The quality evaluation uses `test/quality/fixture.ust` as its target and writes its JSON report into the build directory.
 - Sanitizer run: `cmake --preset asan-gcc && cmake --build --preset asan-gcc -j && ctest --preset asan-gcc`. Add `-DLESSAMPLER_ENABLE_LLSM=ON` to sanitize the optional backend too; `src/Vocoder/CMakeLists.txt` instruments the vendored C sources with the same flags.
 
+## Documentation site
+
+`docs-site/` is an Astro Starlight project. `scripts/sync-docs.mjs` copies the pages from `docs/` into the generated content directory before `dev` and `build`; edit `docs/*.md`, not `docs-site/src/content/docs/`. The landing page and 404 page are in `docs-site/content/`, the sidebar in `docs-site/sidebar.mjs`, and the theme in `docs-site/src/styles/custom.css`. Run `npm install && npm run dev` in `docs-site/`; Node 22.12+ is required. `.github/workflows/deploy-docs.yml` deploys to GitHub Pages from `master`.
+
 ## Conventions
 
 - `.clang-format` (LLVM base, 4-space indent, no column limit, `Standard: Latest`); format with `clang-format -i <file>`.
-- No C++ test framework, linter, or package manager — CMake, CTest, and submodules only. The optional SingMOS evaluation uses its own venv under `build/quality-venv`; the objective evaluation uses the Python standard library.
+- No C++ test framework or linter; the build uses CMake, CTest, and submodules only. The docs site uses npm, and the optional SingMOS evaluation uses its own venv under `build/quality-venv`; the objective evaluation uses the Python standard library.
 - Optional backend dependencies: `lib/llsm` (Dreamtonics/libllsm2, GPLv3) and `lib/ciglet` (BSD). Their C sources are compiled directly by `src/Vocoder/CMakeLists.txt` with `FP_TYPE=float`; `src/Vocoder/Llsm/compat/libihnm/ihnm.h` is an empty header for a stale libllsm2 include.
 - The neural backend's ONNX Runtime is fetched by `cmake/OnnxRuntime.cmake` into `lib/onnxruntime` (gitignored) rather than committed as a submodule; the package is pinned by version and SHA-256. `onnx2ncnn` cannot import the supported singing models because they use dynamic `Scan`/`CumSum`/random ops.
 - Removed dependencies: ColorCout (ANSI constants now live in `Log.h`), FTXUI, rapidjson, inicpp, and the JSON export.
