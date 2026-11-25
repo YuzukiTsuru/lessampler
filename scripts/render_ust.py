@@ -603,12 +603,16 @@ def render(args: argparse.Namespace) -> None:
         output_path = args.output.resolve()
         output_path.parent.mkdir(parents=True, exist_ok=True)
         plan_path = temporary / "plan.toml"
+        # --polish masters after the neural pass; keep its input raw so the
+        # chain is applied exactly once. --feature applies the plan preset
+        # inside the feature assembly path.
+        plan_master = "none" if args.polish else args.master
         lines = [
             f"output = {toml_quote(str(output_path))}",
             f"sample_rate = {fs}",
             "channels = 1",
             "peak_normalize = 0.99",
-            f"master = {toml_quote(args.master)}",
+            f"master = {toml_quote(plan_master)}",
             "",
         ]
         for item in plan_notes:
