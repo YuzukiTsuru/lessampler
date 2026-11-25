@@ -1,6 +1,6 @@
 #include "TestSupport.h"
+#include "TestProcess.h"
 
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -31,7 +31,7 @@ namespace {
     }
 
     int run(const std::string &command) {
-        return std::system(command.c_str());
+        return test::run_command(command);
     }
 
     constexpr const char *kFlatEnvelope = "0,0,0,100,100,100,100,%";

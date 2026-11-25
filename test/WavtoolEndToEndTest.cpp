@@ -1,7 +1,7 @@
 #include "TestSupport.h"
+#include "TestProcess.h"
 
 #include <cmath>
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -32,7 +32,7 @@ namespace {
     }
 
     int run(const std::string &command) {
-        return std::system(command.c_str());
+        return test::run_command(command);
     }
 
 }// namespace
