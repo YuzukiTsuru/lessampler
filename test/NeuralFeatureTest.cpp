@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <numbers>
+#include <stdexcept>
 #include <vector>
 
 #include "Vocoder/Neural/MelSpectrogram.h"
@@ -61,7 +62,7 @@ int main() {
 
     MelSpectrogram extractor;
     const auto features = extractor.Extract(source, 44100, 0.111);
-    CHECK_EQ(features.size(), static_cast<std::size_t>(172) * MelSpectrogram::mel_bins);
+    CHECK_EQ(features.size(), static_cast<std::size_t>(172) * extractor.spec().mel_bins);
     double maximum = -1e30;
     for (float value: features) {
         CHECK(std::isfinite(value));
@@ -71,10 +72,46 @@ int main() {
 
     const std::vector<double> silence(44100, 0.0);
     const auto silent_features = extractor.Extract(silence, 44100, 0.111);
-    CHECK_EQ(silent_features.size(), static_cast<std::size_t>(172) * MelSpectrogram::mel_bins);
+    CHECK_EQ(silent_features.size(), static_cast<std::size_t>(172) * extractor.spec().mel_bins);
     for (float value: silent_features) {
         CHECK_NEAR(value, std::log(1e-5), 1e-5);
     }
+
+    const auto pc_spec = NeuralVocoderSpec::Preset("pc-nsf-hifigan");
+    CHECK_EQ(pc_spec.hop_size, 512);
+    CHECK_EQ(pc_spec.fft_size, 2048);
+    CHECK_EQ(pc_spec.mel_bins, 128);
+    CHECK(pc_spec.has_uv == false);
+    CHECK(pc_spec.pitch_controllable);
+    CHECK(pc_spec.normalize_mel == false);
+    CHECK(pc_spec.Validate().empty());
+
+    MelSpectrogram pc_extractor(pc_spec);
+    const auto pc_features = pc_extractor.Extract(source, 44100, 0.111);
+    // 1 s + 2 * (2048 - 512) / 2 padding, hop 512 -> 86 frames.
+    CHECK_EQ(pc_features.size(), static_cast<std::size_t>(86) * pc_spec.mel_bins);
+
+    auto log_spec = pc_spec;
+    log_spec.hop_size = 256;
+    log_spec.mel_base = MelBase::Log10;
+    MelSpectrogram log_extractor(log_spec);
+    const auto log_silence = log_extractor.Extract(silence, 44100, 0.111);
+    for (float value: log_silence) {
+        CHECK_NEAR(value, std::log10(1e-5), 1e-5);
+    }
+
+    auto invalid = pc_spec;
+    invalid.mel_fmax = 30000.0;
+    CHECK(!invalid.Validate().empty());
+    CHECK(pc_spec.fingerprint() != invalid.fingerprint());
+
+    bool rejected = false;
+    try {
+        (void) NeuralVocoderSpec::Preset("not-a-vocoder");
+    } catch (const std::invalid_argument &) {
+        rejected = true;
+    }
+    CHECK(rejected);
 
     return test::finish();
 }

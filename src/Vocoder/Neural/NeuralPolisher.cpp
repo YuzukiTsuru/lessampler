@@ -53,16 +53,17 @@ namespace lessampler {
             throw parameter_error("--polish requires [neural] model_path in lessampler.less");
         }
 
-        auto model = LoadNeuralModel(configure.neural_model_path, configure.neural_threads);
+        const auto &spec = configure.neural_spec;
+        auto model = LoadNeuralModel(configure.neural_model_path, configure.neural_threads, spec);
 
-        std::vector<double> wave = MelSpectrogram::Resample(samples, sample_rate, MelSpectrogram::sample_rate);
+        std::vector<double> wave = MelSpectrogram::Resample(samples, sample_rate, spec.sample_rate);
         if (wave.empty()) {
             throw parameter_error("The polish input is empty after resampling");
         }
 
-        static const MelSpectrogram extractor;
-        const auto mel = extractor.Extract(wave, MelSpectrogram::sample_rate, configure.neural_target_rms);
-        const auto frames = mel.size() / static_cast<std::size_t>(MelSpectrogram::mel_bins);
+        const MelSpectrogram extractor(spec);
+        const auto mel = extractor.Extract(wave, spec.sample_rate, configure.neural_target_rms);
+        const auto frames = mel.size() / static_cast<std::size_t>(spec.mel_bins);
         if (frames == 0) {
             throw parameter_error("The polish input produced no feature frames");
         }
@@ -71,10 +72,10 @@ namespace lessampler {
             return {std::vector<double>(samples.size(), 0.0), sample_rate};
         }
 
-        const auto track = EstimateF0(wave, MelSpectrogram::sample_rate, configure);
+        const auto track = EstimateF0(wave, spec.sample_rate, configure);
         std::vector<float> f0;
         std::vector<float> uv;
-        BuildMelF0Track(track, frames, f0, uv);
+        BuildMelF0Track(track, frames, f0, uv, spec);
 
         const bool any_voiced = std::ranges::any_of(uv, [](float value) { return value == 0.0f; });
         if (!any_voiced) {
@@ -105,8 +106,8 @@ namespace lessampler {
             }
         }
 
-        if (sample_rate != MelSpectrogram::sample_rate) {
-            output = MelSpectrogram::Resample(output, MelSpectrogram::sample_rate, sample_rate);
+        if (sample_rate != spec.sample_rate) {
+            output = MelSpectrogram::Resample(output, spec.sample_rate, sample_rate);
         }
 
         if (output.size() > samples.size()) {

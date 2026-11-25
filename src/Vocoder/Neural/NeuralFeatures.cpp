@@ -80,19 +80,19 @@ namespace lessampler {
     }
 
     void BuildMelF0Track(const F0Track &track, std::size_t frames, std::vector<float> &f0,
-                         std::vector<float> &uv) {
+                         std::vector<float> &uv, const NeuralVocoderSpec &spec) {
         f0.assign(frames, 0.0f);
         uv.assign(frames, 1.0f);
         if (track.f0.empty() || frames == 0) {
             return;
         }
 
-        const double frame_ms = static_cast<double>(MelSpectrogram::hop_size) * 1000.0 /
-                                static_cast<double>(MelSpectrogram::sample_rate);
+        const double frame_ms = static_cast<double>(spec.hop_size) * 1000.0 /
+                                static_cast<double>(spec.sample_rate);
         for (std::size_t i = 0; i < frames; ++i) {
             const double value = sample_f0(track, static_cast<double>(i) * frame_ms, 0.0);
             if (std::isfinite(value) && value > 0.0) {
-                f0[i] = static_cast<float>(std::clamp(value, neural_f0_min, neural_f0_max));
+                f0[i] = static_cast<float>(std::clamp(value, spec.f0_min, spec.f0_max));
                 uv[i] = 0.0f;
             }
         }

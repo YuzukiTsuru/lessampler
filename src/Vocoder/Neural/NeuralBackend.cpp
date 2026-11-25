@@ -34,13 +34,12 @@ namespace lessampler {
 
         namespace {
 
-            constexpr double f0_min = 40.0;
-            constexpr double f0_max = 1200.0;
-
             class NeuralAnalysis final : public Analysis {
             public:
-                NeuralAnalysis(WorldModel model, std::shared_ptr<NeuralModel> neural, double target_rms)
-                    : model_(std::move(model)), neural_(std::move(neural)), target_rms_(target_rms) {}
+                NeuralAnalysis(WorldModel model, std::shared_ptr<NeuralModel> neural, double target_rms,
+                               NeuralVocoderSpec spec)
+                    : model_(std::move(model)), neural_(std::move(neural)), target_rms_(target_rms),
+                      spec_(std::move(spec)) {}
 
                 [[nodiscard]] VocoderKind kind() const noexcept override { return VocoderKind::neural; }
 
@@ -50,10 +49,13 @@ namespace lessampler {
 
                 [[nodiscard]] double target_rms() const noexcept { return target_rms_; }
 
+                [[nodiscard]] const NeuralVocoderSpec &spec() const noexcept { return spec_; }
+
             private:
                 WorldModel model_;
                 std::shared_ptr<NeuralModel> neural_;
                 double target_rms_ = 0.111;
+                NeuralVocoderSpec spec_;
             };
 
             /*
@@ -63,16 +65,26 @@ namespace lessampler {
              * then filled by interpolation, matching NHVSing's prep_f0().
              */
             void build_f0_track(std::span<const double> source_f0, const Matrix &aperiodicity, int fs,
-                                int fft_size, std::size_t frames, std::vector<float> &f0,
-                                std::vector<float> &uv) {
+                                int fft_size, double frame_period_ms, const NeuralVocoderSpec &spec,
+                                double f0_min, double f0_max, std::size_t frames,
+                                std::vector<float> &f0, std::vector<float> &uv) {
                 f0.assign(frames, 0.0f);
                 uv.assign(frames, 1.0f);
                 if (source_f0.empty()) {
                     return;
                 }
 
-                const auto source_at = [&](std::size_t index) {
-                    return source_f0[std::min(index, source_f0.size() - 1)];
+                const auto source_index_at = [&](std::size_t mel_frame) {
+                    if (!(frame_period_ms > 0.0)) {
+                        return std::min(mel_frame, source_f0.size() - 1);
+                    }
+                    // The mel hop and the WORLD analysis frame period are not
+                    // the same for hop-512 vocoders. Sample the source track by
+                    // time, not by the mel frame index.
+                    const double time_ms = static_cast<double>(mel_frame) * static_cast<double>(spec.hop_size) *
+                                           1000.0 / static_cast<double>(spec.sample_rate);
+                    const auto index = static_cast<std::size_t>(std::floor(time_ms / frame_period_ms));
+                    return std::min(index, source_f0.size() - 1);
                 };
 
                 const auto low_band_bins = [&]() -> std::size_t {
@@ -98,8 +110,9 @@ namespace lessampler {
                 std::size_t first_voiced = frames;
                 std::size_t last_voiced = 0;
                 for (std::size_t i = 0; i < frames; ++i) {
-                    const double value = source_at(i);
-                    const bool voiced = std::isfinite(value) && value > 0.0 && ap_at(i) <= 0.5;
+                    const auto source_index = source_index_at(i);
+                    const double value = source_f0[source_index];
+                    const bool voiced = std::isfinite(value) && value > 0.0 && ap_at(source_index) <= 0.5;
                     if (voiced) {
                         f0[i] = static_cast<float>(std::clamp(value, f0_min, f0_max));
                         uv[i] = 0.0f;
@@ -140,7 +153,7 @@ namespace lessampler {
 
                 [[nodiscard]] std::string_view name() const noexcept override { return "neural"; }
 
-                [[nodiscard]] std::uint32_t analysis_version() const noexcept override { return 1; }
+                [[nodiscard]] std::uint32_t analysis_version() const noexcept override { return 2; }
 
                 [[nodiscard]] AnalysisPtr Prepare(const AnalysisRequest &request) override {
                     if (request.configure.neural_model_path.empty()) {
@@ -148,7 +161,8 @@ namespace lessampler {
                     }
 
                     auto neural = LoadNeuralModel(request.configure.neural_model_path,
-                                                  request.configure.neural_threads);
+                                                  request.configure.neural_threads,
+                                                  request.configure.neural_spec);
 
                     Timer timer;
                     timer.SetTimer();
@@ -160,11 +174,13 @@ namespace lessampler {
                     LOG_INFO << std::format("Model FFT Size: {}", model.fft_size);
 
                     return std::make_shared<NeuralAnalysis>(std::move(model), std::move(neural),
-                                                            request.configure.neural_target_rms);
+                                                            request.configure.neural_target_rms,
+                                                            request.configure.neural_spec);
                 }
 
                 [[nodiscard]] RenderResult Synthesize(const SynthesisRequest &request) override {
                     const auto &analysis = static_cast<const NeuralAnalysis &>(request.analysis);
+                    const auto &spec = analysis.spec();
                     if (request.params.output_samples <= 0) {
                         throw parameter_error("The output sample count must be greater than zero");
                     }
@@ -183,9 +199,9 @@ namespace lessampler {
                     LOG_EVAL << timer.GetTimer("Neural WORLD Synthesis: ");
 
                     timer.SetTimer();
-                    static const MelSpectrogram extractor;
+                    const MelSpectrogram extractor(spec);
                     const auto mel = extractor.Extract(world_audio, transformed.fs, analysis.target_rms());
-                    const auto frames = mel.size() / static_cast<std::size_t>(MelSpectrogram::mel_bins);
+                    const auto frames = mel.size() / static_cast<std::size_t>(spec.mel_bins);
                     LOG_EVAL << timer.GetTimer("Neural Mel Extraction: ");
 
                     if (frames == 0) {
@@ -203,7 +219,8 @@ namespace lessampler {
                     std::vector<float> f0;
                     std::vector<float> uv;
                     build_f0_track(transformed.f0, transformed.aperiodicity, transformed.fs,
-                                   transformed.fft_size, frames, f0, uv);
+                                   transformed.fft_size, transformed.frame_period, spec,
+                                   spec.f0_min, spec.f0_max, frames, f0, uv);
 
                     timer.SetTimer();
                     const auto neural_audio = analysis.neural()->Synthesize(mel, frames, f0, uv);
@@ -215,11 +232,11 @@ namespace lessampler {
 
                     timer.SetTimer();
                     std::vector<double> samples;
-                    if (transformed.fs == NeuralModel::model_sample_rate) {
+                    if (transformed.fs == spec.sample_rate) {
                         samples.assign(neural_audio.begin(), neural_audio.end());
                     } else {
                         const std::vector<double> input(neural_audio.begin(), neural_audio.end());
-                        samples = MelSpectrogram::Resample(input, NeuralModel::model_sample_rate, transformed.fs);
+                        samples = MelSpectrogram::Resample(input, spec.sample_rate, transformed.fs);
                     }
 
                     const auto target_samples = static_cast<std::size_t>(request.params.output_samples);

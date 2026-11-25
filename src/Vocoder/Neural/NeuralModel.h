@@ -17,32 +17,32 @@
 #include <span>
 #include <vector>
 
+#include "Config/NeuralVocoderSpec.h"
+
 namespace lessampler {
 
     /*
-     * ONNX Runtime session for an NHVSing-compatible vocoder graph:
-     * mel [1,T,128], f0 [1,1,T], uv [1,1,T] -> waveform [1,1,256*T].
-     *
-     * The model is loaded once per process and shared by every analysis.
+     * ONNX Runtime session for a neural vocoder. The input contract is
+     * described by NeuralVocoderSpec: NHVSing by default (mel/f0/uv ->
+     * waveform), or a PC-NSF-HiFiGAN-style graph with configurable names,
+     * shapes and mel layout.
      */
     class NeuralModel {
     public:
-        static constexpr int model_sample_rate = 44100;
-        static constexpr int hop_size = 256;
-        static constexpr int mel_bins = 128;
-
         ~NeuralModel();
 
         NeuralModel(const NeuralModel &) = delete;
         NeuralModel &operator=(const NeuralModel &) = delete;
 
         [[nodiscard]] const std::filesystem::path &path() const noexcept;
+        [[nodiscard]] const NeuralVocoderSpec &spec() const noexcept;
 
         [[nodiscard]] std::vector<float> Synthesize(std::span<const float> mel, std::size_t frames,
                                                     std::span<const float> f0,
                                                     std::span<const float> uv) const;
 
-        [[nodiscard]] static std::shared_ptr<NeuralModel> Load(const std::filesystem::path &path, int threads);
+        [[nodiscard]] static std::shared_ptr<NeuralModel> Load(const std::filesystem::path &path, int threads,
+                                                               const NeuralVocoderSpec &spec);
 
     private:
         struct Impl;
@@ -52,10 +52,11 @@ namespace lessampler {
     };
 
     /*
-     * Process-wide session cache keyed by canonical path, size, mtime, and
-     * thread count.
+     * Process-wide session cache keyed by canonical path, size, mtime, thread
+     * count and the vocoder spec fingerprint.
      */
-    [[nodiscard]] std::shared_ptr<NeuralModel> LoadNeuralModel(const std::filesystem::path &path, int threads);
+    [[nodiscard]] std::shared_ptr<NeuralModel> LoadNeuralModel(const std::filesystem::path &path, int threads,
+                                                               const NeuralVocoderSpec &spec);
 
 }// namespace lessampler
 

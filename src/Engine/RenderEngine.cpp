@@ -48,6 +48,7 @@ namespace lessampler {
                 return identity;
             }
             identity += "|" + std::to_string(configure.neural_target_rms);
+            identity += "|" + configure.neural_spec.fingerprint();
 
             const std::filesystem::path model_path(identity);
             std::error_code error;

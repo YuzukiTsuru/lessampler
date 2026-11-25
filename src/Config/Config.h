@@ -14,6 +14,7 @@
 #include <string>
 #include <string_view>
 
+#include "Config/NeuralVocoderSpec.h"
 #include "Config/VocoderKind.h"
 
 namespace lessampler {
@@ -50,6 +51,7 @@ namespace lessampler {
         std::string neural_model_path;
         int neural_threads = 0;
         double neural_target_rms = 0.111;
+        NeuralVocoderSpec neural_spec;
 
         /*
          * Final tone/loudness preset for --polish and --feature-plan. It is

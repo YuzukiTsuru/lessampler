@@ -16,6 +16,8 @@
 #include <format>
 #include <fstream>
 #include <optional>
+#include <stdexcept>
+#include <string>
 #include <string_view>
 
 #include "Core/Exception.h"
@@ -83,6 +85,29 @@ namespace lessampler {
                 invalid_value(section, key, "expected an integer");
             }
             invalid_value(section, key, "expected a number");
+        }
+
+        std::string read_string(const toml::table &table, std::string_view section, std::string_view key,
+                                std::string current) {
+            const auto node = table[key];
+            if (!node) {
+                return current;
+            }
+            if (auto value = node.value<std::string>()) {
+                return *value;
+            }
+            invalid_value(section, key, "expected a string");
+        }
+
+        bool read_bool(const toml::table &table, std::string_view section, std::string_view key, bool current) {
+            const auto node = table[key];
+            if (!node) {
+                return current;
+            }
+            if (auto value = node.value<bool>()) {
+                return *value;
+            }
+            invalid_value(section, key, "expected a boolean");
         }
 
         void require_positive(double value, std::string_view section, std::string_view key) {
@@ -174,11 +199,50 @@ namespace lessampler {
         }
 
         if (const auto *section = table["neural"].as_table()) {
+            if (const auto preset = (*section)["preset"].value<std::string>()) {
+                try {
+                    configure.neural_spec = NeuralVocoderSpec::Preset(*preset);
+                } catch (const std::invalid_argument &error) {
+                    invalid_value("neural", "preset", error.what());
+                }
+            }
+            auto &spec = configure.neural_spec;
             if (const auto value = (*section)["model_path"].value<std::string>()) {
                 configure.neural_model_path = *value;
             }
             configure.neural_threads = static_cast<int>(read_int(*section, "neural", "threads", configure.neural_threads));
             configure.neural_target_rms = read_double(*section, "neural", "target_rms", configure.neural_target_rms);
+
+            spec.sample_rate = static_cast<int>(read_int(*section, "neural", "sample_rate", spec.sample_rate));
+            spec.hop_size = static_cast<int>(read_int(*section, "neural", "hop_size", spec.hop_size));
+            spec.fft_size = static_cast<int>(read_int(*section, "neural", "fft_size", spec.fft_size));
+            spec.mel_bins = static_cast<int>(read_int(*section, "neural", "mel_bins", spec.mel_bins));
+            spec.mel_fmin = read_double(*section, "neural", "mel_fmin", spec.mel_fmin);
+            spec.mel_fmax = read_double(*section, "neural", "mel_fmax", spec.mel_fmax);
+            spec.f0_min = read_double(*section, "neural", "f0_min", spec.f0_min);
+            spec.f0_max = read_double(*section, "neural", "f0_max", spec.f0_max);
+            spec.has_f0 = read_bool(*section, "neural", "has_f0", spec.has_f0);
+            spec.has_uv = read_bool(*section, "neural", "has_uv", spec.has_uv);
+            spec.pitch_controllable = read_bool(*section, "neural", "pitch_controllable", spec.pitch_controllable);
+            spec.normalize_mel = read_bool(*section, "neural", "normalize_mel", spec.normalize_mel);
+            spec.mel_input = read_string(*section, "neural", "mel_input", spec.mel_input);
+            spec.f0_input = read_string(*section, "neural", "f0_input", spec.f0_input);
+            spec.uv_input = read_string(*section, "neural", "uv_input", spec.uv_input);
+            spec.waveform_output = read_string(*section, "neural", "waveform_output", spec.waveform_output);
+            try {
+                spec.mel_base = NeuralVocoderSpec::parse_mel_base(
+                        read_string(*section, "neural", "mel_base", std::string(NeuralVocoderSpec::mel_base_name(spec.mel_base))));
+                spec.mel_scale = NeuralVocoderSpec::parse_mel_scale(
+                        read_string(*section, "neural", "mel_scale", std::string(NeuralVocoderSpec::mel_scale_name(spec.mel_scale))));
+                spec.mel_layout = NeuralVocoderSpec::parse_mel_layout(
+                        read_string(*section, "neural", "mel_layout", std::string(NeuralVocoderSpec::mel_layout_name(spec.mel_layout))));
+            } catch (const std::invalid_argument &error) {
+                invalid_value("neural", "mel_base/mel_scale/mel_layout", error.what());
+            }
+            const auto error = spec.Validate();
+            if (!error.empty()) {
+                invalid_value("neural", "config", error);
+            }
         }
 
         if (const auto *section = table["master"].as_table()) {
@@ -246,9 +310,29 @@ ap_threshold = {}
 
 [neural]
 # NHVSing-compatible ONNX model used by backend = "neural".
+preset = {}            # "nhv" or "pc-nsf-hifigan"
 model_path = {}
 threads = {}           # 0 lets ONNX Runtime choose
 target_rms = {}        # feature normalization used during training
+sample_rate = {}
+hop_size = {}
+fft_size = {}
+mel_bins = {}
+mel_fmin = {}
+mel_fmax = {}
+mel_base = {}          # "e" or "10"
+mel_scale = {}         # "slaney" or "htk"
+mel_layout = {}        # "time-major" or "bin-major"
+has_f0 = {}
+has_uv = {}
+pitch_controllable = {}
+normalize_mel = {}
+f0_min = {}
+f0_max = {}
+mel_input = {}
+f0_input = {}
+uv_input = {}
+waveform_output = {}
 
 [master]
 preset = {}            # none / natural / warm / power
@@ -266,9 +350,29 @@ preset = {}            # none / natural / warm / power
                            configure.f0_cheap_trick_floor,
                            configure.f0_allow_range,
                            configure.ap_threshold,
+                           toml_quote(configure.neural_spec.preset),
                            toml_quote(configure.neural_model_path),
                            configure.neural_threads,
                            configure.neural_target_rms,
+                           configure.neural_spec.sample_rate,
+                           configure.neural_spec.hop_size,
+                           configure.neural_spec.fft_size,
+                           configure.neural_spec.mel_bins,
+                           configure.neural_spec.mel_fmin,
+                           configure.neural_spec.mel_fmax,
+                           toml_quote(NeuralVocoderSpec::mel_base_name(configure.neural_spec.mel_base)),
+                           toml_quote(NeuralVocoderSpec::mel_scale_name(configure.neural_spec.mel_scale)),
+                           toml_quote(NeuralVocoderSpec::mel_layout_name(configure.neural_spec.mel_layout)),
+                           configure.neural_spec.has_f0,
+                           configure.neural_spec.has_uv,
+                           configure.neural_spec.pitch_controllable,
+                           configure.neural_spec.normalize_mel,
+                           configure.neural_spec.f0_min,
+                           configure.neural_spec.f0_max,
+                           toml_quote(configure.neural_spec.mel_input),
+                           toml_quote(configure.neural_spec.f0_input),
+                           toml_quote(configure.neural_spec.uv_input),
+                           toml_quote(configure.neural_spec.waveform_output),
                            toml_quote(configure.master_preset));
     }
 
@@ -305,9 +409,29 @@ f0_allow_range = {}
 ap_threshold = {}
 
 [neural]
+preset = {}
 model_path = {}
 threads = {}
 target_rms = {}
+sample_rate = {}
+hop_size = {}
+fft_size = {}
+mel_bins = {}
+mel_fmin = {}
+mel_fmax = {}
+mel_base = {}
+mel_scale = {}
+mel_layout = {}
+has_f0 = {}
+has_uv = {}
+pitch_controllable = {}
+normalize_mel = {}
+f0_min = {}
+f0_max = {}
+mel_input = {}
+f0_input = {}
+uv_input = {}
+waveform_output = {}
 
 [master]
 preset = {}
@@ -326,9 +450,29 @@ preset = {}
                            configure.f0_cheap_trick_floor,
                            configure.f0_allow_range,
                            configure.ap_threshold,
+                           toml_quote(configure.neural_spec.preset),
                            toml_quote(configure.neural_model_path),
                            configure.neural_threads,
                            configure.neural_target_rms,
+                           configure.neural_spec.sample_rate,
+                           configure.neural_spec.hop_size,
+                           configure.neural_spec.fft_size,
+                           configure.neural_spec.mel_bins,
+                           configure.neural_spec.mel_fmin,
+                           configure.neural_spec.mel_fmax,
+                           toml_quote(NeuralVocoderSpec::mel_base_name(configure.neural_spec.mel_base)),
+                           toml_quote(NeuralVocoderSpec::mel_scale_name(configure.neural_spec.mel_scale)),
+                           toml_quote(NeuralVocoderSpec::mel_layout_name(configure.neural_spec.mel_layout)),
+                           configure.neural_spec.has_f0,
+                           configure.neural_spec.has_uv,
+                           configure.neural_spec.pitch_controllable,
+                           configure.neural_spec.normalize_mel,
+                           configure.neural_spec.f0_min,
+                           configure.neural_spec.f0_max,
+                           toml_quote(configure.neural_spec.mel_input),
+                           toml_quote(configure.neural_spec.f0_input),
+                           toml_quote(configure.neural_spec.uv_input),
+                           toml_quote(configure.neural_spec.waveform_output),
                            toml_quote(configure.master_preset));
 
         if (!out) {

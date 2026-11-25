@@ -7,6 +7,8 @@ add_library(Config
         ConfigParser.h
         ConfigResolver.cpp
         ConfigResolver.h
+        NeuralVocoderSpec.cpp
+        NeuralVocoderSpec.h
         VoicebankConfig.cpp
         VoicebankConfig.h
         VocoderKind.h

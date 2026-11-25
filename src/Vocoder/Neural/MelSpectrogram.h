@@ -14,42 +14,38 @@
 #include <span>
 #include <vector>
 
+#include "Config/NeuralVocoderSpec.h"
+
 namespace lessampler {
 
     /*
-     * Feature front end for NHVSing-compatible neural vocoders.
-     *
-     * The ONNX model expects 44.1 kHz, hop 256, 2048-point STFT, and 128
-     * Slaney-normalized mel bins between 40 Hz and 16 kHz, taking the natural
-     * log of the magnitude mel. This mirrors NHVSing's preprocessing exactly.
+     * Configurable log-mel front end for neural vocoders. The defaults are
+     * NHVSing: 44.1 kHz, hop 256, 2048-point STFT, 128 Slaney bins between
+     * 40 Hz and 16 kHz, natural log. Set NeuralVocoderSpec for another model.
      */
     class MelSpectrogram {
     public:
-        static constexpr int sample_rate = 44100;
-        static constexpr int hop_size = 256;
-        static constexpr int fft_size = 2048;
-        static constexpr int mel_bins = 128;
-        static constexpr double mel_min = 40.0;
-        static constexpr double mel_max = 16000.0;
+        explicit MelSpectrogram(NeuralVocoderSpec spec = {});
 
-        MelSpectrogram();
+        [[nodiscard]] const NeuralVocoderSpec &spec() const noexcept { return spec_; }
 
         /*
          * Returns frames * mel_bins row-major floats. The input is resampled
-         * to 44.1 kHz, normalized to target_rms using active (non-silent)
-         * samples, and clipped to [-1, 1] before feature extraction.
+         * to the spec's sample rate, normalized to target_rms using active
+         * (non-silent) samples, and clipped to [-1, 1] before extraction.
          */
         [[nodiscard]] std::vector<float> Extract(std::span<const double> samples, int source_rate,
                                                  double target_rms) const;
 
         /*
          * Windowed-sinc resampler with a low-pass cutoff below the smaller
-         * Nyquist frequency. Used to bridge the model's fixed 44.1 kHz rate.
+         * Nyquist frequency. Used to bridge the model's sample rate.
          */
         [[nodiscard]] static std::vector<double> Resample(std::span<const double> samples, int from_rate,
                                                           int to_rate);
 
     private:
+        NeuralVocoderSpec spec_;
         std::vector<double> filterbank_;
 
         void build_filterbank();

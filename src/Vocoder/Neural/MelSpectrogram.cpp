@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstddef>
 #include <numbers>
+#include <utility>
 #include <vector>
 
 #include <world/fft.h>
@@ -24,9 +25,7 @@ namespace lessampler {
 
     namespace {
 
-        constexpr std::size_t bin_count = static_cast<std::size_t>(MelSpectrogram::fft_size) / 2 + 1;
-
-        double hz_to_mel(double frequency) {
+        double hz_to_mel_slaney(double frequency) {
             constexpr double f_min = 0.0;
             constexpr double f_sp = 200.0 / 3.0;
             constexpr double min_log_hz = 1000.0;
@@ -39,7 +38,7 @@ namespace lessampler {
             return min_log_mel + std::log(frequency / min_log_hz) / logstep;
         }
 
-        double mel_to_hz(double mel) {
+        double mel_to_hz_slaney(double mel) {
             constexpr double f_min = 0.0;
             constexpr double f_sp = 200.0 / 3.0;
             constexpr double min_log_hz = 1000.0;
@@ -50,6 +49,14 @@ namespace lessampler {
                 return f_min + f_sp * mel;
             }
             return min_log_hz * std::exp(logstep * (mel - min_log_mel));
+        }
+
+        double hz_to_mel_htk(double frequency) {
+            return 2595.0 * std::log10(1.0 + frequency / 700.0);
+        }
+
+        double mel_to_hz_htk(double mel) {
+            return 700.0 * (std::pow(10.0, mel / 2595.0) - 1.0);
         }
 
         std::vector<double> reflect_pad(std::span<const double> samples, std::size_t pad) {
@@ -68,8 +75,7 @@ namespace lessampler {
                 // numpy's reflect mode does not repeat the edge sample.
                 const std::size_t source = std::min(length - 1, i + 1);
                 padded[pad - 1 - i] = samples[source];
-                const std::size_t tail = std::min(length - 1, i + 1);
-                padded[pad + length + i] = samples[length - 1 - tail];
+                padded[pad + length + i] = samples[length - 1 - source];
             }
             return padded;
         }
@@ -99,14 +105,29 @@ namespace lessampler {
 
     }// namespace
 
-    MelSpectrogram::MelSpectrogram() {
+    MelSpectrogram::MelSpectrogram(NeuralVocoderSpec spec) : spec_(std::move(spec)) {
+        const auto error = spec_.Validate();
+        if (!error.empty()) {
+            throw parameter_error("invalid neural vocoder spec: " + error);
+        }
         build_filterbank();
     }
 
     void MelSpectrogram::build_filterbank() {
-        filterbank_.assign(static_cast<std::size_t>(mel_bins) * bin_count, 0.0);
+        const auto bin_count = static_cast<std::size_t>(spec_.fft_size) / 2 + 1;
+        const auto bins = static_cast<std::size_t>(spec_.mel_bins);
+        filterbank_.assign(bins * bin_count, 0.0);
 
-        const auto mel_points = [](double start, double stop, int count) {
+        const auto hz_to_mel = [this](double frequency) {
+            return spec_.mel_scale == MelScale::Htk ? hz_to_mel_htk(frequency)
+                                                    : hz_to_mel_slaney(frequency);
+        };
+        const auto mel_to_hz = [this](double mel) {
+            return spec_.mel_scale == MelScale::Htk ? mel_to_hz_htk(mel)
+                                                    : mel_to_hz_slaney(mel);
+        };
+
+        const auto mel_points = [&](double start, double stop, int count) {
             std::vector<double> points(static_cast<std::size_t>(count));
             for (int i = 0; i < count; ++i) {
                 const double fraction = count == 1 ? 0.0 : static_cast<double>(i) / static_cast<double>(count - 1);
@@ -115,13 +136,14 @@ namespace lessampler {
             return points;
         };
 
-        const auto mel_frequencies = mel_points(hz_to_mel(mel_min), hz_to_mel(mel_max), mel_bins + 2);
+        const auto mel_frequencies = mel_points(hz_to_mel(spec_.mel_fmin), hz_to_mel(spec_.mel_fmax),
+                                                spec_.mel_bins + 2);
         std::vector<double> fft_frequencies(bin_count);
         for (std::size_t i = 0; i < bin_count; ++i) {
-            fft_frequencies[i] = static_cast<double>(i) * sample_rate / fft_size;
+            fft_frequencies[i] = static_cast<double>(i) * spec_.sample_rate / spec_.fft_size;
         }
 
-        for (int m = 0; m < mel_bins; ++m) {
+        for (int m = 0; m < spec_.mel_bins; ++m) {
             const double lower_hz = mel_frequencies[static_cast<std::size_t>(m)];
             const double center_hz = mel_frequencies[static_cast<std::size_t>(m) + 1];
             const double upper_hz = mel_frequencies[static_cast<std::size_t>(m) + 2];
@@ -188,39 +210,41 @@ namespace lessampler {
             throw parameter_error("Invalid source sample rate for neural features");
         }
 
-        std::vector<double> audio = Resample(samples, source_rate, sample_rate);
+        std::vector<double> audio = Resample(samples, source_rate, spec_.sample_rate);
         const double rms = active_rms(audio);
-        if (rms > 1e-6 && target_rms > 0.0) {
+        if (spec_.normalize_mel && rms > 1e-6 && target_rms > 0.0) {
             const double scale = target_rms / rms;
             for (double &value: audio) {
                 value = std::clamp(value * scale, -1.0, 1.0);
             }
         }
 
-        constexpr std::size_t pad = (fft_size - hop_size) / 2;
+        const auto fft_size = static_cast<std::size_t>(spec_.fft_size);
+        const auto hop_size = static_cast<std::size_t>(spec_.hop_size);
+        const auto bin_count = fft_size / 2 + 1;
+        const auto pad = (fft_size - hop_size) / 2;
         auto padded = reflect_pad(audio, pad);
-        if (padded.size() < static_cast<std::size_t>(fft_size)) {
-            padded.resize(static_cast<std::size_t>(fft_size), 0.0);
+        if (padded.size() < fft_size) {
+            padded.resize(fft_size, 0.0);
         }
 
-        const std::size_t frames = 1 + (padded.size() - static_cast<std::size_t>(fft_size)) /
-                                               static_cast<std::size_t>(hop_size);
-        std::vector<float> features(frames * static_cast<std::size_t>(mel_bins), 0.0f);
+        const std::size_t frames = 1 + (padded.size() - fft_size) / hop_size;
+        std::vector<float> features(frames * static_cast<std::size_t>(spec_.mel_bins), 0.0f);
 
-        std::vector<double> window(static_cast<std::size_t>(fft_size));
-        for (int i = 0; i < fft_size; ++i) {
-            window[static_cast<std::size_t>(i)] =
-                    0.5 - 0.5 * std::cos(2.0 * std::numbers::pi * static_cast<double>(i) / fft_size);
+        std::vector<double> window(fft_size);
+        for (std::size_t i = 0; i < fft_size; ++i) {
+            window[i] = 0.5 - 0.5 * std::cos(2.0 * std::numbers::pi * static_cast<double>(i) /
+                                             static_cast<double>(fft_size));
         }
 
-        std::vector<double> buffer(static_cast<std::size_t>(fft_size));
-        std::vector<fft_complex> spectrum(static_cast<std::size_t>(fft_size));
-        fft_plan plan = fft_plan_dft_r2c_1d(fft_size, buffer.data(), spectrum.data(), FFT_ESTIMATE);
+        std::vector<double> buffer(fft_size);
+        std::vector<fft_complex> spectrum(fft_size);
+        fft_plan plan = fft_plan_dft_r2c_1d(spec_.fft_size, buffer.data(), spectrum.data(), FFT_ESTIMATE);
 
         std::vector<double> magnitudes(bin_count);
         for (std::size_t frame = 0; frame < frames; ++frame) {
-            const auto offset = frame * static_cast<std::size_t>(hop_size);
-            for (std::size_t i = 0; i < static_cast<std::size_t>(fft_size); ++i) {
+            const auto offset = frame * hop_size;
+            for (std::size_t i = 0; i < fft_size; ++i) {
                 buffer[i] = padded[offset + i] * window[i];
             }
 
@@ -229,14 +253,16 @@ namespace lessampler {
                 magnitudes[bin] = std::hypot(spectrum[bin][0], spectrum[bin][1]);
             }
 
-            for (int m = 0; m < mel_bins; ++m) {
+            for (int m = 0; m < spec_.mel_bins; ++m) {
                 double value = 0.0;
                 const auto row = static_cast<std::size_t>(m) * bin_count;
                 for (std::size_t bin = 0; bin < bin_count; ++bin) {
                     value += filterbank_[row + bin] * magnitudes[bin];
                 }
-                features[frame * static_cast<std::size_t>(mel_bins) + static_cast<std::size_t>(m)] =
-                        static_cast<float>(std::log(std::max(1e-5, value)));
+                const double floored = std::max(1e-5, value);
+                features[frame * static_cast<std::size_t>(spec_.mel_bins) + static_cast<std::size_t>(m)] =
+                        static_cast<float>(spec_.mel_base == MelBase::Log10 ? std::log10(floored)
+                                                                            : std::log(floored));
             }
         }
 

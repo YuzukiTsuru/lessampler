@@ -15,19 +15,18 @@
 #include <span>
 #include <vector>
 
+#include "Config/NeuralVocoderSpec.h"
 #include "Vocoder/Common/F0Estimator.h"
 
 namespace lessampler {
 
-    inline constexpr double neural_f0_min = 40.0;
-    inline constexpr double neural_f0_max = 1200.0;
-
     /*
      * Resample an F0 track onto mel-frame times and fill unvoiced stretches
      * with interpolated F0. uv is 0 for voiced frames and 1 for unvoiced.
+     * The frame time and F0 clamp come from the vocoder spec.
      */
     void BuildMelF0Track(const F0Track &track, std::size_t frames, std::vector<float> &f0,
-                         std::vector<float> &uv);
+                         std::vector<float> &uv, const NeuralVocoderSpec &spec);
 
     /*
      * Fill leading/trailing unvoiced F0 and interpolate internal gaps in place.
