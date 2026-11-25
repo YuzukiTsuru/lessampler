@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Render a UTAU .ust file with lessampler.
+"""Render a UTAU .ust file with lessampler and lesswavtool.
 
-This is a small host, not a full UTAU wavtool replacement. It selects the
-closest oto.ini entry for each note, applies the UST pitch-bend curve, invokes
-lessampler once per note, and mixes the rendered notes at their UST tick
-positions. Envelopes, overlaps, and PBM pitch shapes are intentionally not
-applied yet.
+This is a UTAU host, not a resampler. It selects the oto.ini entry for each
+note, computes the classic preutterance/overlap placement, invokes lessampler
+once per note, and then hands all note buffers to lesswavtool with their UST
+envelopes. The wavtool performs the overlap seek-back and the final mix.
 """
 from __future__ import annotations
 
 import argparse
 import math
+import os
 import re
-import struct
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -25,6 +25,7 @@ PITCH_SUFFIX = re.compile(r"([A-G]#?-?\d)$")
 NOTE_NAME = re.compile(r"([A-G]#?)(-?\d)")
 TICKS_PER_QUARTER = 480
 UTAU64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+DEFAULT_ENVELOPE = "0,5,35,0,100,100,0,%,0,10,100"
 
 
 def decode_text(data: bytes) -> str:
@@ -129,6 +130,8 @@ def parse_oto(voicebank: Path) -> list[dict[str, object]]:
                     "wav": oto.parent / wav_name.strip(),
                     "alias": alias,
                     "base": strip_pitch(alias)[0],
+                    "pitch_tag": strip_pitch(alias)[1],
+                    "folder": oto.parent.name,
                     "pitch": folder_pitch,
                     "offset": offset,
                     "consonant": consonant,
@@ -140,65 +143,65 @@ def parse_oto(voicebank: Path) -> list[dict[str, object]]:
     return entries
 
 
-def select_entry(entries: list[dict[str, object]], lyric: str, midi: int) -> dict[str, object] | None:
-    matches = [
-        entry
-        for entry in entries
-        if entry["base"] == lyric or entry["alias"] == lyric
-    ]
+def parse_prefix_map(voicebank: Path) -> dict[str, str]:
+    candidates = [voicebank / "prefix.map"]
+    candidates.extend(sorted(voicebank.rglob("prefix.map")))
+    for path in candidates:
+        if not path.is_file():
+            continue
+        mapping: dict[str, str] = {}
+        for raw in read_text(path).splitlines():
+            line = raw.strip()
+            if not line or line.startswith(";"):
+                continue
+            parts = line.replace("=", " ").split()
+            if len(parts) >= 2 and NOTE_NAME.fullmatch(parts[0]):
+                mapping[parts[0]] = parts[1]
+        if mapping:
+            return mapping
+    return {}
+
+
+def lyric_matches(entry: dict[str, object], lyric: str) -> bool:
+    return entry["base"] == lyric or entry["alias"] == lyric
+
+
+def vcv_matches(entry: dict[str, object], lyric: str) -> bool:
+    parts = str(entry["base"]).split()
+    return bool(parts) and parts[-1] == lyric
+
+
+def prefix_matches(entry: dict[str, object], prefix: str | None) -> bool:
+    if not prefix:
+        return False
+    if entry["pitch_tag"] == prefix:
+        return True
+    return str(entry["folder"]).startswith(prefix)
+
+
+def select_entry(
+    entries: list[dict[str, object]],
+    lyric: str,
+    midi: int,
+    prefix_map: dict[str, str],
+) -> dict[str, object] | None:
+    search_lyric = lyric[1:] if lyric.startswith("?") else lyric
+    matches = [entry for entry in entries if lyric_matches(entry, search_lyric)]
     if not matches:
         # UTAU can omit the VCV prefix when a note inherits it from context.
-        matches = []
-        for entry in entries:
-            parts = str(entry["base"]).split()
-            if parts and parts[-1] == lyric:
-                matches.append(entry)
+        matches = [entry for entry in entries if vcv_matches(entry, search_lyric)]
     if not matches:
         return None
+
+    prefix = None if lyric.startswith("?") else prefix_map.get(midi_to_name(midi))
+    preferred = [entry for entry in matches if prefix_matches(entry, prefix)]
+    if preferred:
+        matches = preferred
+
     return min(
         matches,
         key=lambda entry: abs((entry["pitch"] or 0) - midi) if entry["pitch"] is not None else 999,
     )
-
-
-def read_wav(path: Path) -> tuple[int, list[float]]:
-    with wave.open(str(path), "rb") as handle:
-        fs = handle.getframerate()
-        channels = handle.getnchannels()
-        width = handle.getsampwidth()
-        frames = handle.readframes(handle.getnframes())
-    if width != 2:
-        raise RuntimeError(f"unsupported WAV width in {path}: {width * 8} bit")
-    values = struct.unpack(f"<{len(frames) // 2}h", frames)
-    if channels == 1:
-        return fs, [value / 32768.0 for value in values]
-    mono = [
-        sum(values[frame * channels : (frame + 1) * channels]) / (channels * 32768.0)
-        for frame in range(len(values) // channels)
-    ]
-    return fs, mono
-
-
-def write_wav(path: Path, fs: int, samples: list[float]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "wb") as handle:
-        handle.setnchannels(1)
-        handle.setsampwidth(2)
-        handle.setframerate(fs)
-        handle.writeframes(
-            b"".join(struct.pack("<h", max(-32768, min(32767, round(value * 32767)))) for value in samples)
-        )
-
-
-def fade(samples: list[float], fs: int, milliseconds: float = 5.0) -> list[float]:
-    length = min(len(samples) // 2, int(fs * milliseconds / 1000.0))
-    if length <= 0:
-        return samples
-    for index in range(length):
-        gain = index / length
-        samples[index] *= gain
-        samples[-1 - index] *= gain
-    return samples
 
 
 def parse_float(value: str, default: float = 0.0) -> float:
@@ -206,6 +209,20 @@ def parse_float(value: str, default: float = 0.0) -> float:
         return float(value.strip())
     except ValueError:
         return default
+
+
+def optional_float(value: str | None) -> float | None:
+    if value is None or not value.strip():
+        return None
+    return parse_float(value)
+
+
+def probe_wav(path: Path) -> tuple[int, int] | None:
+    try:
+        with wave.open(str(path), "rb") as handle:
+            return handle.getframerate(), handle.getnframes()
+    except (OSError, wave.Error):
+        return None
 
 
 def pitch_points(note: dict[str, str]) -> list[tuple[float, float]]:
@@ -236,41 +253,90 @@ def pitch_points(note: dict[str, str]) -> list[tuple[float, float]]:
     return points
 
 
-def pitchbend_string(note: dict[str, str], note_ms: float, fs: int, tempo: float) -> str:
+def pitch_value(points: list[tuple[float, float]], time_ms: float, fallback: float) -> float:
+    if not points:
+        return fallback
+    if time_ms <= points[0][0]:
+        return fallback
+    if time_ms >= points[-1][0]:
+        return points[-1][1]
+    for index in range(len(points) - 1):
+        left = points[index]
+        right = points[index + 1]
+        if time_ms <= right[0]:
+            span = right[0] - left[0]
+            if span <= 0.0:
+                return right[1]
+            fraction = (time_ms - left[0]) / span
+            return left[1] + (right[1] - left[1]) * fraction
+    return points[-1][1]
+
+
+def pitchbend_string(
+    note: dict[str, str],
+    required_ms: float,
+    fs: int,
+    tempo: float,
+    start_ms: float,
+    previous_end: float,
+) -> str:
     points = pitch_points(note)
-    if len(points) < 2:
+    if not points:
         return ""
 
-    # UST pitch values are tenths of a semitone. lessampler's pitch-bend
-    # protocol carries signed 12-bit cent values sampled at 1/96 beat.
     pitch_step = int(math.floor(60.0 / 96.0 / tempo * fs + 0.5))
     if pitch_step <= 0:
         return ""
-    output_samples = int(note_ms * 0.001 * fs + 1.0)
+    output_samples = int(required_ms * 0.001 * fs + 1.0)
     count = output_samples // pitch_step + 2
     step_ms = pitch_step * 1000.0 / fs
 
     encoded: list[str] = []
-    segment = 0
     for index in range(count):
-        time_ms = index * step_ms
-        while segment + 1 < len(points) and time_ms > points[segment + 1][0]:
-            segment += 1
-        if time_ms <= points[0][0]:
-            value = points[0][1]
-        elif time_ms >= points[-1][0]:
-            value = points[-1][1]
-        else:
-            left = points[segment]
-            right = points[segment + 1]
-            span = right[0] - left[0]
-            fraction = 0.0 if span <= 0 else (time_ms - left[0]) / span
-            value = left[1] + (right[1] - left[1]) * fraction
+        time_ms = start_ms + index * step_ms
+        value = pitch_value(points, time_ms, previous_end)
         cents = max(-2048, min(2047, int(round(value * 10.0))))
         raw = cents & 0xFFF
         encoded.append(UTAU64[raw >> 6])
         encoded.append(UTAU64[raw & 63])
     return "".join(encoded)
+
+
+def previous_pitch_context(
+    note: dict[str, str],
+    midi: int,
+    previous_midi: int | None,
+    previous_note: dict[str, str] | None,
+    previous_duration: float,
+) -> float:
+    """Return the tenth-of-a-semitone value to hold before this note's curve."""
+    if previous_midi is None or previous_note is None:
+        points = pitch_points(note)
+        return points[0][1] if points else 0.0
+
+    previous_points = pitch_points(previous_note)
+    if previous_points:
+        previous_value = pitch_value(previous_points, previous_duration, previous_points[0][1])
+    else:
+        previous_value = 0.0
+    return previous_value + (previous_midi - midi) * 10.0
+
+
+def toml_quote(text: str) -> str:
+    return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def find_wavtool(lessampler: Path, explicit: Path | None) -> Path:
+    if explicit is not None:
+        return explicit
+    name = "lesswavtool.exe" if os.name == "nt" else "lesswavtool"
+    sibling = lessampler.with_name(name)
+    if sibling.is_file():
+        return sibling
+    found = shutil.which("lesswavtool")
+    if found:
+        return Path(found)
+    return sibling
 
 
 def render(args: argparse.Namespace) -> None:
@@ -280,15 +346,22 @@ def render(args: argparse.Namespace) -> None:
         raise SystemExit(f"no oto.ini entries found under {args.voicebank}")
     if not args.lessampler.is_file():
         raise SystemExit(f"lessampler binary not found: {args.lessampler}")
+    wavtool = find_wavtool(args.lessampler, args.wavtool)
+    if not wavtool.is_file():
+        raise SystemExit(f"lesswavtool binary not found: {wavtool}")
 
-    mixed: list[float] = []
+    prefix_map = parse_prefix_map(args.voicebank)
+    sample_rates: dict[Path, int] = {}
     fs = 0
     tick = 0
     rendered = 0
-    sample_rates: dict[Path, int] = {}
+    total = len(notes)
+    skipped: list[tuple[int, str]] = []
 
     with tempfile.TemporaryDirectory(prefix="lessampler-ust-") as temporary:
         temporary = Path(temporary)
+        plan_notes: list[dict[str, object]] = []
+
         for index, note in enumerate(notes):
             try:
                 length_ticks = int(note.get("Length", "0"))
@@ -296,45 +369,155 @@ def render(args: argparse.Namespace) -> None:
                 length_ticks = 0
             if length_ticks <= 0:
                 continue
-            start = tick * 60.0 / (tempo * TICKS_PER_QUARTER)
+            start_ms = tick * 60_000.0 / (tempo * TICKS_PER_QUARTER)
             tick += length_ticks
+            duration_ms = length_ticks * 60_000.0 / (tempo * TICKS_PER_QUARTER)
             lyric = note.get("Lyric", "")
-            if not lyric or lyric == "R" or lyric.upper() == "R":
+            if not lyric or lyric.upper() == "R":
                 continue
             try:
                 midi = int(note.get("NoteNum", "60"))
             except ValueError:
                 continue
-            entry = select_entry(entries, lyric, midi)
+            entry = select_entry(entries, lyric, midi, prefix_map)
             if entry is None:
-                print(f"[warn] note {index}: no oto entry for {lyric!r}", file=sys.stderr)
+                skipped.append((index, lyric))
                 continue
 
-            note_ms = length_ticks * 60_000.0 / (tempo * TICKS_PER_QUARTER)
-            fixed_ms = min(float(entry["consonant"]), max(0.0, note_ms * 0.8))
+            velocity = float(round(max(0.0, min(200.0, parse_float(note.get("Velocity", "100"), 100.0)))))
+            note["_velocity"] = str(int(velocity))
+            note["_entry"] = entry  # type: ignore[assignment]
+            note["_midi"] = str(midi)
+            note["_start"] = f"{start_ms:.6f}"
+            note["_duration"] = f"{duration_ms:.6f}"
+
             wav_path = entry["wav"]
             if wav_path not in sample_rates:
-                try:
-                    with wave.open(str(wav_path), "rb") as sample_wav:
-                        sample_rates[wav_path] = sample_wav.getframerate()
-                except (OSError, wave.Error):
-                    sample_rates[wav_path] = 44100
-            pitch = pitchbend_string(note, note_ms, sample_rates[wav_path], tempo)
-            output = temporary / f"note-{index:04d}.wav"
+                probed = probe_wav(wav_path)
+                sample_rates[wav_path] = probed[0] if probed else 44100
+            rate = sample_rates[wav_path]
+            if fs == 0:
+                fs = rate
+            elif rate != fs:
+                raise SystemExit(f"sample rate changed from {fs} to {rate}")
+
+        # First pass: effective preutterance/overlap with ACPT.
+        rendered_notes: list[dict[str, str]] = []
+        for note in notes:
+            if "_entry" not in note:
+                continue
+            rendered_notes.append(note)
+
+        for idx, note in enumerate(rendered_notes):
+            entry = note["_entry"]
+            assert isinstance(entry, dict)
+            midi = int(note["_midi"])
+            start_ms = float(note["_start"])
+            duration_ms = float(note["_duration"])
+            velocity = float(note["_velocity"])
+            rate = 2.0 ** (1.0 - velocity / 100.0)
+            auto_p = float(entry["preutter"]) * rate
+            auto_o = float(entry["overlap"]) * rate
+            max_p = auto_p
+
+            previous = rendered_notes[idx - 1] if idx > 0 else None
+            if previous is not None:
+                previous_start = float(previous["_start"])
+                previous_duration = float(previous["_duration"])
+                gap = start_ms - (previous_start + previous_duration)
+                # Tick-derived times can differ by a few ULPs even for adjacent
+                # notes; treat a sub-microsecond gap as zero.
+                if gap <= 1e-4:
+                    if auto_o > 0.0 and auto_p - auto_o > previous_duration / 2.0:
+                        max_p = (previous_duration / 2.0) / (auto_p - auto_o) * auto_p
+                    max_p = min(max_p, previous_duration)
+                    if float(previous["_p_eff"]) < 5.0:
+                        max_p = min(max_p, previous_duration + float(previous["_p_eff"]) - 5.0)
+                elif gap < auto_p:
+                    max_p = gap
+                if auto_p > max_p:
+                    auto_o *= max_p / auto_p
+                    auto_p = max_p
+                auto_p = max(0.0, auto_p)
+                if auto_o < 0.0:
+                    auto_o = max(auto_o, min(0.0, 35.0 - previous_duration + auto_p))
+
+            p_override = optional_float(note.get("PreUtterance"))
+            o_override = optional_float(note.get("VoiceOverlap"))
+            p_eff = p_override if p_override is not None else auto_p
+            o_eff = o_override if o_override is not None else auto_o
+            if previous is not None:
+                previous_duration = float(previous["_duration"])
+                if previous_duration - p_eff < 5.0:
+                    o_eff = max(o_eff, 5.0 - (previous_duration - p_eff))
+            note["_p_eff"] = f"{max(0.0, p_eff):.6f}"
+            note["_o_eff"] = f"{o_eff:.6f}"
+
+        # Second pass: render each note and collect the wavtool plan.
+        for idx, note in enumerate(rendered_notes):
+            entry = note["_entry"]
+            assert isinstance(entry, dict)
+            midi = int(note["_midi"])
+            start_ms = float(note["_start"])
+            duration_ms = float(note["_duration"])
+            velocity = float(note["_velocity"])
+            rate = 2.0 ** (1.0 - velocity / 100.0)
+            p_eff = float(note["_p_eff"])
+            o_eff = float(note["_o_eff"])
+
+            next_note = rendered_notes[idx + 1] if idx + 1 < len(rendered_notes) else None
+            adjacent = next_note is not None and float(next_note["_start"]) <= start_ms + duration_ms + 1e-4
+            if adjacent:
+                next_p = float(next_note["_p_eff"])
+                next_o = float(next_note["_o_eff"])
+                tail_intrude = max(next_p, next_p - next_o)
+                tail_overlap = max(next_o, 0.0)
+            else:
+                tail_intrude = 0.0
+                tail_overlap = 0.0
+            length_ms = max(0.0, duration_ms + p_eff - tail_intrude + tail_overlap)
+            position_ms = start_ms - p_eff
+
+            offset_oto = float(entry["offset"])
+            consonant = float(entry["consonant"])
+            cutoff = float(entry["cutoff"])
+            preutter = float(entry["preutter"])
+            pulled = max(0.0, min(round(p_eff / rate - preutter, 3), max(0.0, offset_oto)))
+            offset_arg = offset_oto - pulled
+            fixed_arg = consonant + pulled
+            cutoff_arg = cutoff - pulled if cutoff < 0.0 else cutoff
+            pitch_lead = (preutter + pulled) * rate
+            skip = max(0.0, pitch_lead - p_eff)
+            required = (math.floor(max(length_ms + skip, fixed_arg * rate) / 50.0 + 0.5) + 1.0) * 50.0
+
+            flags = note.get("Flags", default_flags)
             volume = note.get("Intensity", "100")
             modulation = note.get("Modulation", note.get("Moduration", "0"))
-            flags = note.get("Flags", default_flags)
+            previous = rendered_notes[idx - 1] if idx > 0 else None
+            previous_midi = int(previous["_midi"]) if previous is not None else None
+            previous_duration = float(previous["_duration"]) if previous is not None else 0.0
+            hold = previous_pitch_context(note, midi, previous_midi, previous, previous_duration)
+            pitch = pitchbend_string(
+                note,
+                required,
+                sample_rates[entry["wav"]],
+                tempo,
+                -(p_eff + skip),
+                hold,
+            )
+
+            output = temporary / f"note-{idx:04d}.wav"
             command = [
                 str(args.lessampler),
                 str(entry["wav"]),
                 str(output),
                 midi_to_name(midi),
-                "100",
+                note["_velocity"],
                 flags,
-                f"{entry['offset']:.3f}",
-                f"{note_ms:.3f}",
-                f"{fixed_ms:.3f}",
-                "0",
+                f"{offset_arg:.3f}",
+                f"{required:.3f}",
+                f"{fixed_arg:.3f}",
+                f"{cutoff_arg:.3f}",
                 volume,
                 modulation,
                 f"!{tempo:g}",
@@ -342,39 +525,67 @@ def render(args: argparse.Namespace) -> None:
             ]
             result = subprocess.run(command, capture_output=True, text=True)
             if result.returncode != 0 or not output.is_file():
-                print(f"[warn] note {index} failed: {result.stderr.strip() or result.stdout.strip()}", file=sys.stderr)
+                message = result.stderr.strip() or result.stdout.strip()
+                print(f"[warn] note {idx} failed: {message}", file=sys.stderr)
                 continue
 
-            note_fs, samples = read_wav(output)
-            samples = fade(samples, note_fs)
-            if fs == 0:
-                fs = note_fs
-            elif note_fs != fs:
-                raise SystemExit(f"sample rate changed from {fs} to {note_fs}")
-            start_sample = int(start * fs)
-            needed = start_sample + len(samples)
-            if len(mixed) < needed:
-                mixed.extend([0.0] * (needed - len(mixed)))
-            for offset, value in enumerate(samples):
-                mixed[start_sample + offset] += value
+            plan_notes.append(
+                {
+                    "input": str(output),
+                    "position_ms": position_ms,
+                    "skip_ms": skip,
+                    "length_ms": length_ms,
+                    "envelope": note.get("Envelope", DEFAULT_ENVELOPE),
+                }
+            )
             rendered += 1
 
-    if rendered == 0:
-        raise SystemExit("no notes rendered")
-    peak = max(abs(value) for value in mixed) if mixed else 0.0
-    if peak > 0.99:
-        scale = 0.99 / peak
-        mixed = [value * scale for value in mixed]
-    write_wav(args.output, fs, mixed)
-    print(f"rendered {rendered}/{len(notes)} notes, {len(mixed) / fs:.2f}s -> {args.output}")
+        if rendered == 0 or not plan_notes:
+            raise SystemExit("no notes rendered")
+
+        output_path = args.output.resolve()
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        plan_path = temporary / "plan.toml"
+        lines = [
+            f"output = {toml_quote(str(output_path))}",
+            f"sample_rate = {fs}",
+            "channels = 1",
+            "peak_normalize = 0.99",
+            "",
+        ]
+        for item in plan_notes:
+            lines.extend(
+                [
+                    "[[notes]]",
+                    f"input = {toml_quote(str(item['input']))}",
+                    f"position_ms = {float(item['position_ms']):.6f}",
+                    f"skip_ms = {float(item['skip_ms']):.6f}",
+                    f"length_ms = {float(item['length_ms']):.6f}",
+                    f"envelope = {toml_quote(str(item['envelope']))}",
+                    "",
+                ]
+            )
+        plan_path.write_text("\n".join(lines), encoding="utf-8")
+
+        result = subprocess.run([str(wavtool), "--plan", str(plan_path)], capture_output=True, text=True)
+        if result.returncode != 0:
+            raise SystemExit(result.stderr.strip() or "lesswavtool failed")
+
+    with wave.open(str(output_path), "rb") as handle:
+        duration = handle.getnframes() / handle.getframerate()
+
+    for index, lyric in skipped:
+        print(f"[warn] note {index}: no oto entry for {lyric!r}", file=sys.stderr)
+    print(f"rendered {rendered}/{total} notes, {duration:.3f}s -> {args.output}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Render a UTAU .ust with lessampler")
+    parser = argparse.ArgumentParser(description="Render a UTAU .ust with lessampler and lesswavtool")
     parser.add_argument("--ust", required=True, type=Path)
     parser.add_argument("--voicebank", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--lessampler", type=Path, default=Path("build/max-gcc/bin/lessampler"))
+    parser.add_argument("--wavtool", type=Path, default=None)
     args = parser.parse_args()
     render(args)
     return 0

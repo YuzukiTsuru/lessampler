@@ -6,9 +6,15 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 work="${1:-$root/build/data-render}"
 output="${2:-$root/build/data-render/main.wav}"
 lessampler="${LESSAMPLER:-$root/build/max-gcc/bin/lessampler}"
+wavtool="${LESSWAVTOOL:-$(dirname "$lessampler")/lesswavtool}"
 
 if [[ ! -x "$lessampler" ]]; then
     echo "lessampler not found: $lessampler" >&2
+    echo "Build it first: cmake --preset max-gcc && cmake --build --preset max-gcc -j" >&2
+    exit 1
+fi
+if [[ ! -x "$wavtool" ]]; then
+    echo "lesswavtool not found: $wavtool" >&2
     echo "Build it first: cmake --preset max-gcc && cmake --build --preset max-gcc -j" >&2
     exit 1
 fi
@@ -36,4 +42,5 @@ python3 "$root/scripts/render_ust.py" \
     --ust "$ust" \
     --voicebank "$voicebank" \
     --output "$output" \
-    --lessampler "$lessampler"
+    --lessampler "$lessampler" \
+    --wavtool "$wavtool"
