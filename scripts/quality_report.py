@@ -217,31 +217,41 @@ def level_metrics(samples: list[float]) -> dict[str, object]:
     }
 
 
+_singmos_predictor = None
+
+
 def singmos_scores(wav: Path, samples: list[float], fs: int, chunk_seconds: float = 10.0) -> dict[str, object]:
+    global _singmos_predictor
     try:
         import torch
         import torchaudio
     except Exception as error:  # noqa: BLE001
         return {"error": f"torch/torchaudio unavailable: {error}"}
 
-    try:
-        predictor = torch.hub.load("South-Twilight/SingMOS:v1.1.2", "singmos_pro", trust_repo=True)
-    except Exception as error:  # noqa: BLE001
-        return {"error": f"cannot load SingMOS: {error}"}
+    if _singmos_predictor is None:
+        try:
+            _singmos_predictor = torch.hub.load("South-Twilight/SingMOS:v1.1.2", "singmos_pro", trust_repo=True)
+        except Exception as error:  # noqa: BLE001
+            return {"error": f"cannot load SingMOS: {error}"}
+    predictor = _singmos_predictor
 
     waveform = torch.tensor(samples, dtype=torch.float32)
     waveform = torchaudio.functional.resample(waveform, fs, 16000)
     chunk = int(chunk_seconds * 16000)
     chunks = [waveform[start : start + chunk] for start in range(0, waveform.numel(), chunk)]
+    # Skip rests; SingMOS on pure silence is not a singing-quality signal.
+    chunks = [item for item in chunks if torch.sqrt(torch.mean(item * item)) >= 1e-3]
+    if not chunks:
+        return {"error": "SingMOS skipped: no active chunks"}
     scores: list[float] = []
     batch_size = 4
     with torch.no_grad():
         for start in range(0, len(chunks), batch_size):
             batch = chunks[start : start + batch_size]
             lengths = torch.tensor([item.numel() for item in batch], dtype=torch.long)
-            padded = torch.zeros(len(batch), int(lengths.max()))
+            padded = torch.zeros(len(batch), 1, int(lengths.max()))
             for index, item in enumerate(batch):
-                padded[index, : item.numel()] = item
+                padded[index, 0, : item.numel()] = item
             output = predictor(padded, lengths)
             if isinstance(output, (tuple, list)):
                 output = output[0]
