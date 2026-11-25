@@ -2,13 +2,15 @@
 """Render a UTAU .ust file with lessampler.
 
 This is a small host, not a full UTAU wavtool replacement. It selects the
-closest oto.ini entry for each note, invokes lessampler once per note, and mixes
-the rendered notes at their UST tick positions. Envelopes, overlaps, and the
-PBS/PBY/PBW pitch-bend curve are intentionally not applied yet.
+closest oto.ini entry for each note, applies the UST pitch-bend curve, invokes
+lessampler once per note, and mixes the rendered notes at their UST tick
+positions. Envelopes, overlaps, and PBM pitch shapes are intentionally not
+applied yet.
 """
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import struct
 import subprocess
@@ -22,6 +24,7 @@ NOTE_OFFSETS = {name: index for index, name in enumerate(NOTE_NAMES)}
 PITCH_SUFFIX = re.compile(r"([A-G]#?-?\d)$")
 NOTE_NAME = re.compile(r"([A-G]#?)(-?\d)")
 TICKS_PER_QUARTER = 480
+UTAU64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 
 def decode_text(data: bytes) -> str:
@@ -198,6 +201,78 @@ def fade(samples: list[float], fs: int, milliseconds: float = 5.0) -> list[float
     return samples
 
 
+def parse_float(value: str, default: float = 0.0) -> float:
+    try:
+        return float(value.strip())
+    except ValueError:
+        return default
+
+
+def pitch_points(note: dict[str, str]) -> list[tuple[float, float]]:
+    pbs = note.get("PBS", "").strip()
+    pbw = note.get("PBW", "").strip()
+    pby = note.get("PBY", "").strip()
+    if not pbs and not pbw and not pby:
+        return []
+
+    if pbs:
+        parts = pbs.split(";" if ";" in pbs else ",")
+        start_x = parse_float(parts[0])
+        start_y = parse_float(parts[1]) if len(parts) > 1 else 0.0
+    else:
+        start_x = 0.0
+        start_y = 0.0
+
+    widths = [parse_float(part) for part in pbw.split(",") if part.strip()] if pbw else []
+    values = [parse_float(part) for part in pby.split(",") if part.strip()] if pby else []
+    while len(values) < len(widths):
+        values.append(0.0)
+
+    points = [(start_x, start_y)]
+    position = start_x
+    for width, value in zip(widths, values):
+        position += width
+        points.append((position, value))
+    return points
+
+
+def pitchbend_string(note: dict[str, str], note_ms: float, fs: int, tempo: float) -> str:
+    points = pitch_points(note)
+    if len(points) < 2:
+        return ""
+
+    # UST pitch values are tenths of a semitone. lessampler's pitch-bend
+    # protocol carries signed 12-bit cent values sampled at 1/96 beat.
+    pitch_step = int(math.floor(60.0 / 96.0 / tempo * fs + 0.5))
+    if pitch_step <= 0:
+        return ""
+    output_samples = int(note_ms * 0.001 * fs + 1.0)
+    count = output_samples // pitch_step + 2
+    step_ms = pitch_step * 1000.0 / fs
+
+    encoded: list[str] = []
+    segment = 0
+    for index in range(count):
+        time_ms = index * step_ms
+        while segment + 1 < len(points) and time_ms > points[segment + 1][0]:
+            segment += 1
+        if time_ms <= points[0][0]:
+            value = points[0][1]
+        elif time_ms >= points[-1][0]:
+            value = points[-1][1]
+        else:
+            left = points[segment]
+            right = points[segment + 1]
+            span = right[0] - left[0]
+            fraction = 0.0 if span <= 0 else (time_ms - left[0]) / span
+            value = left[1] + (right[1] - left[1]) * fraction
+        cents = max(-2048, min(2047, int(round(value * 10.0))))
+        raw = cents & 0xFFF
+        encoded.append(UTAU64[raw >> 6])
+        encoded.append(UTAU64[raw & 63])
+    return "".join(encoded)
+
+
 def render(args: argparse.Namespace) -> None:
     tempo, default_flags, notes = parse_ust(args.ust)
     entries = parse_oto(args.voicebank)
@@ -210,6 +285,7 @@ def render(args: argparse.Namespace) -> None:
     fs = 0
     tick = 0
     rendered = 0
+    sample_rates: dict[Path, int] = {}
 
     with tempfile.TemporaryDirectory(prefix="lessampler-ust-") as temporary:
         temporary = Path(temporary)
@@ -236,6 +312,14 @@ def render(args: argparse.Namespace) -> None:
 
             note_ms = length_ticks * 60_000.0 / (tempo * TICKS_PER_QUARTER)
             fixed_ms = min(float(entry["consonant"]), max(0.0, note_ms * 0.8))
+            wav_path = entry["wav"]
+            if wav_path not in sample_rates:
+                try:
+                    with wave.open(str(wav_path), "rb") as sample_wav:
+                        sample_rates[wav_path] = sample_wav.getframerate()
+                except (OSError, wave.Error):
+                    sample_rates[wav_path] = 44100
+            pitch = pitchbend_string(note, note_ms, sample_rates[wav_path], tempo)
             output = temporary / f"note-{index:04d}.wav"
             volume = note.get("Intensity", "100")
             modulation = note.get("Modulation", note.get("Moduration", "0"))
@@ -254,7 +338,7 @@ def render(args: argparse.Namespace) -> None:
                 volume,
                 modulation,
                 f"!{tempo:g}",
-                "",
+                pitch,
             ]
             result = subprocess.run(command, capture_output=True, text=True)
             if result.returncode != 0 or not output.is_file():

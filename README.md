@@ -222,7 +222,7 @@ python3 scripts/render_ust.py \
   --lessampler build/max-gcc/bin/lessampler
 ```
 
-The host applies note pitch, tempo, volume, modulation, and short fades. It does not implement UTAU's full wavtool semantics yet: envelopes, crossfades, preutterance/overlap placement, and the PBS/PBY/PBW pitch-bend curve are not applied, so treated notes are rendered with their nominal pitch. Missing breath aliases such as `x` are skipped.
+The host applies note pitch, tempo, volume, modulation, short fades, and the UST PBS/PBY/PBW pitch-bend curve (linear interpolation; PBM shapes are not reproduced). It does not implement UTAU's full wavtool semantics yet: envelopes, crossfades, and preutterance/overlap placement are not applied. Missing breath aliases such as `x` are skipped.
 
 ## Tests
 
