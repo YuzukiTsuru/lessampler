@@ -27,6 +27,9 @@ export default defineConfig({
 				src: './src/assets/logo.png',
 				alt: 'lessampler',
 			},
+			editLink: {
+				baseUrl: 'https://github.com/YuzukiTsuru/lessampler/edit/master/docs/',
+			},
 			social: [
 				{
 					icon: 'github',
