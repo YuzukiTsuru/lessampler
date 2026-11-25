@@ -1,4 +1,7 @@
-# Neural backends
+---
+title: "Neural backends"
+description: "NHVSing, whole-song polish and feature-level assembly."
+---
 
 The optional neural path uses an NHVSing-compatible ONNX vocoder: 44.1 kHz, hop 256, 128-bin log-mel between 40 Hz and 16 kHz, plus continuous F0 and an unvoiced flag. NHVSing V3.3 is about 7.8 MB with 0.478 M parameters. The NHVSing code is MIT; its published weights are non-commercial and are not bundled.
 

@@ -1,4 +1,7 @@
-# Architecture details
+---
+title: "Architecture details"
+description: "Model caches, threading and adding a vocoder."
+---
 
 ## Caches
 

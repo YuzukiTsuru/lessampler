@@ -1,4 +1,7 @@
-# Rendering a UST
+---
+title: "Rendering a UST"
+description: "lesswavtool, the UST host, placement and envelopes."
+---
 
 `scripts/render_ust.py` is a UTAU host. It reads a `.ust`, selects the closest `oto.ini` entry for each note, invokes `lessampler` once per note, and assembles the buffers with `lesswavtool`.
 

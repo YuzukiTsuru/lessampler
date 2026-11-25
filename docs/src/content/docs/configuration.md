@@ -1,4 +1,7 @@
-# Configuration
+---
+title: "Configuration"
+description: "lessampler.less, model caches and performance."
+---
 
 `lessampler.less` is created next to the executable on first run. It is TOML. Delete it to regenerate defaults.
 

@@ -1,6 +1,6 @@
 // Rewrites relative Markdown links to the page URLs used by Starlight.
-// The documentation in ../docs/ links pages as `quality.md`; after the sync
-// script copies them into src/content/docs/, those links must become routes.
+// Documentation pages link to each other as `quality.md`; those links must
+// become routes such as `/lessampler/quality/`.
 import path from 'node:path';
 import { visit } from 'unist-util-visit';
 

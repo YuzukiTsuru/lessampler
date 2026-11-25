@@ -217,7 +217,7 @@ ctest --preset release-gcc --output-on-failure
 
 - Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigLoaderTest`, `LOGTest`, `TimerTest`, `WorldTransformTest`, `AutoAMPTest`, `WavIOTest`, `EnvelopeTest`, `WavAssemblyTest`, `WavtoolProtocolTest`, `ShineTest`, `NeuralFeatureTest`, `PolishTest` and `FeatureAssemblerTest` (neural builds only).
 - Integration labels: `WorldModelCacheTest`, `WorldModelCacheVersionTest`, `WorldAnalyzerTest`, `VoicebankModelerTest`, `WorldPipelineTest`, `WorldModelTest`, `WorldSynthesizerTest`, `WavtoolCliTest`, `RenderEngineTest`, `EndToEndTest`.
-- Evaluation labels: `QualityEvaluationTest` (registered when Python 3 is found) and `SingMOSEvaluationTest` (opt-in with `LESSAMPLER_ENABLE_SINGMOS_TESTS=ON` and `LESSAMPLER_SINGMOS_PYTHON`). `test/quality/evaluate.py` produces the versioned JSON report; `test/quality/setup_singmos.sh` creates the optional SingMOS venv. See `docs/quality.md`.
+- Evaluation labels: `QualityEvaluationTest` (registered when Python 3 is found) and `SingMOSEvaluationTest` (opt-in with `LESSAMPLER_ENABLE_SINGMOS_TESTS=ON` and `LESSAMPLER_SINGMOS_PYTHON`). `test/quality/evaluate.py` produces the versioned JSON report; `test/quality/setup_singmos.sh` creates the optional SingMOS venv. See `docs/src/content/docs/quality.md`.
 - `RenderEngineTest` checks the backend factory, WORLD and LLSM renders, A4/A#4 pitch, in-memory analysis reuse, cold/warm LLSM cache equality, source-mtime and config-fingerprint invalidation, and corrupt-cache recovery. Without LLSM it checks that selecting `llsm` is rejected.
 - `WorldAnalyzerTest` runs the fixture analysis twice and compares f0, spectrogram, and aperiodicity exactly, guarding the fixed D4C chunk partition.
 - Test data path is passed as `LESSAMPLER_TEST_DATA_DIR`; tests read `vaiueo2d.wav`/`ne.wav` and write only to temporary directories. The quality evaluation uses `test/quality/fixture.ust` as its target and writes its JSON report into the build directory.
@@ -225,7 +225,7 @@ ctest --preset release-gcc --output-on-failure
 
 ## Documentation site
 
-`docs-site/` is an Astro Starlight project. `scripts/sync-docs.mjs` copies the pages from `docs/` into the generated content directory before `dev` and `build`; edit `docs/*.md`, not `docs-site/src/content/docs/`. The landing page and 404 page are in `docs-site/content/`, the sidebar in `docs-site/sidebar.mjs`, and the theme in `docs-site/src/styles/custom.css`. Run `npm install && npm run dev` in `docs-site/`; Node 22.12+ is required. `.github/workflows/deploy-docs.yml` deploys to GitHub Pages from `master`.
+`docs/` is the Astro Starlight project and the documentation source. Pages are in `docs/src/content/docs/`; the landing page is `docs/src/content/docs/index.md`, the sidebar `docs/sidebar.mjs`, and the theme `docs/src/styles/custom.css`. Edit the Markdown there directly, then add the slug to the sidebar. Run `npm install && npm run dev` in `docs/`; Node 22.12+ is required. `.github/workflows/deploy-docs.yml` deploys it to GitHub Pages from `master`.
 
 ## Conventions
 

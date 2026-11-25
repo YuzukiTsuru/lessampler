@@ -1,4 +1,7 @@
-# Quality evaluation
+---
+title: "Quality evaluation"
+description: "SingMOS-Pro and objective metrics with a versioned JSON report."
+---
 
 `test/quality/evaluate.py` is the standardized evaluation entry point. It reports SingMOS-Pro MOS and objective metrics for one or more renders in a versioned JSON document.
 

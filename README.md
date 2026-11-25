@@ -49,7 +49,7 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
 
 ## Quick start
 
-Requires CMake 3.30+, a C++26 compiler (GCC 15+, Clang 19+, or MSVC in latest mode), and initialized submodules. See [docs/build.md](docs/build.md) for every preset and optional dependency.
+Requires CMake 3.30+, a C++26 compiler (GCC 15+, Clang 19+, or MSVC in latest mode), and initialized submodules. See [docs/src/content/docs/build.md](docs/src/content/docs/build.md) for every preset and optional dependency.
 
 ```bash
 git clone --recursive https://github.com/YuzukiTsuru/lessampler
@@ -90,14 +90,14 @@ python3 scripts/render_ust.py \
 
 ## Documentation
 
-The documentation is published at <https://yuzukitsuru.github.io/lessampler/>. The source pages are in [`docs/`](docs/):
+The documentation is published at <https://yuzukitsuru.github.io/lessampler/>. The site and source pages are in [`docs/`](docs/):
 
-- [Build](docs/build.md)
-- [Configuration](docs/configuration.md)
-- [Rendering a UST](docs/rendering.md)
-- [Neural backends](docs/neural.md)
-- [Quality evaluation](docs/quality.md)
-- [Architecture details](docs/architecture-details.md)
+- [Build](docs/src/content/docs/build.md)
+- [Configuration](docs/src/content/docs/configuration.md)
+- [Rendering a UST](docs/src/content/docs/rendering.md)
+- [Neural backends](docs/src/content/docs/neural.md)
+- [Quality evaluation](docs/src/content/docs/quality.md)
+- [Architecture details](docs/src/content/docs/architecture-details.md)
 
 ## Special Thanks
 
