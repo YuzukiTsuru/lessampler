@@ -10,8 +10,11 @@
 
 #include "App/Application.h"
 
+#include <algorithm>
 #include <array>
+#include <cstddef>
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -28,6 +31,7 @@
 #include "Engine/VoicebankModeler.h"
 #include "Host/UTAU/Shine.h"
 #include "Host/Wavtool/WavtoolPlan.h"
+#include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/VocoderBackend.h"
 
 #include "lessconfig.h"
@@ -121,6 +125,7 @@ namespace lessampler {
                      "  lessampler <voicebank-directory>\n"
                      "  lessampler --polish <in.wav> <out.wav>\n"
                      "  lessampler --feature-plan <plan.toml>\n"
+                     "  lessampler --f0 <in.wav> <out.csv>\n"
                      "  lessampler <in.wav> <out.wav> <note> [time%] [flags] [offset] [required]\n"
                      "             [fixed] [blank] [volume] [modulation] [tempo] [pitchbend]\n"
                   << std::endl;
@@ -152,6 +157,13 @@ namespace lessampler {
                 throw parameter_error("--polish is unavailable: the neural backend is not enabled in this build");
             }
             return Command::polish;
+        }
+        if (first == "--f0") {
+            if (argc_ != 4) {
+                show_usage();
+                return Command::usage;
+            }
+            return Command::f0_dump;
         }
         if (first == "--feature-plan") {
             if (argc_ != 3) {
@@ -237,6 +249,28 @@ namespace lessampler {
         LOG_OK << "Polished " + std::string(argv_[2]) + " -> " + std::string(argv_[3]);
     }
 
+    void Application::f0_dump() {
+        const WavData input = WavIO::ReadWav(argv_[2]);
+        const auto track = EstimateF0(input.samples, input.sample_rate, configure_);
+        const std::filesystem::path output(argv_[3]);
+        if (!output.parent_path().empty()) {
+            std::filesystem::create_directories(output.parent_path());
+        }
+        std::ofstream stream(output);
+        if (!stream) {
+            throw file_open_error(output.string());
+        }
+        stream << "time_ms,f0_hz\n";
+        const auto count = std::min(track.time_axis.size(), track.f0.size());
+        for (std::size_t i = 0; i < count; ++i) {
+            stream << track.time_axis[i] * 1000.0 << ',' << track.f0[i] << '\n';
+        }
+        if (!stream) {
+            throw file_open_error(output.string());
+        }
+        LOG_OK << "F0 written to " + output.string();
+    }
+
     void Application::feature_plan() {
         const auto plan = wavtool::WavtoolPlan::Parse(argv_[2]);
         std::vector<FeatureSegment> segments;
@@ -275,6 +309,9 @@ namespace lessampler {
                 return;
             case Command::feature_plan:
                 feature_plan();
+                return;
+            case Command::f0_dump:
+                f0_dump();
                 return;
             case Command::render_note:
                 LOG_INFO << "lessampler Copyright (c) 2018 - 2026, YuzukiTsuru, Version: " + std::string(PROJECT_GIT_HASH);

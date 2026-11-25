@@ -37,6 +37,7 @@ namespace lessampler {
             render_note,
             polish,
             feature_plan,
+            f0_dump,
         };
 
         [[nodiscard]] Command parse_args() const;
@@ -50,6 +51,8 @@ namespace lessampler {
         void polish_audio();
 
         void feature_plan();
+
+        void f0_dump();
 
         static void show_logo();
 

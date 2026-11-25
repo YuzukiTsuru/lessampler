@@ -271,6 +271,24 @@ python3 scripts/render_ust.py \
 python3 scripts/seam_report.py --ust path/to/song.ust old.wav new.wav
 ```
 
+## Quality report
+
+`lessampler --f0 <in.wav> <out.csv>` exports the configured F0 track as `time_ms,f0_hz`. `scripts/quality_report.py` combines it with the UST to report, per render:
+
+- F0 accuracy against the UST note + PBS/PBY target: MAE, gross pitch error, and VUV error.
+- Note-boundary dips, longest near-zero run, peak and RMS.
+- Optional SingMOS-Pro overall MOS in 10 s chunks (`--singmos`; needs `torch`, `torchaudio`, `s3prl`).
+
+```bash
+python3 scripts/quality_report.py \
+  --ust "data/シャノワールの冒険書/main_調声済み.ust" \
+  --json build/quality/report.json \
+  data/render/main-wavtool.wav \
+  data/render/main-feature.wav
+```
+
+The F0 target is the hand-drawn UST curve; inside an overlap two notes can sound at once, so a single F0 estimate can disagree with either target. Treat the GPE/VUV outliers together with the seam metric, not as a per-note score. The objective metrics need no Python ML stack; SingMOS does.
+
 ## Tests
 
 Tests are registered with CTest. Run the whole suite with:

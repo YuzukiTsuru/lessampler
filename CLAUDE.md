@@ -67,6 +67,7 @@ Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 | `lessampler <dir>` | analysis-only: models every `.wav` in `<dir>` in parallel, writing `<name>.lessaudio` beside each WAV |
 | `lessampler --polish <in.wav> <out.wav>` | whole-song neural resynthesis using `[neural] model_path` (neural builds only) |
 | `lessampler --feature-plan <plan.toml>` | feature-level assembly: note WAVs -> global mel/F0 -> one vocoder pass (neural builds only) |
+| `lessampler --f0 <in.wav> <out.csv>` | export the configured F0 track as `time_ms,f0_hz` |
 | `lessampler <in.wav> <out.wav> <note> ...` (>= 4 args) | UTAU resampler mode: render `<in.wav>` to `<out.wav>` |
 
 UTAU argument positions, parsed by `src/Host/UTAU/libUTAU/UTAUParameterParser.cpp`:
@@ -204,6 +205,10 @@ Readers validate magic, version, fingerprint, source fingerprint, dimensions, fr
 - `LESSAMPLER_DUMP_DATA` and `LESSAMPLER_TIME_EVAL` are CMake options translated into compile definitions. `DUMP_DATA` gates the per-sample dump file in `WorldTransform`. With `LESSAMPLER_TIME_EVAL=ON`, `LOG_EVAL` prints stage timings for F0/CheapTrick/D4C, WORLD model prepare/transform/synthesis, and LLSM cache load/save, layer conversions, transform, and synthesis.
 - `tools/arg_parameter_export` is a dummy executable that appends its `argv` to `<its own path>.log`; use it to capture how a UTAU host invokes the resampler.
 - `ConfigResolver` loads `<voice_dir>/lessvoice.less` in TOML and caches the result per directory.
+
+## Quality report
+
+`scripts/quality_report.py` compares renders against the UST target: F0 MAE/GPE/VUV via `lessampler --f0`, note-boundary dips, longest silence, peak/RMS, and optional SingMOS-Pro (`--singmos`, needs torch/torchaudio/s3prl). The F0 metric is approximate inside overlaps because two notes can sound at once. The script writes a terminal table and an optional JSON report.
 
 ## Tests
 
