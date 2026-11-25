@@ -13,6 +13,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <string>
 #include <vector>
 
 #include "Audio/Envelope.h"
@@ -32,6 +33,7 @@ namespace lessampler::wavtool {
         int sample_rate = 0;
         int channels = 0;
         double peak_normalize = 0.0;
+        std::string master = "none";
         std::vector<WavtoolPlanNote> notes;
 
         [[nodiscard]] static WavtoolPlan Parse(const std::filesystem::path &path);

@@ -25,6 +25,10 @@ NOTE_NAME = re.compile(r"([A-G]#?)(-?\d)")
 TICKS_PER_QUARTER = 480
 UTAU64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 DEFAULT_ENVELOPE = "0,5,35,0,100,100,0,%,0,10,100"
+# Some oto entries have a fixed/consonant part longer than the short note
+# that uses them. Without a cap the wavtool segment ends inside the consonant
+# and the vowel never sounds. Keep at least this much vowel in the segment.
+MIN_VOWEL_MS = 30.0
 
 
 def decode_text(data: bytes) -> str:
@@ -252,6 +256,49 @@ def pitch_points(note: dict[str, str]) -> list[tuple[float, float]]:
     return points
 
 
+def parse_vbr(note: dict[str, str]) -> tuple[float, float, float, float, float, float] | None:
+    """Return (length%, period_ms, depth_cents, fade_in%, fade_out%, phase%)."""
+    text = note.get("VBR", "").strip()
+    if not text:
+        return None
+    fields = [part.strip() for part in text.split(",")]
+    if len(fields) < 3:
+        return None
+    try:
+        length = max(0.0, min(100.0, parse_float(fields[0])))
+        period = max(5.0, min(500.0, parse_float(fields[1])))
+        depth = max(0.0, min(200.0, parse_float(fields[2])))
+        fade_in = max(0.0, min(100.0, parse_float(fields[3]))) if len(fields) > 3 else 0.0
+        fade_out = max(0.0, min(100.0, parse_float(fields[4]))) if len(fields) > 4 else 0.0
+        phase = max(0.0, min(100.0, parse_float(fields[5]))) if len(fields) > 5 else 0.0
+    except ValueError:
+        return None
+    if length <= 0.0 or depth <= 0.0:
+        return None
+    return length, period, depth, fade_in, fade_out, phase
+
+
+def vibrato_cents(vbr: tuple[float, float, float, float, float, float] | None,
+                  time_ms: float, duration_ms: float) -> float:
+    if vbr is None or duration_ms <= 0.0 or time_ms <= 0.0 or time_ms > duration_ms:
+        return 0.0
+    length, period, depth, fade_in, fade_out, phase = vbr
+    vibrato_ms = duration_ms * length / 100.0
+    if vibrato_ms <= 0.0 or time_ms < duration_ms - vibrato_ms:
+        return 0.0
+    position = (time_ms - (duration_ms - vibrato_ms)) / vibrato_ms
+    gain = 1.0
+    fade_in_fraction = fade_in / 100.0
+    fade_out_fraction = fade_out / 100.0
+    if fade_in_fraction > 0.0 and position < fade_in_fraction:
+        gain *= position / fade_in_fraction
+    if fade_out_fraction > 0.0 and position > 1.0 - fade_out_fraction:
+        gain *= (1.0 - position) / fade_out_fraction
+    gain = max(0.0, min(1.0, gain))
+    angle = 2.0 * math.pi * ((time_ms - (duration_ms - vibrato_ms)) / period + phase / 100.0)
+    return depth * gain * math.sin(angle)
+
+
 def pitch_value(points: list[tuple[float, float]], time_ms: float, fallback: float) -> float:
     if not points:
         return fallback
@@ -278,14 +325,16 @@ def pitchbend_string(
     tempo: float,
     start_ms: float,
     previous_end: float,
+    duration_ms: float,
 ) -> str:
     points = pitch_points(note)
+    vbr = parse_vbr(note)
     if not points:
         # The buffer head is the previous note's VCV vowel. Without a UST
         # pitch curve it must still carry the previous pitch until the note
         # start, otherwise the overlap pulls the previous note's tail to this
         # note's pitch.
-        if previous_end == 0.0 or start_ms >= 0.0:
+        if vbr is None and (previous_end == 0.0 or start_ms >= 0.0):
             return ""
         points = [(start_ms, previous_end), (0.0, 0.0)]
     elif points[0][0] > 0.0:
@@ -302,6 +351,7 @@ def pitchbend_string(
     for index in range(count):
         time_ms = start_ms + index * step_ms
         value = pitch_value(points, time_ms, previous_end)
+        value += vibrato_cents(vbr, time_ms, duration_ms) / 10.0
         cents = max(-2048, min(2047, int(round(value * 10.0))))
         raw = cents & 0xFFF
         encoded.append(UTAU64[raw >> 6])
@@ -483,10 +533,17 @@ def render(args: argparse.Namespace) -> None:
             preutter = float(entry["preutter"])
             pulled = max(0.0, min(round(p_eff / rate - preutter, 3), max(0.0, offset_oto)))
             offset_arg = offset_oto - pulled
-            fixed_arg = consonant + pulled
             cutoff_arg = cutoff - pulled if cutoff < 0.0 else cutoff
             pitch_lead = (preutter + pulled) * rate
             skip = max(0.0, pitch_lead - p_eff)
+            fixed_requested = consonant + pulled
+            fixed_arg = min(fixed_requested, max(0.0, length_ms + skip - MIN_VOWEL_MS))
+            if fixed_arg < fixed_requested - 1e-6:
+                print(
+                    f"[warn] note {idx} ({entry['alias']}): fixed {fixed_requested:.1f}ms "
+                    f"capped to {fixed_arg:.1f}ms to keep {MIN_VOWEL_MS:.0f}ms of vowel",
+                    file=sys.stderr,
+                )
             required = (math.floor(max(length_ms + skip, fixed_arg * rate) / 50.0 + 0.5) + 1.0) * 50.0
 
             flags = note.get("Flags", default_flags)
@@ -503,6 +560,7 @@ def render(args: argparse.Namespace) -> None:
                 tempo,
                 -(p_eff + skip),
                 hold,
+                duration_ms,
             )
 
             output = temporary / f"note-{idx:04d}.wav"
@@ -545,11 +603,16 @@ def render(args: argparse.Namespace) -> None:
         output_path = args.output.resolve()
         output_path.parent.mkdir(parents=True, exist_ok=True)
         plan_path = temporary / "plan.toml"
+        # --polish masters after the neural pass; keep its input raw so the
+        # chain is applied exactly once. --feature applies the plan preset
+        # inside the feature assembly path.
+        plan_master = "none" if args.polish else args.master
         lines = [
             f"output = {toml_quote(str(output_path))}",
             f"sample_rate = {fs}",
             "channels = 1",
             "peak_normalize = 0.99",
+            f"master = {toml_quote(plan_master)}",
             "",
         ]
         for item in plan_notes:
@@ -579,7 +642,7 @@ def render(args: argparse.Namespace) -> None:
             if args.polish:
                 mix_path = output_path.with_name(output_path.stem + "-mix" + output_path.suffix)
                 output_path.replace(mix_path)
-                polish = subprocess.run([str(args.lessampler), "--polish", str(mix_path), str(output_path)],
+                polish = subprocess.run([str(args.lessampler), "--polish", str(mix_path), str(output_path), args.master],
                                         capture_output=True, text=True)
                 if polish.returncode != 0:
                     mix_path.replace(output_path)
@@ -606,6 +669,8 @@ def main() -> int:
                         help="re-render the assembled mix through the neural vocoder (requires [neural] model_path)")
     parser.add_argument("--feature", action="store_true",
                         help="assemble mel/F0 features and run the vocoder once (requires [neural] model_path)")
+    parser.add_argument("--master", choices=["none", "natural", "warm", "power"], default="warm",
+                        help="final tone/level preset (default: warm; use none for the old raw mix)")
     args = parser.parse_args()
     if args.polish and args.feature:
         parser.error("--polish and --feature are mutually exclusive")

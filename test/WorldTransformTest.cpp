@@ -1,5 +1,6 @@
 #include "TestSupport.h"
 
+#include <algorithm>
 #include <vector>
 
 #include "Config/Config.h"
@@ -17,7 +18,7 @@ namespace {
         model.fft_size = 1024;
         model.w_length = 513;
         model.x_length = 44100;
-        model.f0.assign(200, 200.0);
+        model.f0.assign(200, 440.0);
         model.spectrogram.assign(200, 513, 0.1);
         model.aperiodicity.assign(200, 513, 0.5);
         return model;
@@ -80,6 +81,46 @@ int main() {
     WorldTransform short_bend_process(model, short_bend);
     CHECK_EQ(short_bend_process.GetTransAudioModel().f0.size(),
              static_cast<std::size_t>(shine.required_frame));
+
+    // A run of unvoiced source frames must stay unvoiced when modulation is
+    // zero. pow(0, 0) used to turn them into target-pitch frames.
+    auto unvoiced = make_model();
+    for (std::size_t i = 0; i < 50; ++i) {
+        unvoiced.f0[i] = 0.0;
+    }
+    auto unvoiced_shine = shine;
+    unvoiced_shine.required_frame = 10;
+    unvoiced_shine.output_samples = 10 * unvoiced_shine.pitch_step;
+    WorldTransform unvoiced_process(unvoiced, unvoiced_shine);
+    const auto &unvoiced_model = unvoiced_process.GetTransAudioModel();
+    for (std::size_t i = 0; i < 10; ++i) {
+        CHECK_NEAR(unvoiced_model.f0[i], 0.0, 1e-12);
+    }
+
+    // Aperiodicity follows the same interpolation as the spectral envelope.
+    auto interpolated = make_model();
+    for (std::size_t i = 0; i < interpolated.aperiodicity.rows(); ++i) {
+        std::fill(interpolated.aperiodicity[i].begin(), interpolated.aperiodicity[i].end(),
+                  i % 2 == 0 ? 0.2 : 0.8);
+    }
+    auto ap_shine = shine;
+    ap_shine.base_length = 0.0;
+    ap_shine.first_half_fixed_part = 100.0;
+    ap_shine.stretch_length = 0.5;
+    ap_shine.required_frame = 4;
+    ap_shine.output_samples = 4 * ap_shine.pitch_step;
+    WorldTransform ap_process(interpolated, ap_shine);
+    const auto &ap_model = ap_process.GetTransAudioModel();
+    CHECK_NEAR(ap_model.aperiodicity[1][0], 0.5, 1e-12);
+
+    // A sample shifted up more than five semitones gets more harmonic energy
+    // and less noise; the source pitch here is 200 Hz and the target is 440.
+    auto high_model = make_model();
+    high_model.f0.assign(200, 200.0);
+    WorldTransform high_process(high_model, shine);
+    const auto &high_transformed = high_process.GetTransAudioModel();
+    CHECK(high_transformed.spectrogram[0][0] > 0.1);
+    CHECK(high_transformed.aperiodicity[0][0] < 0.5);
 
     return test::finish();
 }

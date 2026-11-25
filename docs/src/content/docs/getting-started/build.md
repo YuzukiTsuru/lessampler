@@ -72,4 +72,4 @@ cmake --build --preset max-gcc -j
 ctest --preset max-gcc -L evaluation --output-on-failure
 ```
 
-`test/quality/setup_singmos.sh` creates that virtual environment. See [quality.md](quality.md) for the protocol and JSON schema.
+`test/quality/setup_singmos.sh` creates that virtual environment. See [Quality evaluation](../guides/quality.md) for the protocol and JSON schema.

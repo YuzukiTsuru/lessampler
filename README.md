@@ -45,7 +45,7 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
 
 ## Quick start
 
-Requires CMake 3.30+, a C++26 compiler (GCC 15+, Clang 19+, or MSVC in latest mode), and initialized submodules. See [docs/src/content/docs/build.md](docs/src/content/docs/build.md) for every preset and optional dependency.
+Requires CMake 3.30+, a C++26 compiler (GCC 15+, Clang 19+, or MSVC in latest mode), and initialized submodules. See [docs/src/content/docs/getting-started/build.md](docs/src/content/docs/getting-started/build.md) for every preset and optional dependency.
 
 ```bash
 git clone --recursive https://github.com/YuzukiTsuru/lessampler
@@ -60,11 +60,11 @@ The executable lands in `build/max-gcc/bin/lessampler`; it is the resampler, the
 
 ## Backends
 
-WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural NHVSing backend are optional; the maximal preset enables both. The neural path can render per note, resynthesize a whole assembled mix (`--polish`), or assemble per-note mel/F0 features and run the vocoder once (`--feature-plan`). See [docs/neural.md](docs/neural.md).
+WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural NHVSing backend are optional; the maximal preset enables both. The neural path can render per note, resynthesize a whole assembled mix (`--polish`), or assemble per-note mel/F0 features and run the vocoder once (`--feature-plan`). See [docs/src/content/docs/guides/neural.md](docs/src/content/docs/guides/neural.md).
 
 ## Configuration
 
-`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. Caches and performance notes are in [docs/configuration.md](docs/configuration.md).
+`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
 
 ## Rendering a UST
 
@@ -81,19 +81,15 @@ python3 scripts/render_ust.py \
   --polish
 ```
 
-`--feature` selects feature-level neural assembly instead; `--polish` runs whole-song resynthesis after the wavtool. The wavtool mode is selected by the classic 15-argument UTAU form or by `--plan`; the protocol, plan format, placement geometry, and remaining limitations are in [docs/rendering.md](docs/rendering.md).
+`--feature` selects feature-level neural assembly instead; `--polish` runs whole-song resynthesis after the wavtool. `--master` selects the final tone/level preset (`none`, `natural`, `warm` (default), or `power`), applied after assembly and after any neural pass. The wavtool mode is selected by the classic 15-argument UTAU form or by `--plan`; the protocol, plan format, placement geometry, and remaining limitations are in [docs/src/content/docs/guides/rendering.md](docs/src/content/docs/guides/rendering.md).
 
 ## Documentation
 
 The documentation is published at <https://yuzukitsuru.github.io/lessampler/>. The site and source pages are in [`docs/`](docs/):
 
-- [Build](docs/src/content/docs/build.md)
-- [Configuration](docs/src/content/docs/configuration.md)
-- [Rendering a UST](docs/src/content/docs/rendering.md)
-- [Neural backends](docs/src/content/docs/neural.md)
-- [Quality evaluation](docs/src/content/docs/quality.md)
-- [Processing pipeline](docs/src/content/docs/pipeline.md)
-- [Architecture details](docs/src/content/docs/architecture-details.md)
+- Getting started: [Build](docs/src/content/docs/getting-started/build.md), [Configuration](docs/src/content/docs/getting-started/configuration.md)
+- Guides: [Rendering a UST](docs/src/content/docs/guides/rendering.md), [Neural backends](docs/src/content/docs/guides/neural.md), [Quality evaluation](docs/src/content/docs/guides/quality.md)
+- Internals: [Processing pipeline](docs/src/content/docs/processing/index.md), [Architecture details](docs/src/content/docs/architecture/index.md)
 
 ## Special Thanks
 

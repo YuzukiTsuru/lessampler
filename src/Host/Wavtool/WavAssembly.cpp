@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <numbers>
 #include <optional>
 #include <string>
 #include <system_error>
@@ -115,10 +116,32 @@ namespace lessampler::wavtool {
             output.resize_frames(required_frames);
         }
 
+        const auto requested_declick = segment.declick_ms > 0.0
+                                               ? static_cast<std::int64_t>(std::llround(
+                                                         segment.declick_ms * static_cast<double>(output.sample_rate) / 1000.0))
+                                               : 0;
+        const std::int64_t declick = std::clamp<std::int64_t>(requested_declick, 0, count / 2);
+        const auto declick_gain = [declick](std::int64_t position) {
+            if (declick < 2) {
+                return 1.0;
+            }
+            const double phase = static_cast<double>(position) / static_cast<double>(declick - 1);
+            return 0.5 * (1.0 - std::cos(std::numbers::pi * phase));
+        };
+
         for (std::int64_t offset = 0; offset < count; ++offset) {
             const std::int64_t envelope_index = drop + offset;
             const std::int64_t input_index = skip_samples + envelope_index;
-            const double gain = gains[static_cast<std::size_t>(envelope_index)];
+            double gain = gains[static_cast<std::size_t>(envelope_index)];
+            if (declick >= 2) {
+                if (drop == 0 && offset < declick) {
+                    gain *= declick_gain(offset);
+                }
+                const std::int64_t from_tail = count - 1 - offset;
+                if (from_tail < declick) {
+                    gain *= declick_gain(from_tail);
+                }
+            }
             const auto output_frame = static_cast<std::size_t>(start + offset);
 
             double source = 0.0;

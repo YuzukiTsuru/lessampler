@@ -13,6 +13,6 @@ g=\frac{0.5\,v_{\text{vol}}}{\max_n\left|y[n]\right|},
 y'[n]=\operatorname{clamp}\left(g\,y[n],-1,1\right).
 $$
 
-An all-zero note becomes silence. `WavIO::WriteWav` writes mono 16-bit PCM. The Python host then places the note buffers with `lessampler` in wavtool mode; the placement, envelope and overlap equations are in [Rendering a UST](rendering.md). Whole-song polish and feature assembly replace the wavtool stage with one neural pass.
+An all-zero note becomes silence. `WavIO::WriteWav` writes mono 16-bit PCM. The Python host then places the note buffers with `lessampler` in wavtool mode; the placement, envelope and overlap equations are in [Rendering a UST](../guides/rendering.md). Whole-song polish and feature assembly replace the wavtool stage with one neural pass.
 
-Back to [Processing pipeline](pipeline.md).
+Back to [Processing pipeline](index.md).

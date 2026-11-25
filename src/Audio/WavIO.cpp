@@ -126,6 +126,9 @@ namespace lessampler {
         if (!file) {
             throw audio_file_error(path.string());
         }
+        // libsndfile does not clip by default; an unclamped double would wrap
+        // through the PCM16 conversion instead of saturating.
+        sf_command(file.get(), SFC_SET_CLIPPING, nullptr, SF_TRUE);
 
         const auto written = sf_write_double(file.get(), interleaved.data(), static_cast<sf_count_t>(interleaved.size()));
         if (written != static_cast<sf_count_t>(interleaved.size())) {

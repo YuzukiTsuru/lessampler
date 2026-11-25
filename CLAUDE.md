@@ -54,9 +54,11 @@ ctest --preset neural-gcc --output-on-failure
 
 ## Running
 
-`lessampler.less` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.less`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`, `[neural]`. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; selecting a backend that is not compiled in throws a `parameter_error`. The neural backend requires `[neural] model_path` to point at an NHVSing-compatible ONNX file and accepts `threads` and `target_rms`. Old `lessampler.fex` files, both TOML and legacy INI, are migrated to `lessampler.less` and kept as `lessampler.fex.bak`; an unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration. File names are defined in `src/Core/Constants.h`.
+`lessampler.less` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.less`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`, `[neural]`, `[master]`. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; selecting a backend that is not compiled in throws a `parameter_error`. The neural backend requires `[neural] model_path` to point at an NHVSing-compatible ONNX file and accepts `threads` and `target_rms`. `[f0] f0_ceil` defaults to 800 Hz. `[master] preset` is `"none"`, `"natural"`, `"warm"`, or `"power"` and is used by `--polish`; it is not part of the analysis fingerprint. Old `lessampler.fex` files, both TOML and legacy INI, are migrated to `lessampler.less` and kept as `lessampler.fex.bak`; an unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration. File names are defined in `src/Core/Constants.h`.
 
-`lessampler` is also the UTAU wavtool. The binary selects wavtool mode from the classic 15-positional-argument call or from `--plan <plan.toml>`; a UTAU resampler call passes at most 13 arguments, so the count is unambiguous. Wavtool calls are dispatched before `lessampler.less` is loaded. The batch plan places note buffers on an absolute timeline, applies UST envelopes, and mixes in `double` before one 16-bit write. Classic mode reads the existing output, skips `STP`, applies the envelope, and mixes at `output_end - overlap`. `scripts/render_ust.py` drives this mode.
+`lessampler` is also the UTAU wavtool. The binary selects wavtool mode from the classic 15-positional-argument call or from `--plan <plan.toml>`; a UTAU resampler call passes at most 13 arguments, so the count is unambiguous. Wavtool calls are dispatched before `lessampler.less` is loaded. The batch plan places note buffers on an absolute timeline, applies UST envelopes, de-clicks segment edges, and mixes in `double` before one 16-bit write. Classic mode reads the existing output, skips `STP`, applies the envelope, and mixes at `output_end - overlap`. The batch plan accepts `master = "none|natural|warm|power"`; `scripts/render_ust.py` writes `warm` by default. Classic mode cannot run the stateful master chain and only gets edge de-click plus the final peak guard.
+
+`scripts/render_ust.py` applies UST `VBR` vibrato on the note tail, caps an overlong fixed/consonant region to keep at least 30 ms of vowel, and warns for each capped note. The analysis exposes `[f0] f0_ceil` (default 800 Hz) for soprano banks.
 
 Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 
@@ -65,7 +67,7 @@ Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 | `--help`, `--version` | print usage or the version banner |
 | none | logo and usage |
 | `lessampler <dir>` | analysis-only: models every `.wav` in `<dir>` in parallel, writing `<name>.lessaudio` beside each WAV |
-| `lessampler --polish <in.wav> <out.wav>` | whole-song neural resynthesis using `[neural] model_path` (neural builds only) |
+| `lessampler --polish <in.wav> <out.wav> [preset]` | whole-song neural resynthesis using `[neural] model_path` (neural builds only); optional master preset |
 | `lessampler --feature-plan <plan.toml>` | feature-level assembly: note WAVs -> global mel/F0 -> one vocoder pass (neural builds only) |
 | `lessampler --f0 <in.wav> <out.csv>` | export the configured F0 track as `time_ms,f0_hz` |
 | `lessampler --plan <plan.toml>` | wavtool batch mode: assemble a TOML plan |
@@ -219,7 +221,7 @@ ctest --preset release-gcc --output-on-failure
 
 - Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigLoaderTest`, `LOGTest`, `TimerTest`, `WorldTransformTest`, `AutoAMPTest`, `WavIOTest`, `EnvelopeTest`, `WavAssemblyTest`, `WavtoolProtocolTest`, `ShineTest`, `NeuralFeatureTest`, `PolishTest` and `FeatureAssemblerTest` (neural builds only).
 - Integration labels: `WorldModelCacheTest`, `WorldModelCacheVersionTest`, `WorldAnalyzerTest`, `VoicebankModelerTest`, `WorldPipelineTest`, `WorldModelTest`, `WorldSynthesizerTest`, `WavtoolCliTest`, `RenderEngineTest`, `EndToEndTest`.
-- Evaluation labels: `QualityEvaluationTest` (registered when Python 3 is found) and `SingMOSEvaluationTest` (opt-in with `LESSAMPLER_ENABLE_SINGMOS_TESTS=ON` and `LESSAMPLER_SINGMOS_PYTHON`). `test/quality/evaluate.py` produces the versioned JSON report; `test/quality/setup_singmos.sh` creates the optional SingMOS venv. See `docs/src/content/docs/quality.md`.
+- Evaluation labels: `QualityEvaluationTest` (registered when Python 3 is found) and `SingMOSEvaluationTest` (opt-in with `LESSAMPLER_ENABLE_SINGMOS_TESTS=ON` and `LESSAMPLER_SINGMOS_PYTHON`). `test/quality/evaluate.py` produces the versioned JSON report; `test/quality/setup_singmos.sh` creates the optional SingMOS venv. See `docs/src/content/docs/guides/quality.md`.
 - `RenderEngineTest` checks the backend factory, WORLD and LLSM renders, A4/A#4 pitch, in-memory analysis reuse, cold/warm LLSM cache equality, source-mtime and config-fingerprint invalidation, and corrupt-cache recovery. Without LLSM it checks that selecting `llsm` is rejected.
 - `WorldAnalyzerTest` runs the fixture analysis twice and compares f0, spectrogram, and aperiodicity exactly, guarding the fixed D4C chunk partition.
 - Test data path is passed as `LESSAMPLER_TEST_DATA_DIR`; tests read `vaiueo2d.wav`/`ne.wav` and write only to temporary directories. The quality evaluation uses `test/quality/fixture.ust` as its target and writes its JSON report into the build directory.
@@ -227,7 +229,7 @@ ctest --preset release-gcc --output-on-failure
 
 ## Documentation site
 
-`docs/` is the Astro Starlight project and the documentation source. Pages are in `docs/src/content/docs/`; the landing page is `docs/src/content/docs/index.md`, the sidebar `docs/sidebar.mjs`, and the theme `docs/src/styles/custom.css`. Edit the Markdown there directly, then add the slug to the sidebar. Run `npm install && npm run dev` in `docs/`; Node 22.12+ is required. `.github/workflows/deploy-docs.yml` deploys it to GitHub Pages from `master`.
+`docs/` is the Astro Starlight project and the documentation source. Pages are grouped under `docs/src/content/docs/` into `getting-started/`, `guides/`, `processing/`, and `architecture/`; the landing page is `docs/src/content/docs/index.md`, the sidebar `docs/sidebar.mjs`, and the theme `docs/src/styles/custom.css`. Edit the Markdown there directly, add the slug to the sidebar, and add a redirect in `docs/astro.config.mjs` when moving a page. Run `npm install && npm run dev` in `docs/`; Node 22.12+ is required. `.github/workflows/deploy-docs.yml` deploys it to GitHub Pages from `master`.
 
 ## Conventions
 

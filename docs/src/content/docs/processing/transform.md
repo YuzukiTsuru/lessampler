@@ -66,6 +66,8 @@ flowchart TD
     F --> G["synthesis"]
 ```
 
+Modulation is applied once: the source contour is first mapped to the target scale, then raised to the modulation power. High notes shifted more than five semitones above the source average get a small variance layer: +1.5 dB harmonic energy, -1.5 dB aperiodic noise, and a low-harmonic tension tilt. Samples whose voiced frames have a mean aperiodicity above 0.6 get another -2 dB of noise. The natural case leaves the model unchanged.
+
 This stage is shared by WORLD and LLSM. The neural per-note backend uses the same WORLD transform; whole-song polish and feature assembly use their own feature timelines.
 
 Next: [Single-frame synthesis](synthesis.md).

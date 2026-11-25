@@ -34,6 +34,7 @@ namespace lessampler {
             option.frame_period = track.frame_period;
             option.speed = configure.f0_speed;
             option.f0_floor = configure.f0_dio_floor;
+            option.f0_ceil = configure.f0_ceil;
             option.allowed_range = configure.f0_allow_range;
 
             const int f0_length = GetSamplesForDIO(fs, static_cast<int>(x.size()), track.frame_period);
@@ -50,6 +51,7 @@ namespace lessampler {
             InitializeHarvestOption(&option);
             option.frame_period = track.frame_period;
             option.f0_floor = configure.f0_harvest_floor;
+            option.f0_ceil = configure.f0_ceil;
 
             const int f0_length = GetSamplesForHarvest(fs, static_cast<int>(x.size()), track.frame_period);
             track.f0.resize(static_cast<std::size_t>(f0_length));

@@ -36,13 +36,14 @@ namespace lessampler {
         // cached .lessaudio holds WORLD analysis only, so switching between WORLD
         // and LLSM must not invalidate an existing WORLD cache.
         const std::string data = std::format(
-                "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
+                "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
                 audio_model_frame_period,
                 fft_size,
                 model_amp,
                 f0_speed,
                 f0_dio_floor,
                 f0_harvest_floor,
+                f0_ceil,
                 f0_cheap_trick_floor,
                 f0_allow_range,
                 ap_threshold,

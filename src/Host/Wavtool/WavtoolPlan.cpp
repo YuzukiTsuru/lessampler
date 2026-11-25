@@ -18,6 +18,7 @@
 
 #include <toml++/toml.hpp>
 
+#include "Audio/Dsp/MasterChain.h"
 #include "Audio/WavIO.h"
 #include "Core/Exception.h"
 #include "Host/Wavtool/WavAssembly.h"
@@ -94,6 +95,13 @@ namespace lessampler::wavtool {
         if (plan.peak_normalize < 0.0) {
             throw parameter_error("wavtool plan peak_normalize must not be negative");
         }
+        if (const auto *master = table.get("master")) {
+            const auto value = master->value<std::string>();
+            if (!value) {
+                throw parameter_error("wavtool plan field 'master' must be a string");
+            }
+            plan.master = *value;
+        }
 
         const auto *notes = table["notes"].as_array();
         if (notes == nullptr) {
@@ -169,6 +177,8 @@ namespace lessampler::wavtool {
             WavAssembly::AppendAt(output, WavSegment{note.input, note.skip_ms, note.length_ms, note.envelope}, position);
         }
 
+        MasterChain::Process(output.samples, output.sample_rate, output.channels,
+                             MasterOptions::Preset(plan.master));
         WavAssembly::Write(output, plan.output, plan.peak_normalize);
     }
 
