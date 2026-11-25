@@ -55,6 +55,22 @@ namespace lessampler {
             return std::sqrt(sum / static_cast<double>(samples.size()));
         }
 
+        double active_rms(std::span<const double> samples) {
+            constexpr double threshold = 0.01;
+            double sum = 0.0;
+            std::size_t active = 0;
+            for (double value: samples) {
+                if (std::isfinite(value) && std::abs(value) > threshold) {
+                    sum += value * value;
+                    ++active;
+                }
+            }
+            if (active == 0) {
+                return root_mean_square(samples);
+            }
+            return std::sqrt(sum / static_cast<double>(active));
+        }
+
         std::vector<double> read_model_rate(const std::filesystem::path &path) {
             auto data = WavIO::ReadWav(path);
             if (data.sample_rate == model_rate) {
@@ -142,7 +158,9 @@ namespace lessampler {
                 }
             }
 
-            const auto mel = extractor.Extract(wave, model_rate, configure.neural_target_rms);
+            // Extract raw mel; a single global level shift is applied after
+            // assembly so per-note dynamics are not flattened.
+            const auto mel = extractor.Extract(wave, model_rate, 0.0);
             const auto frames = mel.size() / static_cast<std::size_t>(bins);
             if (frames == 0) {
                 continue;
@@ -189,13 +207,19 @@ namespace lessampler {
             return {silence(static_cast<std::size_t>(milliseconds_to_samples(total_ms, sample_rate))), sample_rate};
         }
 
+        const double reference_active = active_rms(reference);
+        const double global_shift = (reference_active > 1e-9 && configure.neural_target_rms > 0.0)
+                                            ? std::clamp(std::log(configure.neural_target_rms / reference_active), -3.0, 3.0)
+                                            : 0.0;
+        LOG_INFO << std::format("Feature level shift: {:.3f} dB", global_shift * 8.685889638);
+
         const auto frames = last_frame + 1;
         std::vector<float> global_mel(frames * static_cast<std::size_t>(bins), std::log(1e-5f));
         for (std::size_t frame = 0; frame < frames; ++frame) {
             for (int bin = 0; bin < bins; ++bin) {
                 const auto index = frame * static_cast<std::size_t>(bins) + static_cast<std::size_t>(bin);
                 if (sum_mel[index] > 0.0) {
-                    global_mel[index] = static_cast<float>(std::log(std::max(sum_mel[index], 1e-5)));
+                    global_mel[index] = static_cast<float>(std::log(std::max(sum_mel[index], 1e-5)) + global_shift);
                 }
             }
         }
