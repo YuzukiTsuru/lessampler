@@ -11,6 +11,7 @@ venv="${QUALITY_VENV:-$root/build/quality-venv}"
 python_version="${QUALITY_PYTHON:-3.12}"
 torch_index="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cpu}"
 skip_warmup="${SKIP_WARMUP:-0}"
+torch_version="${TORCH_VERSION:-2.5.1}"
 
 say() {
     printf '\n==> %s\n' "$1"
@@ -54,11 +55,14 @@ say "Creating venv: $venv"
 venv_python="$venv/bin/python"
 [[ -x "$venv_python" ]] || fail "venv python was not created"
 
-say "Installing CPU PyTorch"
+say "Installing CPU PyTorch $torch_version"
+# s3prl 0.4.18 still calls torchaudio.set_audio_backend, which newer
+# torchaudio releases removed. Pin a compatible pair.
 if [[ "$(uname -s)" == "Darwin" ]]; then
-    "$uv_bin" pip install --python "$venv_python" torch torchaudio
+    "$uv_bin" pip install --python "$venv_python" "torch==$torch_version" "torchaudio==$torch_version"
 else
-    "$uv_bin" pip install --python "$venv_python" --index-url "$torch_index" torch torchaudio
+    "$uv_bin" pip install --python "$venv_python" --index-url "$torch_index" \
+        "torch==$torch_version" "torchaudio==$torch_version"
 fi
 
 say "Installing s3prl / librosa / soundfile"
