@@ -15,7 +15,7 @@
     "@astrojs/starlight": "0.42.3",
     "astro": "7.3.4",
     "katex": "0.19.1",
-    "mermaid": "12.0.0",
+    "mermaid": "12.3.0",
     "rehype-katex": "7.0.1",
     "remark-math": "6.0.0",
     "unist-util-visit": "5.1.0"
