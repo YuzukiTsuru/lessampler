@@ -282,7 +282,15 @@ def pitchbend_string(
 ) -> str:
     points = pitch_points(note)
     if not points:
-        return ""
+        # The buffer head is the previous note's VCV vowel. Without a UST
+        # pitch curve it must still carry the previous pitch until the note
+        # start, otherwise the overlap pulls the previous note's tail to this
+        # note's pitch.
+        if previous_end == 0.0 or start_ms >= 0.0:
+            return ""
+        points = [(start_ms, previous_end), (0.0, 0.0)]
+    elif points[0][0] > 0.0:
+        points = [(0.0, 0.0)] + points
 
     pitch_step = int(math.floor(60.0 / 96.0 / tempo * fs + 0.5))
     if pitch_step <= 0:
