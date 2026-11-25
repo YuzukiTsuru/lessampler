@@ -9,7 +9,7 @@ hero:
     alt: lessampler
   actions:
     - text: Quick start
-      link: build/
+      link: getting-started/build/
       icon: right-arrow
       variant: primary
     - text: GitHub
@@ -24,13 +24,13 @@ lessampler renders singing from UTAU `.ust` projects. It implements the resample
 
 | What you want to do | Where to go |
 | --- | --- |
-| Build the project | [Build](build/) |
-| Configure a backend | [Configuration](configuration/) |
-| Render a UST end to end | [Rendering a UST](rendering/) |
-| Understand the neural paths | [Neural backends](neural/) |
-| Measure render quality | [Quality evaluation](quality/) |
-| Follow one note through the engine | [Processing pipeline](pipeline/) |
-| Read the module map | [Architecture details](architecture-details/) |
+| Build the project | [Build](getting-started/build/) |
+| Configure a backend | [Configuration](getting-started/configuration/) |
+| Render a UST end to end | [Rendering a UST](guides/rendering/) |
+| Understand the neural paths | [Neural backends](guides/neural/) |
+| Measure render quality | [Quality evaluation](guides/quality/) |
+| Follow one note through the engine | [Processing pipeline](processing/) |
+| Read the module map | [Architecture details](architecture/) |
 
 ## What is in the box
 

@@ -15,9 +15,9 @@ The dev server runs at `http://localhost:4321/lessampler/`.
 
 ## Content
 
-Pages are in `src/content/docs/`. The landing page is `src/content/docs/index.md`, the 404 page is `src/content/docs/404.md`, the sidebar is in `sidebar.mjs`, the theme in `src/styles/custom.css`, and the site URL/base in `astro.config.mjs`.
+Pages are grouped under `src/content/docs/` by section: `getting-started/`, `guides/`, `processing/` (the numbered pipeline stages), and `architecture/`. The landing page is `src/content/docs/index.md`, the 404 page is `src/content/docs/404.md`, the sidebar is in `sidebar.mjs`, the theme in `src/styles/custom.css`, and the site URL/base in `astro.config.mjs`.
 
-To add a page, create a Markdown file under `src/content/docs/` with a `title` frontmatter field and add its slug to `sidebar.mjs`. Relative links ending in `.md` are rewritten to site routes by `src/plugins/remark-docs.mjs`.
+To add a page, create a Markdown file under the matching section with a `title` frontmatter field and add its slug to `sidebar.mjs`. Relative links ending in `.md` are rewritten to site routes by `src/plugins/remark-docs.mjs`. When renaming or moving a page, update the links, the sidebar slug, and add the old URL to `redirects` in `astro.config.mjs`.
 
 ## Deployment
 

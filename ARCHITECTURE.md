@@ -85,9 +85,9 @@ classic 15-argument UTAU form or from `--plan`. The wavtool applies UST
 envelopes and overlap placement; the neural
 path can resynthesize the finished mix (`--polish`) or assemble per-note
 mel/F0 features and run the vocoder once (`--feature-plan`). See
-[docs/rendering.md](docs/rendering.md) and [docs/neural.md](docs/neural.md).
+[docs/src/content/docs/guides/rendering.md](docs/src/content/docs/guides/rendering.md) and [docs/src/content/docs/guides/neural.md](docs/src/content/docs/guides/neural.md).
 
 ## Details
 
 Cache formats, threading rules, the backend extension checklist, and the GPU
-note live in [docs/architecture-details.md](docs/architecture-details.md).
+note live in [docs/src/content/docs/architecture/index.md](docs/src/content/docs/architecture/index.md).

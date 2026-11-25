@@ -10,9 +10,30 @@ import { sidebar } from './sidebar.mjs';
 const site = 'https://yuzukitsuru.github.io';
 const base = '/lessampler';
 
+// Pages were grouped into sections under src/content/docs/. Keep the old
+// top-level URLs working; Astro matches the source paths under `base`.
+const redirects = Object.fromEntries(
+	[
+		['/build', '/getting-started/build'],
+		['/configuration', '/getting-started/configuration'],
+		['/rendering', '/guides/rendering'],
+		['/neural', '/guides/neural'],
+		['/quality', '/guides/quality'],
+		['/pipeline', '/processing'],
+		['/arguments', '/processing/arguments'],
+		['/source', '/processing/source'],
+		['/modeling', '/processing/modeling'],
+		['/transform', '/processing/transform'],
+		['/synthesis', '/processing/synthesis'],
+		['/output', '/processing/output'],
+		['/architecture-details', '/architecture'],
+	].map(([from, to]) => [from, `${base}${to}/`]),
+);
+
 export default defineConfig({
 	site,
 	base,
+	redirects,
 	markdown: {
 		processor: unified({
 			remarkPlugins: [remarkMath, [remarkDocs, { base }]],
