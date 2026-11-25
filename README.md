@@ -97,6 +97,7 @@ The documentation is published at <https://yuzukitsuru.github.io/lessampler/>. T
 - [Rendering a UST](docs/src/content/docs/rendering.md)
 - [Neural backends](docs/src/content/docs/neural.md)
 - [Quality evaluation](docs/src/content/docs/quality.md)
+- [Processing pipeline](docs/src/content/docs/pipeline.md)
 - [Architecture details](docs/src/content/docs/architecture-details.md)
 
 ## Special Thanks

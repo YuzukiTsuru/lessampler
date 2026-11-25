@@ -29,6 +29,7 @@ lessampler renders singing from UTAU `.ust` projects. It implements the resample
 | Render a UST end to end | [Rendering a UST](rendering/) |
 | Understand the neural paths | [Neural backends](neural/) |
 | Measure render quality | [Quality evaluation](quality/) |
+| Follow one note through the engine | [Processing pipeline](pipeline/) |
 | Read the module map | [Architecture details](architecture-details/) |
 
 ## What is in the box

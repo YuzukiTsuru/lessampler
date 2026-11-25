@@ -1,6 +1,8 @@
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
+import rehypeKatex from 'rehype-katex';
+import remarkMath from 'remark-math';
 import { remarkDocs } from './src/plugins/remark-docs.mjs';
 import { sidebar } from './sidebar.mjs';
 
@@ -12,7 +14,10 @@ export default defineConfig({
 	site,
 	base,
 	markdown: {
-		processor: unified({ remarkPlugins: [[remarkDocs, { base }]] }),
+		processor: unified({
+			remarkPlugins: [remarkMath, [remarkDocs, { base }]],
+			rehypePlugins: [rehypeKatex],
+		}),
 	},
 	integrations: [
 		starlight({
@@ -31,6 +36,9 @@ export default defineConfig({
 			],
 			sidebar,
 			customCss: ['./src/styles/custom.css'],
+			head: [
+				{ tag: 'script', attrs: { type: 'module', src: `${base}/enhance.js` } },
+			],
 		}),
 	],
 });

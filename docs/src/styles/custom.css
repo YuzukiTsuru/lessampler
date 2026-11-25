@@ -1,3 +1,5 @@
+@import 'katex/dist/katex.min.css';
+
 :root {
 	/* Starlight's default content width is 45rem; the tables in these docs are wide. */
 	--sl-content-width: 60rem;
@@ -18,4 +20,22 @@
 
 .sl-markdown-content td {
 	vertical-align: top;
+}
+
+pre.mermaid {
+	background: none;
+	border: none;
+	text-align: center;
+	margin: 1em 0;
+}
+
+pre.mermaid svg {
+	max-width: 100%;
+	height: auto;
+}
+
+.katex-display {
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: 0.5rem 0;
 }

@@ -18,6 +18,19 @@ export const sidebar = [
 		],
 	},
 	{
+		label: 'Processing',
+		collapsed: false,
+		items: [
+			{ label: 'Overview', slug: 'pipeline' },
+			{ label: '1. Arguments in', slug: 'arguments' },
+			{ label: '2. Source and cache', slug: 'source' },
+			{ label: '3. Modeling', slug: 'modeling' },
+			{ label: '4. Pitch and time', slug: 'transform' },
+			{ label: '5. Single-frame synthesis', slug: 'synthesis' },
+			{ label: '6. Output', slug: 'output' },
+		],
+	},
+	{
 		label: 'Architecture',
 		collapsed: false,
 		items: [{ label: 'Architecture details', slug: 'architecture-details' }],
