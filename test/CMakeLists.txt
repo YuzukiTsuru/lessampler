@@ -121,6 +121,10 @@ add_executable(ShineTest ShineTest.cpp)
 target_link_libraries(ShineTest PRIVATE Shine UTAU)
 lessampler_add_test(ShineTest unit)
 
+add_executable(PresetFactoryTest PresetFactoryTest.cpp)
+target_link_libraries(PresetFactoryTest PRIVATE Config Audio)
+lessampler_add_test(PresetFactoryTest unit)
+
 if (LESSAMPLER_ENABLE_NEURAL)
     add_executable(NeuralFeatureTest NeuralFeatureTest.cpp)
     target_link_libraries(NeuralFeatureTest PRIVATE VocoderNeural)

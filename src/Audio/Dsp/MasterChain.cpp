@@ -24,50 +24,68 @@
 
 namespace lessampler {
 
-    MasterOptions MasterOptions::Preset(std::string_view name) {
+    MasterOptions CreateMasterOptions(MasterPresetKind kind) {
         MasterOptions options;
-        if (name == "none") {
-            options.enabled = false;
-            return options;
+        switch (kind) {
+            case MasterPresetKind::none:
+                options.enabled = false;
+                return options;
+            case MasterPresetKind::natural:
+                options.enabled = true;
+                options.ceiling_db = -1.0;
+                return options;
+            case MasterPresetKind::warm:
+                options.highpass_hz = 40.0;
+                options.low_shelf_hz = 180.0;
+                options.low_shelf_db = 1.5;
+                options.presence_hz = 3000.0;
+                options.presence_db = 1.0;
+                options.compressor_threshold_db = -18.0;
+                options.compressor_ratio = 2.0;
+                options.compressor_attack_ms = 10.0;
+                options.compressor_release_ms = 120.0;
+                options.compressor_makeup_db = 3.0;
+                options.saturation = 0.10;
+                options.target_rms_db = -18.0;
+                options.ceiling_db = -1.0;
+                return options;
+            case MasterPresetKind::power:
+                options.highpass_hz = 40.0;
+                options.low_shelf_hz = 160.0;
+                options.low_shelf_db = 2.0;
+                options.presence_hz = 3200.0;
+                options.presence_db = 1.5;
+                options.compressor_threshold_db = -20.0;
+                options.compressor_ratio = 3.0;
+                options.compressor_attack_ms = 8.0;
+                options.compressor_release_ms = 100.0;
+                options.compressor_makeup_db = 5.0;
+                options.saturation = 0.18;
+                options.target_rms_db = -17.0;
+                options.ceiling_db = -1.0;
+                return options;
         }
-        if (name == "natural") {
-            options.enabled = true;
-            options.ceiling_db = -1.0;
-            return options;
+        throw std::invalid_argument("unknown master preset kind");
+    }
+
+    MasterOptions CreateMasterOptions(std::string_view name) {
+        if (name.empty()) {
+            return CreateMasterOptions(MasterPresetKind::warm);
         }
-        if (name == "warm" || name.empty()) {
-            options.highpass_hz = 40.0;
-            options.low_shelf_hz = 180.0;
-            options.low_shelf_db = 1.5;
-            options.presence_hz = 3000.0;
-            options.presence_db = 1.0;
-            options.compressor_threshold_db = -18.0;
-            options.compressor_ratio = 2.0;
-            options.compressor_attack_ms = 10.0;
-            options.compressor_release_ms = 120.0;
-            options.compressor_makeup_db = 3.0;
-            options.saturation = 0.10;
-            options.target_rms_db = -18.0;
-            options.ceiling_db = -1.0;
-            return options;
+        const auto kind = ParseMasterPresetKind(name);
+        if (!kind) {
+            throw std::invalid_argument(
+                    "unknown master preset: " + std::string(name) + " (expected " + AvailableMasterPresets() + ")");
         }
-        if (name == "power") {
-            options.highpass_hz = 40.0;
-            options.low_shelf_hz = 160.0;
-            options.low_shelf_db = 2.0;
-            options.presence_hz = 3200.0;
-            options.presence_db = 1.5;
-            options.compressor_threshold_db = -20.0;
-            options.compressor_ratio = 3.0;
-            options.compressor_attack_ms = 8.0;
-            options.compressor_release_ms = 100.0;
-            options.compressor_makeup_db = 5.0;
-            options.saturation = 0.18;
-            options.target_rms_db = -17.0;
-            options.ceiling_db = -1.0;
-            return options;
-        }
-        throw std::invalid_argument("unknown master preset: " + std::string(name));
+        return CreateMasterOptions(*kind);
+    }
+
+    MasterOptions MasterOptions::Preset(std::string_view name) {
+        return CreateMasterOptions(name);
+    }
+
+    std::string AvailableMasterPresets() {
+        return "none natural warm power";
     }
 
     void MasterChain::Process(std::span<double> interleaved, int sample_rate, int channels,

@@ -16,23 +16,43 @@
 
 namespace lessampler {
 
-    NeuralVocoderSpec NeuralVocoderSpec::Preset(std::string_view name) {
+    NeuralVocoderSpec CreateNeuralVocoderPreset(NeuralVocoderPresetKind kind) {
         NeuralVocoderSpec spec;
-        if (name == "nhv" || name.empty()) {
-            spec.preset = "nhv";
-            return spec;
+        switch (kind) {
+            case NeuralVocoderPresetKind::nhv:
+                spec.preset = std::string(NeuralVocoderPresetKindName(kind));
+                return spec;
+            case NeuralVocoderPresetKind::pc_nsf_hifigan:
+                // OpenVPI PC-NSF-HiFiGAN 44.1k/hop512/128bin, 40-16 kHz.
+                spec.preset = std::string(NeuralVocoderPresetKindName(kind));
+                spec.hop_size = 512;
+                spec.has_uv = false;
+                spec.pitch_controllable = true;
+                spec.normalize_mel = false;
+                spec.f0_max = 2500.0;
+                return spec;
         }
-        if (name == "pc-nsf-hifigan") {
-            // OpenVPI PC-NSF-HiFiGAN 44.1k/hop512/128bin, 40-16 kHz.
-            spec.preset = "pc-nsf-hifigan";
-            spec.hop_size = 512;
-            spec.has_uv = false;
-            spec.pitch_controllable = true;
-            spec.normalize_mel = false;
-            spec.f0_max = 2500.0;
-            return spec;
+        throw std::invalid_argument("unknown neural vocoder preset kind");
+    }
+
+    NeuralVocoderSpec CreateNeuralVocoderPreset(std::string_view name) {
+        if (name.empty()) {
+            return CreateNeuralVocoderPreset(NeuralVocoderPresetKind::nhv);
         }
-        throw std::invalid_argument(std::format("unknown neural vocoder preset: {}", name));
+        const auto kind = ParseNeuralVocoderPresetKind(name);
+        if (!kind) {
+            throw std::invalid_argument(std::format(
+                    "unknown neural vocoder preset: {} (expected {})", name, AvailableNeuralVocoderPresets()));
+        }
+        return CreateNeuralVocoderPreset(*kind);
+    }
+
+    NeuralVocoderSpec NeuralVocoderSpec::Preset(std::string_view name) {
+        return CreateNeuralVocoderPreset(name);
+    }
+
+    std::string AvailableNeuralVocoderPresets() {
+        return "nhv pc-nsf-hifigan";
     }
 
     std::string NeuralVocoderSpec::Validate() const {

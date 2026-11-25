@@ -14,6 +14,8 @@
 #include <string>
 #include <string_view>
 
+#include "Config/NeuralVocoderPresetKind.h"
+
 namespace lessampler {
 
     enum class MelBase {
@@ -71,6 +73,18 @@ namespace lessampler {
         [[nodiscard]] static MelScale parse_mel_scale(std::string_view text);
         [[nodiscard]] static MelLayout parse_mel_layout(std::string_view text);
     };
+
+    /*
+     * Preset factory. CreateNeuralVocoderPreset(kind) is the primary entry
+     * point; the string overload parses a config value and throws
+     * std::invalid_argument for an unknown name. Per-field overrides are
+     * applied by the caller after the preset spec is created.
+     */
+    [[nodiscard]] NeuralVocoderSpec CreateNeuralVocoderPreset(NeuralVocoderPresetKind kind);
+
+    [[nodiscard]] NeuralVocoderSpec CreateNeuralVocoderPreset(std::string_view name);
+
+    [[nodiscard]] std::string AvailableNeuralVocoderPresets();
 
 }// namespace lessampler
 
