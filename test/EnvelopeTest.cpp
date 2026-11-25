@@ -55,6 +55,17 @@ int main() {
     CHECK_NEAR(empty.p2, fallback.p2, 1e-9);
     CHECK_NEAR(empty.v2, fallback.v2, 1e-9);
 
+    const auto blanks = Envelope::Parse("0,,35,,100,,");
+    CHECK_NEAR(blanks.p1, 0.0, 1e-9);
+    CHECK_NEAR(blanks.p2, 0.0, 1e-9);
+    CHECK_NEAR(blanks.p3, 35.0, 1e-9);
+    CHECK_NEAR(blanks.v1, 0.0, 1e-9);
+    CHECK_NEAR(blanks.v2, 100.0, 1e-9);
+    CHECK_NEAR(blanks.v3, 0.0, 1e-9);
+    CHECK_NEAR(blanks.v4, 0.0, 1e-9);
+    CHECK_NEAR(blanks.p4, 0.0, 1e-9);
+    CHECK_NEAR(blanks.p5, 10.0, 1e-9);
+
     const auto loud = Envelope::Parse("0,0,0,300,300,300,300,%,0,0,300");
     CHECK_NEAR(loud.v1, 200.0, 1e-9);
     CHECK_NEAR(loud.v2, 200.0, 1e-9);

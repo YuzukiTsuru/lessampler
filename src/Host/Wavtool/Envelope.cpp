@@ -86,13 +86,24 @@ namespace lessampler::wavtool {
 
         const auto fields = split(text);
 
-        envelope.p1 = parse_value(fields.size() > 0 ? fields[0] : std::string_view{}, envelope.p1);
-        envelope.p2 = parse_value(fields.size() > 1 ? fields[1] : std::string_view{}, envelope.p2);
-        envelope.p3 = parse_value(fields.size() > 2 ? fields[2] : std::string_view{}, envelope.p3);
-        envelope.v1 = parse_value(fields.size() > 3 ? fields[3] : std::string_view{}, envelope.v1);
-        envelope.v2 = parse_value(fields.size() > 4 ? fields[4] : std::string_view{}, envelope.v2);
-        envelope.v3 = parse_value(fields.size() > 5 ? fields[5] : std::string_view{}, envelope.v3);
-        envelope.v4 = parse_value(fields.size() > 6 ? fields[6] : std::string_view{}, envelope.v4);
+        const auto field_value = [&fields](std::size_t index, double fallback) {
+            if (index >= fields.size()) {
+                return fallback;
+            }
+            const auto field = trim(fields[index]);
+            if (field.empty()) {
+                return 0.0;
+            }
+            return parse_value(field, fallback);
+        };
+
+        envelope.p1 = field_value(0, envelope.p1);
+        envelope.p2 = field_value(1, envelope.p2);
+        envelope.p3 = field_value(2, envelope.p3);
+        envelope.v1 = field_value(3, envelope.v1);
+        envelope.v2 = field_value(4, envelope.v2);
+        envelope.v3 = field_value(5, envelope.v3);
+        envelope.v4 = field_value(6, envelope.v4);
 
         // Optional release section: [%], p4, p5, v5. A bare numeric first
         // element is accepted too, for hosts that omit the % placeholder.
@@ -100,15 +111,9 @@ namespace lessampler::wavtool {
         if (index < fields.size() && trim(fields[index]) == "%") {
             ++index;
         }
-        if (index < fields.size()) {
-            envelope.p4 = parse_value(fields[index], envelope.p4);
-        }
-        if (++index < fields.size()) {
-            envelope.p5 = parse_value(fields[index], envelope.p5);
-        }
-        if (++index < fields.size()) {
-            envelope.v5 = parse_value(fields[index], envelope.v5);
-        }
+        envelope.p4 = field_value(index, envelope.p4);
+        envelope.p5 = field_value(index + 1, envelope.p5);
+        envelope.v5 = field_value(index + 2, envelope.v5);
 
         envelope.p1 = std::max(0.0, envelope.p1);
         envelope.p2 = std::max(0.0, envelope.p2);
