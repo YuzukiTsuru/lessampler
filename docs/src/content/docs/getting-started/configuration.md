@@ -28,12 +28,32 @@ f0_allow_range = 0.1
 ap_threshold = 0.10
 
 [neural]
-model_path = ""             # NHVSing-compatible ONNX file
+preset = "nhv"              # "nhv" or "pc-nsf-hifigan"
+model_path = ""             # NHVSing- or PC-NSF-compatible ONNX file
 threads = 0                 # 0 lets ONNX Runtime choose
 target_rms = 0.111
+sample_rate = 44100
+hop_size = 256
+fft_size = 2048
+mel_bins = 128
+mel_fmin = 40
+mel_fmax = 16000
+mel_base = "e"              # "e" or "10"
+mel_scale = "slaney"        # "slaney" or "htk"
+mel_layout = "time-major"   # "time-major" or "bin-major"
+has_f0 = true
+has_uv = true
+normalize_mel = true
+pitch_controllable = false
+f0_min = 40
+f0_max = 1200
+mel_input = "mel"
+f0_input = "f0"
+uv_input = "uv"
+waveform_output = "waveform"
 ```
 
-`backend` selects the synthesis path. Selecting a backend that is not compiled in throws a `parameter_error`. `[neural] model_path` is required by the neural backend, `--polish`, and `--feature-plan`; model weights are not bundled.
+`backend` selects the synthesis path. Selecting a backend that is not compiled in throws a `parameter_error`. `[neural] model_path` is required by the neural backend, `--polish`, and `--feature-plan`; model weights are not bundled. `[neural] preset = "pc-nsf-hifigan"` selects the OpenVPI 44.1 kHz / hop 512 / `mel`+`f0` contract; the remaining fields override the preset for other vocoders.
 
 Old `lessampler.fex` files, both TOML and legacy INI, are migrated automatically and kept as `lessampler.fex.bak`. An unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration.
 

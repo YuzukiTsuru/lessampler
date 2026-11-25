@@ -60,7 +60,7 @@ The executable lands in `build/max-gcc/bin/lessampler`; it is the resampler, the
 
 ## Backends
 
-WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural NHVSing backend are optional; the maximal preset enables both. The neural path can render per note, resynthesize a whole assembled mix (`--polish`), or assemble per-note mel/F0 features and run the vocoder once (`--feature-plan`). See [docs/src/content/docs/guides/neural.md](docs/src/content/docs/guides/neural.md).
+WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural backend are optional; the maximal preset enables both. The neural path supports NHVSing and OpenVPI PC-NSF-HiFiGAN contracts through `[neural] preset` and per-field overrides. It can render per note, resynthesize a whole assembled mix (`--polish`), or assemble per-note mel/F0 features and run the vocoder once (`--feature-plan`). Model weights are not bundled. See [docs/src/content/docs/guides/neural.md](docs/src/content/docs/guides/neural.md).
 
 ## Configuration
 
