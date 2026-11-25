@@ -14,15 +14,18 @@ App
  │    ├── Config
  │    └── Audio
  ├── Host/UTAU
+ └── Host/Wavtool
 
 Vocoder  ──> Config, Audio, Core
 Config   ──> Core
 Audio    ──> Core
+Wavtool  ──> Audio, Core
 Core     ──> C++ standard library
 ```
 
-`Host/UTAU` is an adapter at the edge. It is not used by the engine or by any
-analysis/synthesis code.
+`Host/UTAU` implements the resampler side of the UTAU protocol; `Host/Wavtool`
+implements the concatenation side. Both are adapters at the edge. Neither is
+used by the engine or by any analysis/synthesis code.
 
 ## Source tree
 
@@ -34,6 +37,7 @@ src/
   Core/                Matrix, logging, timing, exceptions, fingerprints, params
   Engine/              RenderEngine, analysis LRU, voicebank modeler
   Host/UTAU/           UTAU parameter parser, Shine, libUTAU binding
+  Host/Wavtool/        UTAU envelope parser, note assembly, wavtool CLI
   Vocoder/             vocoder interface and implementations
     Common/            F0 estimation shared by WORLD and LLSM
     World/             WORLD model, analyzer, transform, synthesizer, caches
@@ -43,7 +47,8 @@ src/
 
 Tests mirror the same vocabulary: `WorldModelTest`, `WorldModelCacheTest`,
 `WorldAnalyzerTest`, `WorldTransformTest`, `WorldSynthesizerTest`,
-`VoicebankModelerTest`, `RenderEngineTest`, and `EndToEndTest`.
+`VoicebankModelerTest`, `RenderEngineTest`, `EnvelopeTest`,
+`WavAssemblyTest`, `WavtoolProtocolTest`, `WavtoolCliTest`, and `EndToEndTest`.
 
 ## Engine flow
 
@@ -121,6 +126,31 @@ ONNX Runtime rather than ncnn is deliberate. The exported singing vocoders
 (NHVSing and OpenVPI NSF-HiFiGAN) use dynamic `Scan`/`CumSum`, random excitation,
 and shape operators that `onnx2ncnn` cannot import. A ncnn implementation would
 need a feedforward model or a native C++ port of the excitation/filter DSP.
+
+## Wavtool assembly
+
+`Host/Wavtool` implements the UTAU concatenation semantics that the resampler
+cannot perform in a single-note process. The UST host computes, for each note,
+the effective preutterance `P` and overlap `O` (oto values, UST overrides, ACPT
+short-note adjustment, and velocity pull), then asks lessampler for
+`required = max(L + STP, fixed / velocity_factor)` rounded up on the UTAU 50 ms
+grid, where `L = D + P - P_next + O_next`.
+
+The rendered buffer starts at the oto offset; its preutterance point is at
+`STP + P` output milliseconds. `lesswavtool` skips `STP`, applies the UST
+envelope over the remaining segment, and mixes at `note_start - P`. In the
+classic protocol it seeks back by the overlap from the current output end; in
+plan mode it places segments on an absolute timeline. The envelope is a
+piecewise-linear gain:
+
+```
+0 -> p1 -> p1+p2 -> p1+p2+p5 -> L-p4-p3 -> L-p4 -> L
+0 -> v1 -> v2     -> v5        -> v3       -> v4    -> 0
+```
+
+`%` in a UST envelope is the overlap placeholder, not a gain. Mixing accumulates
+in `double` and clamps only when writing 16-bit PCM. The wavtool does not
+phase-align segments; the overlap crossfade is the classic behaviour.
 
 ## Caches
 

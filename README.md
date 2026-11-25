@@ -70,7 +70,7 @@ cmake --build --preset release-gcc -j
 ctest --preset release-gcc
 ```
 
-The executable is written to `build/<preset>/bin/lessampler`; its `lessampler.less` is created next to it.
+The executable is written to `build/<preset>/bin/lessampler`; its `lessampler.less` is created next to it. The UTAU concatenation host is written to the same directory as `lesswavtool`.
 
 Other presets: `debug-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm` (GCC with the optional LLSM backend), `neural-gcc` (GCC with the optional neural backend), `ci-clang`, `ci-msvc`. On Windows:
 
@@ -147,7 +147,7 @@ scripts/package-release.sh          # GCC preset max-gcc
 scripts/package-release.ps1         # MSVC preset ci-msvc-max
 ```
 
-The archives contain the executable, ONNX Runtime when the neural backend is enabled, the required OpenMP runtime on Linux, README/LICENSE, and third-party license files. Model weights are not bundled. To download the latest release for the current machine:
+The archives contain the executables (`lessampler` and `lesswavtool`), ONNX Runtime when the neural backend is enabled, the required OpenMP runtime on Linux, README/LICENSE, and third-party license files. Model weights are not bundled. To download the latest release for the current machine:
 
 ```bash
 scripts/download-release.sh
@@ -205,7 +205,19 @@ The LLSM backend has its own `.lessllsm` layer-1 cache. It is keyed by the same 
 
 ## Rendering a UST
 
-`scripts/render_ust.py` is a small UTAU host: it reads a `.ust`, selects the closest `oto.ini` entry for each note, invokes lessampler once per note, and mixes the results at their tick positions. If `data/` contains a UST archive and a voicebank archive, the wrapper extracts both and renders the main UST:
+`scripts/render_ust.py` is a UTAU host. It reads a `.ust`, selects the closest `oto.ini` entry for each note, invokes lessampler once per note, and then assembles the note buffers with `lesswavtool`.
+
+`lesswavtool` is the concatenation half of the UTAU pipeline. It implements the classic wavtool argument protocol and a batch plan mode:
+
+```text
+lesswavtool <out.wav> <in.wav> <skip_ms> <length_ms>
+            [p1 p2 p3 v1 v2 v3 v4 overlap p4 p5 v5]
+lesswavtool --plan plan.toml
+```
+
+The host places each rendered note at `note_start - preutterance`, applies the UST envelope over the used segment, and mixes overlapping tails with a seek-back. It also honours UST `Velocity`, `PreUtterance`/`VoiceOverlap`, `prefix.map` pitch folders, the oto cutoff, and velocity-dependent preutterance adjustment. PBM shapes and VBR are not implemented; the data UST currently uses neither (its PBM rows are empty).
+
+If `data/` contains a UST archive and a voicebank archive, the wrapper extracts both and renders the main UST:
 
 ```bash
 ./scripts/render_data.sh
@@ -219,10 +231,17 @@ python3 scripts/render_ust.py \
   --ust path/to/song.ust \
   --voicebank path/to/voicebank \
   --output build/song.wav \
-  --lessampler build/max-gcc/bin/lessampler
+  --lessampler build/max-gcc/bin/lessampler \
+  --wavtool build/max-gcc/bin/lesswavtool
 ```
 
-The host applies note pitch, tempo, volume, modulation, short fades, and the UST PBS/PBY/PBW pitch-bend curve (linear interpolation; PBM shapes are not reproduced). It does not implement UTAU's full wavtool semantics yet: envelopes, crossfades, and preutterance/overlap placement are not applied. Missing breath aliases such as `x` are skipped.
+`--wavtool` defaults to the `lesswavtool` next to the lessampler binary. The host does not do phase alignment or whole-song continuous synthesis; those are separate future features.
+
+`scripts/seam_report.py` prints short-time energy dips around UST note starts and the longest near-zero run. It is useful for comparing an old render with a new one:
+
+```bash
+python3 scripts/seam_report.py --ust path/to/song.ust old.wav new.wav
+```
 
 ## Tests
 

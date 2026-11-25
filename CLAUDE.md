@@ -45,7 +45,7 @@ ctest --preset neural-gcc --output-on-failure
 - Requires GCC 15+, Clang 19+, or MSVC in `/std:c++latest` mode. CMake does not map `CXX_STANDARD 26` for MSVC or AppleClang; the Windows preset uses MSVC's latest mode, and the macOS preset uses Homebrew GCC 15.
 - Presets: `debug-gcc`, `release-gcc`, `asan-gcc`, `ci-gcc`, `ci-llsm`, `ci-clang`, `ci-msvc`, `neural-gcc`, `max-gcc` (LLSM + neural), `ci-max`, and `ci-msvc-max`. The `build/<preset>` directories are gitignored. CI's primary jobs use the maximal presets and publish `lessampler-<version>-<os>-<arch>` archives via CPack; `.github/workflows/release.yml` attaches them to tagged GitHub Releases.
 - CMakeLists use explicit source lists. Adding a source file requires editing the relevant domain `CMakeLists.txt`.
-- CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `VocoderNeural` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, and the `lessampler` executable.
+- CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `VocoderNeural` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, `Wavtool`, the `lessampler` executable, and the `lesswavtool` executable.
 - `lessampler_common` is an INTERFACE target carrying C++26 features, include paths, warnings, and compile definitions. Link it through the library targets; do not add global `include_directories`.
 - `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_ENABLE_LLSM`, `LESSAMPLER_ENABLE_NEURAL`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, and `LESSAMPLER_WERROR` are the project options.
 - `LESSAMPLER_ENABLE_LLSM=ON` builds the optional libllsm2 vocoder from the `lib/llsm` and `lib/ciglet` submodules. libllsm2 is GPLv3, so the resulting binary is GPLv3; the default WORLD-only binary stays LGPL-3.0.
@@ -55,6 +55,8 @@ ctest --preset neural-gcc --output-on-failure
 ## Running
 
 `lessampler.less` (TOML) is created next to the executable on first run; delete it to regenerate defaults. The executable now lands in `build/<preset>/bin/lessampler`, so its config is `build/<preset>/bin/lessampler.less`. Sections: `[config]`, `[audio_model]`, `[f0]`, `[ap]`, `[neural]`. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; selecting a backend that is not compiled in throws a `parameter_error`. The neural backend requires `[neural] model_path` to point at an NHVSing-compatible ONNX file and accepts `threads` and `target_rms`. Old `lessampler.fex` files, both TOML and legacy INI, are migrated to `lessampler.less` and kept as `lessampler.fex.bak`; an unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration. File names are defined in `src/Core/Constants.h`.
+
+`lesswavtool` is built into the same `bin/` directory. It implements the classic UTAU wavtool protocol and a `--plan plan.toml` batch mode used by `scripts/render_ust.py`. The batch plan places note buffers on an absolute timeline, applies UST envelopes, and mixes in `double` before one 16-bit write. Classic mode reads the existing output, skips `STP`, applies the envelope, and mixes at `output_end - overlap`.
 
 Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 
@@ -121,6 +123,10 @@ libllsm2 is compiled with its native `FP_TYPE=float`; input PCM and F0 are conve
 
 The neural backend (`Vocoder/Neural`) reuses the WORLD `.lessaudio` cache and `WorldTransform`. `Synthesize` renders the transformed model with WORLD once, extracts NHVSing's 128-bin log-mel features from that waveform (44.1 kHz, hop 256, 2048-point STFT, Slaney mel, natural log, active-RMS normalized to `target_rms`), and feeds `mel`, continuous `f0`, and an unvoiced flag to the ONNX graph. Voicing comes from low-band aperiodicity because the transformed WORLD F0 is always positive. The model output is resampled back to the voicebank rate and trimmed to the requested sample count. ONNX Runtime sessions are cached per model path; `NeuralModel` validates the `mel`/`f0`/`uv` -> `waveform` signature. `.lessaudio` is the only analysis cache; the neural backend writes no cache of its own. NHVSing's released weights are non-commercial and are not bundled; tests use `LESSAMPLER_NEURAL_MODEL` when it is set.
 
+### Wavtool assembly
+
+lessampler itself renders one note per process; `lesswavtool` performs the UTAU-style concatenation. `scripts/render_ust.py` computes the effective preutterance/overlap (oto values, UST overrides, ACPT, velocity pull), requests a buffer long enough for `L + STP` and the fixed region, and records each note in a TOML plan. `WavtoolPlan::Run` places `skip` frames into the absolute timeline at `note_start - preutterance`, applies the UST envelope, and sums in `double`; `WavAssembly::Write` clamps and writes once. The classic protocol does the same operation incrementally with a seek-back by the overlap. The envelope geometry and `%` placeholder are documented in `ARCHITECTURE.md`.
+
 ## Core data types
 
 - `WorldModel` (`src/Vocoder/World/WorldModel.h`) — the value-type WORLD analysis: `f0`, `spectrogram[frame][bin]`, `aperiodicity[frame][bin]`, `fs`, `frame_period` (ms), `fft_size`, `w_length = fft_size / 2 + 1`, and `x_length` (PCM is not retained). This is the serialized representation.
@@ -141,6 +147,8 @@ The neural backend (`Vocoder/Neural`) reuses the WORLD `.lessaudio` cache and `W
 - `LlsmCache` (`src/Vocoder/Llsm/LlsmCache.h`) — RAII `llsm_chunk` owner and `.lessllsm` reader/writer.
 - `MelSpectrogram` (`src/Vocoder/Neural/MelSpectrogram.h`) — NHVSing-compatible 128-bin log-mel front end and windowed-sinc resampler; verified against librosa.
 - `NeuralModel` (`src/Vocoder/Neural/NeuralModel.h`) — ONNX Runtime session wrapper and process-wide model cache for `mel`/`f0`/`uv` -> `waveform`.
+- `Envelope` (`src/Host/Wavtool/Envelope.h`) — UST `p1,p2,p3,v1,v2,v3,v4[,%,p4,p5,v5]` parser and piecewise-linear gain curve.
+- `WavAssembly` (`src/Host/Wavtool/WavAssembly.h`) — interleaved double-precision mix buffer, classic seek-back placement, absolute placement, and peak-limited 16-bit write.
 - `RenderEngine` (`src/Engine/RenderEngine.h`) — config resolution, backend registry, analysis LRU, synthesis, and AutoAMP.
 - `VoicebankModeler` (`src/Engine/VoicebankModeler.*`) — batch `.lessaudio` generation with per-file config resolution and a bounded worker budget.
 
@@ -200,8 +208,8 @@ cmake --build --preset release-gcc -j
 ctest --preset release-gcc --output-on-failure
 ```
 
-- Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigLoaderTest`, `LOGTest`, `TimerTest`, `WorldTransformTest`, `AutoAMPTest`, `WavIOTest`, `ShineTest`, and `NeuralFeatureTest` (neural builds only).
-- Integration labels: `WorldModelCacheTest`, `WorldModelCacheVersionTest`, `WorldAnalyzerTest`, `VoicebankModelerTest`, `WorldPipelineTest`, `WorldModelTest`, `WorldSynthesizerTest`, `RenderEngineTest`, `EndToEndTest`.
+- Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigLoaderTest`, `LOGTest`, `TimerTest`, `WorldTransformTest`, `AutoAMPTest`, `WavIOTest`, `EnvelopeTest`, `WavAssemblyTest`, `WavtoolProtocolTest`, `ShineTest`, and `NeuralFeatureTest` (neural builds only).
+- Integration labels: `WorldModelCacheTest`, `WorldModelCacheVersionTest`, `WorldAnalyzerTest`, `VoicebankModelerTest`, `WorldPipelineTest`, `WorldModelTest`, `WorldSynthesizerTest`, `WavtoolCliTest`, `RenderEngineTest`, `EndToEndTest`.
 - `RenderEngineTest` checks the backend factory, WORLD and LLSM renders, A4/A#4 pitch, in-memory analysis reuse, cold/warm LLSM cache equality, source-mtime and config-fingerprint invalidation, and corrupt-cache recovery. Without LLSM it checks that selecting `llsm` is rejected.
 - `WorldAnalyzerTest` runs the fixture analysis twice and compares f0, spectrogram, and aperiodicity exactly, guarding the fixed D4C chunk partition.
 - Test data path is passed as `LESSAMPLER_TEST_DATA_DIR`; tests read `vaiueo2d.wav` and write only to temporary directories.
