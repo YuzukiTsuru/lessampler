@@ -289,6 +289,13 @@ python3 scripts/quality_report.py \
 
 The F0 target is the hand-drawn UST curve; inside an overlap two notes can sound at once, so a single F0 estimate can disagree with either target. Treat the GPE/VUV outliers together with the seam metric, not as a per-note score. The objective metrics need no Python ML stack; SingMOS does.
 
+`scripts/setup-quality-env.sh` installs the optional SingMOS environment under `build/quality-venv` (Python 3.12, CPU PyTorch, s3prl, librosa) and loads the model once to download its weights. Expect roughly 1.5–2 GB on the first run:
+
+```bash
+scripts/setup-quality-env.sh
+build/quality-venv/bin/python scripts/quality_report.py --ust song.ust --singmos render.wav
+```
+
 ## Tests
 
 Tests are registered with CTest. Run the whole suite with:

@@ -208,7 +208,7 @@ Readers validate magic, version, fingerprint, source fingerprint, dimensions, fr
 
 ## Quality report
 
-`scripts/quality_report.py` compares renders against the UST target: F0 MAE/GPE/VUV via `lessampler --f0`, note-boundary dips, longest silence, peak/RMS, and optional SingMOS-Pro (`--singmos`, needs torch/torchaudio/s3prl). The F0 metric is approximate inside overlaps because two notes can sound at once. The script writes a terminal table and an optional JSON report.
+`scripts/quality_report.py` compares renders against the UST target: F0 MAE/GPE/VUV via `lessampler --f0`, note-boundary dips, longest silence, peak/RMS, and optional SingMOS-Pro (`--singmos`, needs torch/torchaudio/s3prl). The F0 metric is approximate inside overlaps because two notes can sound at once. The script writes a terminal table and an optional JSON report. `scripts/setup-quality-env.sh` creates the Python 3.12 venv under `build/quality-venv` and warms the SingMOS weights.
 
 ## Tests
 
