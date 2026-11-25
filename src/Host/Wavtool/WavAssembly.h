@@ -44,6 +44,13 @@ namespace lessampler::wavtool {
         double skip_ms = 0.0;
         double length_ms = 0.0;
         Envelope envelope;
+        /*
+         * Raised-cosine fade at the true head and tail of the placed segment.
+         * It is independent of the UST envelope and only removes the edge
+         * discontinuity from a resampler buffer. Set to zero for bit-exact
+         * assembly tests.
+         */
+        double declick_ms = 1.0;
     };
 
     class WavAssembly {

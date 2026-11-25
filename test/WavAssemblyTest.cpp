@@ -44,7 +44,9 @@ namespace {
     }
 
     WavSegment segment(const std::filesystem::path &input, double skip_ms, double length_ms) {
-        return WavSegment{input, skip_ms, length_ms, flat_envelope()};
+        WavSegment result{input, skip_ms, length_ms, flat_envelope()};
+        result.declick_ms = 0.0;
+        return result;
     }
 
 }// namespace
@@ -147,6 +149,30 @@ int main() {
             rejected = true;
         }
         CHECK(rejected);
+    }
+
+    {
+        WavBuffer output{};
+        output.sample_rate = 1000;
+        output.channels = 1;
+        auto faded = segment(constant, 0.0, 100.0);
+        faded.declick_ms = 5.0;
+        WavAssembly::AppendAt(output, faded, 0);
+        CHECK_NEAR(output.samples[0], 0.0, 1e-4);
+        CHECK_NEAR(output.samples[4], 0.5, 0.02);
+        CHECK_NEAR(output.samples[95], 0.5, 0.02);
+        CHECK_NEAR(output.samples[99], 0.0, 1e-4);
+    }
+
+    {
+        WavBuffer output{};
+        output.sample_rate = 1000;
+        output.channels = 1;
+        auto faded = segment(constant, 0.0, 100.0);
+        faded.declick_ms = 5.0;
+        WavAssembly::AppendAt(output, faded, -20);
+        CHECK_NEAR(output.samples[0], 0.5, 1e-4);
+        CHECK_NEAR(output.samples[79], 0.0, 1e-4);
     }
 
     {

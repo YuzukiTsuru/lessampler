@@ -20,6 +20,7 @@
 #include <string_view>
 #include <vector>
 
+#include "Audio/Dsp/MasterChain.h"
 #include "Audio/SampleSource.h"
 #include "Audio/WavIO.h"
 #include "Config/ConfigLoader.h"
@@ -127,7 +128,7 @@ namespace lessampler {
         std::cout << "Usage:\n"
                      "  lessampler --help | --version\n"
                      "  lessampler <voicebank-directory>\n"
-                     "  lessampler --polish <in.wav> <out.wav>\n"
+                     "  lessampler --polish <in.wav> <out.wav> [none|natural|warm|power]\n"
                      "  lessampler --feature-plan <plan.toml>\n"
                      "  lessampler --f0 <in.wav> <out.csv>\n"
                      "  lessampler <in.wav> <out.wav> <note> [time%] [flags] [offset] [required]\n"
@@ -171,7 +172,7 @@ namespace lessampler {
             return Command::wavtool;
         }
         if (first == "--polish") {
-            if (argc_ != 4) {
+            if (argc_ != 4 && argc_ != 5) {
                 show_usage();
                 return Command::usage;
             }
@@ -308,6 +309,8 @@ namespace lessampler {
         timer.SetTimer();
         auto result = backend::PolishWaveform(input.samples, input.sample_rate, configure_);
         LOG_INFO << timer.GetTimer("Neural polish: ");
+        const std::string master = argc_ >= 5 ? std::string(argv_[4]) : configure_.master_preset;
+        MasterChain::Process(result.samples, result.fs, 1, MasterOptions::Preset(master));
         WavIO::WriteWav(argv_[3], result.samples, result.fs);
         LOG_OK << "Polished " + std::string(argv_[2]) + " -> " + std::string(argv_[3]);
     }
@@ -349,6 +352,7 @@ namespace lessampler {
         const int sample_rate = plan.sample_rate > 0 ? plan.sample_rate : 44100;
         auto result = backend::AssembleFeatureTimeline(segments, sample_rate, plan.peak_normalize, configure_);
         LOG_INFO << timer.GetTimer("Feature assembly: ");
+        MasterChain::Process(result.samples, result.sample_rate, 1, MasterOptions::Preset(plan.master));
         WavIO::WriteWav(plan.output, result.samples, result.sample_rate);
         LOG_OK << "Feature assembly written to " + plan.output.string();
     }

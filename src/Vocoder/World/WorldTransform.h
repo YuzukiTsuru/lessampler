@@ -27,6 +27,7 @@ namespace lessampler {
     private:
         WorldModel transAudioModel{};
         RenderParams shine;
+        double source_average_f0_ = 0.0;
 
     private:
         void PitchEqualizing(std::span<double> f0) const;

@@ -163,6 +163,7 @@ namespace lessampler {
             configure.f0_speed = static_cast<int>(read_int(*section, "f0", "f0_speed", configure.f0_speed));
             configure.f0_dio_floor = read_double(*section, "f0", "f0_dio_floor", configure.f0_dio_floor);
             configure.f0_harvest_floor = read_double(*section, "f0", "f0_harvest_floor", configure.f0_harvest_floor);
+            configure.f0_ceil = read_double(*section, "f0", "f0_ceil", configure.f0_ceil);
             configure.f0_cheap_trick_floor = read_double(*section, "f0", "f0_cheap_trick_floor",
                                                          configure.f0_cheap_trick_floor);
             configure.f0_allow_range = read_double(*section, "f0", "f0_allow_range", configure.f0_allow_range);
@@ -180,6 +181,15 @@ namespace lessampler {
             configure.neural_target_rms = read_double(*section, "neural", "target_rms", configure.neural_target_rms);
         }
 
+        if (const auto *section = table["master"].as_table()) {
+            if (const auto value = (*section)["preset"].value<std::string>()) {
+                if (*value != "none" && *value != "natural" && *value != "warm" && *value != "power") {
+                    invalid_value("master", "preset", "expected \"none\", \"natural\", \"warm\", or \"power\"");
+                }
+                configure.master_preset = *value;
+            }
+        }
+
         require_positive(configure.audio_model_frame_period, "audio_model", "frame_period");
         if (configure.model_amp < 0.0) {
             invalid_value("audio_model", "model_amp", "must be zero or greater");
@@ -192,6 +202,7 @@ namespace lessampler {
         }
         require_positive(configure.f0_dio_floor, "f0", "f0_dio_floor");
         require_positive(configure.f0_harvest_floor, "f0", "f0_harvest_floor");
+        require_positive(configure.f0_ceil, "f0", "f0_ceil");
         require_positive(configure.f0_cheap_trick_floor, "f0", "f0_cheap_trick_floor");
         if (configure.f0_allow_range < 0.0) {
             invalid_value("f0", "f0_allow_range", "must be zero or greater");
@@ -226,6 +237,7 @@ f0_mode = "{}"           # "DIO" or "HARVEST"
 f0_speed = {}
 f0_dio_floor = {}
 f0_harvest_floor = {}
+f0_ceil = {}
 f0_cheap_trick_floor = {}
 f0_allow_range = {}
 
@@ -237,6 +249,9 @@ ap_threshold = {}
 model_path = {}
 threads = {}           # 0 lets ONNX Runtime choose
 target_rms = {}        # feature normalization used during training
+
+[master]
+preset = {}            # none / natural / warm / power
 )",
                            toml_quote(configure.version),
                            configure.debug_mode,
@@ -247,12 +262,14 @@ target_rms = {}        # feature normalization used during training
                            configure.f0_speed,
                            configure.f0_dio_floor,
                            configure.f0_harvest_floor,
+                           configure.f0_ceil,
                            configure.f0_cheap_trick_floor,
                            configure.f0_allow_range,
                            configure.ap_threshold,
                            toml_quote(configure.neural_model_path),
                            configure.neural_threads,
-                           configure.neural_target_rms);
+                           configure.neural_target_rms,
+                           toml_quote(configure.master_preset));
     }
 
     void write_config_toml(const std::filesystem::path &path, const Config &configure) {
@@ -280,6 +297,7 @@ f0_mode = "{}"
 f0_speed = {}
 f0_dio_floor = {}
 f0_harvest_floor = {}
+f0_ceil = {}
 f0_cheap_trick_floor = {}
 f0_allow_range = {}
 
@@ -290,6 +308,9 @@ ap_threshold = {}
 model_path = {}
 threads = {}
 target_rms = {}
+
+[master]
+preset = {}
 )",
                            toml_quote(configure.version),
                            configure.debug_mode,
@@ -301,12 +322,14 @@ target_rms = {}
                            configure.f0_speed,
                            configure.f0_dio_floor,
                            configure.f0_harvest_floor,
+                           configure.f0_ceil,
                            configure.f0_cheap_trick_floor,
                            configure.f0_allow_range,
                            configure.ap_threshold,
                            toml_quote(configure.neural_model_path),
                            configure.neural_threads,
-                           configure.neural_target_rms);
+                           configure.neural_target_rms,
+                           toml_quote(configure.master_preset));
 
         if (!out) {
             throw file_open_error(path.string());

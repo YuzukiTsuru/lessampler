@@ -16,6 +16,7 @@
 #include <utility>
 
 #include "Audio/AutoAMP.h"
+#include "Audio/Dsp/Declick.h"
 #include "Core/Exception.h"
 #include "Core/Log.h"
 
@@ -131,6 +132,7 @@ namespace lessampler {
         LOG_INFO << "Backend: " + std::string(backend.name());
 
         auto result = backend.Synthesize(backend::SynthesisRequest{*analysis, params});
+        Declick::Apply(result.samples, result.fs);
         AutoAMP::ApplyInPlace(result.samples, params.volumes);
         return result;
     }

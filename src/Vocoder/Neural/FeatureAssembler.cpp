@@ -264,7 +264,7 @@ namespace lessampler {
             const double gain = std::clamp(reference_rms / output_rms, 0.05, 20.0);
             LOG_INFO << std::format("Feature level gain: {:.6f}", gain);
             for (double &value: output) {
-                value = std::clamp(value * gain, -1.0, 1.0);
+                value *= gain;
             }
         }
 

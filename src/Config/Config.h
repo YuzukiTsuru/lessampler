@@ -37,6 +37,7 @@ namespace lessampler {
         int f0_speed = 1;
         double f0_dio_floor = 40.0;
         double f0_harvest_floor = 40.0;
+        double f0_ceil = 800.0;
         double f0_cheap_trick_floor = 71.0;
         double f0_allow_range = 0.1;
         double ap_threshold = 0.10;
@@ -49,6 +50,13 @@ namespace lessampler {
         std::string neural_model_path;
         int neural_threads = 0;
         double neural_target_rms = 0.111;
+
+        /*
+         * Final tone/loudness preset for --polish and --feature-plan. It is
+         * synthesis-only and intentionally excluded from the analysis
+         * fingerprint; "none" disables the master chain.
+         */
+        std::string master_preset = "warm";
 
         /*
      * Hash of every setting that changes WORLD analysis. It is stored in

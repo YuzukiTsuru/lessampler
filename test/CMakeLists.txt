@@ -91,6 +91,10 @@ add_executable(WavAssemblyTest WavAssemblyTest.cpp)
 target_link_libraries(WavAssemblyTest PRIVATE Wavtool)
 lessampler_add_test(WavAssemblyTest unit)
 
+add_executable(MasterChainTest MasterChainTest.cpp)
+target_link_libraries(MasterChainTest PRIVATE Audio)
+lessampler_add_test(MasterChainTest unit)
+
 add_executable(WavtoolProtocolTest WavtoolProtocolTest.cpp)
 target_link_libraries(WavtoolProtocolTest PRIVATE Wavtool)
 lessampler_add_test(WavtoolProtocolTest unit)

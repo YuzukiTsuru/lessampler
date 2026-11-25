@@ -136,15 +136,59 @@ def note_targets(ust: Path) -> list[dict[str, object]]:
                 "end": start_ms + length * 60_000.0 / (tempo * TICKS_PER_QUARTER),
                 "midi": midi,
                 "points": pitch_points(note),
+                "vbr": parse_vbr(note),
             }
         )
     return targets
 
 
+def parse_vbr(note: dict[str, str]) -> tuple[float, float, float, float, float, float] | None:
+    text = note.get("VBR", "").strip()
+    if not text:
+        return None
+    fields = [part.strip() for part in text.split(",")]
+    if len(fields) < 3:
+        return None
+    try:
+        length = max(0.0, min(100.0, float(fields[0])))
+        period = max(5.0, min(500.0, float(fields[1])))
+        depth = max(0.0, min(200.0, float(fields[2])))
+        fade_in = max(0.0, min(100.0, float(fields[3]))) if len(fields) > 3 else 0.0
+        fade_out = max(0.0, min(100.0, float(fields[4]))) if len(fields) > 4 else 0.0
+        phase = max(0.0, min(100.0, float(fields[5]))) if len(fields) > 5 else 0.0
+    except ValueError:
+        return None
+    if length <= 0.0 or depth <= 0.0:
+        return None
+    return length, period, depth, fade_in, fade_out, phase
+
+
+def vibrato_cents(vbr: tuple[float, float, float, float, float, float] | None,
+                  time_ms: float, duration_ms: float) -> float:
+    if vbr is None or duration_ms <= 0.0 or time_ms <= 0.0 or time_ms > duration_ms:
+        return 0.0
+    length, period, depth, fade_in, fade_out, phase = vbr
+    vibrato_ms = duration_ms * length / 100.0
+    if vibrato_ms <= 0.0 or time_ms < duration_ms - vibrato_ms:
+        return 0.0
+    position = (time_ms - (duration_ms - vibrato_ms)) / vibrato_ms
+    gain = 1.0
+    if fade_in > 0.0 and position < fade_in / 100.0:
+        gain *= position / (fade_in / 100.0)
+    if fade_out > 0.0 and position > 1.0 - fade_out / 100.0:
+        gain *= (1.0 - position) / (fade_out / 100.0)
+    gain = max(0.0, min(1.0, gain))
+    angle = 2.0 * math.pi * ((time_ms - (duration_ms - vibrato_ms)) / period + phase / 100.0)
+    return depth * gain * math.sin(angle)
+
+
 def target_hz(note: dict[str, object], t_ms: float) -> float:
     points = note["points"]
     fallback = points[0][1] if points else 0.0
-    cents = pitch_value(points, t_ms - float(note["start"]), fallback) * 10.0
+    time_ms = t_ms - float(note["start"])
+    duration_ms = float(note["end"]) - float(note["start"])
+    cents = pitch_value(points, time_ms, fallback) * 10.0
+    cents += vibrato_cents(note.get("vbr"), time_ms, duration_ms)  # type: ignore[arg-type]
     return 440.0 * 2.0 ** ((int(note["midi"]) - 69) / 12.0) * 2.0 ** (cents / 1200.0)
 
 

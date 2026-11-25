@@ -56,26 +56,42 @@ namespace lessampler {
         std::vector<double> output(static_cast<std::size_t>(output_samples), 0.0);
 
         std::size_t offset = 0;
+        const auto drain = [&]() {
+            while (Synthesis2(&guard.synthesizer) != 0) {
+                const std::size_t index = offset * static_cast<std::size_t>(buffer_size);
+                if (index < output.size()) {
+                    const std::size_t count = std::min(static_cast<std::size_t>(buffer_size), output.size() - index);
+                    for (std::size_t j = 0; j < count; ++j) {
+                        output[index + j] = guard.synthesizer.buffer[j];
+                    }
+                }
+                ++offset;
+            }
+        };
+
         for (std::size_t i = 0; i < frame_count;) {
             if (AddParameters(f0.data() + i, 1, spectrogram.data() + i, aperiodicity.data() + i, &guard.synthesizer) == 1) {
                 ++i;
             }
 
-            while (Synthesis2(&guard.synthesizer) != 0) {
-                const std::size_t index = offset * static_cast<std::size_t>(buffer_size);
-                if (index >= output.size()) {
-                    break;
-                }
-                const std::size_t count = std::min(static_cast<std::size_t>(buffer_size), output.size() - index);
-                for (std::size_t j = 0; j < count; ++j) {
-                    output[index + j] = guard.synthesizer.buffer[j];
-                }
-                ++offset;
-            }
+            drain();
 
             if (IsLocked(&guard.synthesizer) == 1) {
                 LOG_WARN << "Synthesis Buffer Locked";
                 break;
+            }
+        }
+
+        // WORLD renders the interval of frame k-1 when frame k is added, so
+        // the final frame interval is never generated. Add the last frame once
+        // more and drain; without this every note ends with an exact-zero tail
+        // of up to one frame period.
+        if (IsLocked(&guard.synthesizer) == 0 && frame_count > 0) {
+            drain();
+            const auto last = frame_count - 1;
+            if (AddParameters(f0.data() + last, 1, spectrogram.data() + last,
+                              aperiodicity.data() + last, &guard.synthesizer) == 1) {
+                drain();
             }
         }
 

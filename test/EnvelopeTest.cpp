@@ -84,6 +84,18 @@ int main() {
         CHECK(gain >= 0.0 && gain <= 1.0);
     }
 
+    // A 35 ms note is shorter than the envelope's 35.7 + 35.7 ms attack and
+    // release. The time constants must scale so the note still fades in and out.
+    const auto short_gains = seven.GainCurve(35, 1000);
+    REQUIRE(short_gains.size() == 35);
+    CHECK_NEAR(short_gains[0], 0.0, 1e-9);
+    CHECK_NEAR(short_gains[17], 1.0, 0.05);
+    CHECK(short_gains[34] < 0.1);
+    for (double gain: short_gains) {
+        CHECK(std::isfinite(gain));
+        CHECK(gain >= 0.0 && gain <= 1.0);
+    }
+
     const auto crossed = Envelope::Parse("100,50,200,0,100,100,0");
     const auto crossed_gains = crossed.GainCurve(1000, 1000);
     REQUIRE(crossed_gains.size() == 1000);

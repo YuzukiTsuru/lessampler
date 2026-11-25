@@ -139,14 +139,32 @@ namespace lessampler {
 
         const double length_ms = static_cast<double>(sample_count) * 1000.0 / static_cast<double>(sample_rate);
 
+        // A short note can be shorter than the envelope's own attack and
+        // release. Scale the time constants instead of collapsing the points,
+        // which otherwise leaves the note at full gain until it is cut.
+        double envelope_p1 = p1;
+        double envelope_p2 = p2;
+        double envelope_p3 = p3;
+        double envelope_p4 = p4;
+        double envelope_p5 = p5;
+        const double envelope_total = envelope_p1 + envelope_p2 + envelope_p3 + envelope_p4 + envelope_p5;
+        if (envelope_total > length_ms && envelope_total > 0.0) {
+            const double scale = length_ms / envelope_total;
+            envelope_p1 *= scale;
+            envelope_p2 *= scale;
+            envelope_p3 *= scale;
+            envelope_p4 *= scale;
+            envelope_p5 *= scale;
+        }
+
         std::vector<Point> points;
         points.reserve(7);
         points.push_back(Point{0.0, 0.0});
-        points.push_back(Point{p1, v1 / 100.0});
-        points.push_back(Point{p1 + p2, v2 / 100.0});
-        points.push_back(Point{p1 + p2 + p5, v5 / 100.0});
-        points.push_back(Point{length_ms - p4 - p3, v3 / 100.0});
-        points.push_back(Point{length_ms - p4, v4 / 100.0});
+        points.push_back(Point{envelope_p1, v1 / 100.0});
+        points.push_back(Point{envelope_p1 + envelope_p2, v2 / 100.0});
+        points.push_back(Point{envelope_p1 + envelope_p2 + envelope_p5, v5 / 100.0});
+        points.push_back(Point{length_ms - envelope_p4 - envelope_p3, v3 / 100.0});
+        points.push_back(Point{length_ms - envelope_p4, v4 / 100.0});
         points.push_back(Point{length_ms, 0.0});
 
         for (auto &point: points) {

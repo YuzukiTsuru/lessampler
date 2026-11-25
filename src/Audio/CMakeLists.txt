@@ -1,6 +1,18 @@
 add_library(Audio
         AutoAMP.cpp
         AutoAMP.h
+        Dsp/Biquad.cpp
+        Dsp/Biquad.h
+        Dsp/Compressor.cpp
+        Dsp/Compressor.h
+        Dsp/Declick.cpp
+        Dsp/Declick.h
+        Dsp/Limiter.cpp
+        Dsp/Limiter.h
+        Dsp/MasterChain.cpp
+        Dsp/MasterChain.h
+        Dsp/Saturator.cpp
+        Dsp/Saturator.h
         Envelope.cpp
         Envelope.h
         SampleSource.cpp

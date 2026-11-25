@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <numbers>
 #include <vector>
 
@@ -35,6 +36,13 @@ int main() {
     }
     CHECK(finite);
     CHECK(peak > 0.0);
+
+    // The final frame interval must be flushed, not left as an exact-zero tail.
+    const auto tail_begin = output.size() > 100 ? output.size() - 100 : 0;
+    const bool tail_active = std::any_of(output.begin() + static_cast<std::ptrdiff_t>(tail_begin),
+                                         output.end(),
+                                         [](double value) { return std::abs(value) > 1e-6; });
+    CHECK(tail_active);
 
     CHECK(SynthesizeWorld(model, 4410) == output);
     CHECK(SynthesizeWorld(model, 0).empty());

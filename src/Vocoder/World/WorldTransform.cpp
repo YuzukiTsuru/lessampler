@@ -24,6 +24,7 @@ namespace lessampler {
 
     WorldTransform::WorldTransform(const WorldModel &audioModel, RenderParams _shine) : shine(std::move(_shine)) {
         std::vector<double> f0 = audioModel.f0;
+        source_average_f0_ = GetAvgFreq(f0);
         LOG_DEBUG << "Equalizing Pitch...";
         PitchEqualizing(f0);
         LOG_DEBUG << "Time Stretch...";
@@ -35,7 +36,7 @@ namespace lessampler {
     }
 
     void WorldTransform::PitchEqualizing(std::span<double> f0) const {
-        const double freq_avg = GetAvgFreq(f0);
+        const double freq_avg = source_average_f0_;
         LOG_DEBUG << std::format("The average frequency is {}", freq_avg);
 
         for (double &value: f0) {
@@ -45,7 +46,9 @@ namespace lessampler {
             if (freq_avg == 0.0) {
                 value = shine.scale_num;
             } else {
-                value = ((value - freq_avg) * shine.modulation / 100.0 + freq_avg) * (shine.scale_num / freq_avg);
+                // Map the source contour to the note pitch. Modulation is
+                // applied exactly once in TimeStretch.
+                value *= shine.scale_num / freq_avg;
             }
         }
     }
@@ -56,7 +59,7 @@ namespace lessampler {
 
         for (std::size_t i = 0; i < f0.size(); ++i) {
             const double time_percent = f0[i];
-            if (time_percent >= 1000.0 || time_percent <= 55.0) {
+            if (time_percent >= 1200.0 || time_percent <= 55.0) {
                 continue;
             }
 
@@ -98,7 +101,6 @@ namespace lessampler {
 
         const auto input_frames = f0.size();
         const auto last_input_frame = input_frames - 1;
-        const auto last_ap_frame = audioModel.aperiodicity.rows() - 1;
         const auto max_pitch_index = shine.pitch_bend.size() - 2;
         const auto output_frames = static_cast<std::size_t>(shine.required_frame);
         const auto w_length = static_cast<std::size_t>(audioModel.w_length);
@@ -121,6 +123,36 @@ namespace lessampler {
             avg_freq = shine.scale_num > 0.0 ? shine.scale_num : 1.0;
         }
         LOG_DEBUG << std::format("Get Stretch Paras, AVG: {}", avg_freq);
+
+        // A first rule-based variance layer. High notes that were shifted up
+        // from a lower sample get more harmonic energy, less noise and a
+        // little low-harmonic tension; noisy samples get their aperiodic part
+        // reduced. The natural case leaves the model bit-exact.
+        const double pitch_ratio = source_average_f0_ > 0.0 && shine.scale_num > 0.0
+                                           ? shine.scale_num / source_average_f0_
+                                           : 1.0;
+        const bool high_note = pitch_ratio > std::pow(2.0, 5.0 / 12.0);
+        double voicing_db = high_note ? 1.5 : 0.0;
+        double breathiness_db = high_note ? -1.5 : 0.0;
+        const double tension = high_note ? 0.15 : 0.0;
+        double ap_sum = 0.0;
+        std::size_t ap_count = 0;
+        for (std::size_t i = 0; i < audioModel.f0.size(); ++i) {
+            if (audioModel.f0[i] <= 0.0) {
+                continue;
+            }
+            for (double value: audioModel.aperiodicity[i]) {
+                ap_sum += value;
+                ++ap_count;
+            }
+        }
+        const double mean_ap = ap_count > 0 ? ap_sum / static_cast<double>(ap_count) : 0.0;
+        if (mean_ap > 0.6) {
+            breathiness_db -= 2.0;
+        }
+        const double voicing_gain = std::pow(10.0, voicing_db / 20.0);
+        const double breathiness_gain = std::pow(10.0, breathiness_db / 20.0);
+        const bool style_active = high_note || mean_ap > 0.6;
 
         for (std::size_t i = 0; i < output_frames; ++i) {
             const double out_sample_index = audioModel.frame_period * static_cast<double>(i);
@@ -173,7 +205,15 @@ namespace lessampler {
 
             const double pitch_bend = shine.pitch_bend[pitch_index] * (1.0 - pitch_fraction) + shine.pitch_bend[pitch_index + 1] * pitch_fraction;
             const double pitch_base = shine.scale_num * std::pow(2.0, pitch_bend / 1200.0);
-            transAudioModel.f0[i] = pitch_base * std::pow(temp_f0 / avg_freq, shine.modulation * 0.01);
+            const double modulation_reference = shine.scale_num > 0.0 ? shine.scale_num : avg_freq;
+            if (temp_f0 <= 0.0 || !(modulation_reference > 0.0)) {
+                // Unvoiced source frame. pow(0, 0) would otherwise turn it
+                // into a target-pitch voiced frame when modulation is zero.
+                transAudioModel.f0[i] = 0.0;
+            } else {
+                transAudioModel.f0[i] = pitch_base *
+                                        std::pow(temp_f0 / modulation_reference, shine.modulation * 0.01);
+            }
 
             auto output_row = transAudioModel.spectrogram[i];
             const auto current_row = audioModel.spectrogram[sp_trans_index];
@@ -182,11 +222,30 @@ namespace lessampler {
                 output_row[j] = current_row[j] * (1.0 - sp_fraction) + next_row[j] * sp_fraction;
             }
 
-            std::size_t ap_index = sp_trans_index + (sp_fraction > 0.5 ? 1U : 0U);
-            if (ap_index > last_ap_frame) {
-                ap_index = last_ap_frame;
+            // Interpolate aperiodicity like the spectral envelope. Copying the
+            // nearest frame makes the noise texture jump during time stretch.
+            auto output_ap = transAudioModel.aperiodicity[i];
+            const auto current_ap = audioModel.aperiodicity[sp_trans_index];
+            const auto next_ap = audioModel.aperiodicity[sp_next_index];
+            for (std::size_t j = 0; j < w_length; ++j) {
+                output_ap[j] = current_ap[j] * (1.0 - sp_fraction) + next_ap[j] * sp_fraction;
             }
-            std::ranges::copy(audioModel.aperiodicity[ap_index], transAudioModel.aperiodicity[i].begin());
+
+            if (style_active) {
+                for (std::size_t j = 0; j < w_length; ++j) {
+                    const double aperiodicity = std::clamp(output_ap[j], 0.0, 0.999999);
+                    double harmonic = output_row[j] * (1.0 - aperiodicity) * voicing_gain;
+                    double noise = output_row[j] * aperiodicity * breathiness_gain;
+                    if (tension > 0.0 && audioModel.fft_size > 0) {
+                        const double frequency = static_cast<double>(j) * static_cast<double>(audioModel.fs) /
+                                                 static_cast<double>(audioModel.fft_size);
+                        harmonic *= 1.0 + tension * std::max(0.0, 1.0 - frequency / 2000.0);
+                    }
+                    const double power = harmonic + noise;
+                    output_row[j] = power;
+                    output_ap[j] = power > 1e-12 ? std::clamp(noise / power, 0.0, 0.999) : 0.0;
+                }
+            }
         }
 
 #if defined(DEBUG_MODE) && defined(LESSAMPLER_DUMP_DATA)

@@ -101,7 +101,7 @@ namespace lessampler {
         if (output_rms > 1e-9 && input_rms > 1e-9) {
             const double gain = std::clamp(input_rms / output_rms, 0.05, 20.0);
             for (double &value: output) {
-                value = std::clamp(value * gain, -1.0, 1.0);
+                value *= gain;
             }
         }
 
