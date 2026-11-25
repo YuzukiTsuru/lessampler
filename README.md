@@ -37,6 +37,9 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
   - [x] Feature-level neural assembly
   - [ ] Voice Conversion and Audio Style Transfer
   - [ ] Noise reduction enhanced MOS
+- Quality Evaluation
+  - [x] Standardized SingMOS-Pro MOS report
+  - [x] F0, seam, silence and level metrics
 
 ## Build status
 
@@ -91,6 +94,7 @@ python3 scripts/render_ust.py \
 - [Configuration](docs/configuration.md)
 - [Rendering a UST](docs/rendering.md)
 - [Neural backends](docs/neural.md)
+- [Quality evaluation](docs/quality.md)
 - [Architecture details](docs/architecture-details.md)
 
 ## Special Thanks

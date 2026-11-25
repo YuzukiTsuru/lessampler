@@ -47,7 +47,7 @@ ctest --preset neural-gcc --output-on-failure
 - CMakeLists use explicit source lists. Adding a source file requires editing the relevant domain `CMakeLists.txt`.
 - CMake targets mirror the layers: `Core`, `Config`, `Audio`, `VocoderCommon`, `VocoderWorld`, `VocoderLlsm` (optional), `VocoderNeural` (optional), `Vocoder`, `Engine`, `UTAU`, `Shine`, `Wavtool`, the `lessampler` executable, and the `lesswavtool` executable.
 - `lessampler_common` is an INTERFACE target carrying C++26 features, include paths, warnings, and compile definitions. Link it through the library targets; do not add global `include_directories`.
-- `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_ENABLE_LLSM`, `LESSAMPLER_ENABLE_NEURAL`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, and `LESSAMPLER_WERROR` are the project options.
+- `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_ENABLE_LLSM`, `LESSAMPLER_ENABLE_NEURAL`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, `LESSAMPLER_WERROR`, and `LESSAMPLER_ENABLE_SINGMOS_TESTS` are the project options. `LESSAMPLER_SINGMOS_PYTHON` selects the interpreter for the optional SingMOS test.
 - `LESSAMPLER_ENABLE_LLSM=ON` builds the optional libllsm2 vocoder from the `lib/llsm` and `lib/ciglet` submodules. libllsm2 is GPLv3, so the resulting binary is GPLv3; the default WORLD-only binary stays LGPL-3.0.
 - `LESSAMPLER_ENABLE_NEURAL=ON` builds the NHVSing-compatible neural backend. `cmake/OnnxRuntime.cmake` downloads a pinned ONNX Runtime NuGet package into gitignored `lib/onnxruntime` and configures headers, library, and the Windows DLL copy. `ONNXRUNTIME_ROOT` overrides it; no model weights are distributed.
 - `build/<preset>/lessconfig.h` is generated from `config.h.in`; `PROJECT_GIT_HASH` is the short commit hash.
@@ -217,15 +217,16 @@ ctest --preset release-gcc --output-on-failure
 
 - Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigLoaderTest`, `LOGTest`, `TimerTest`, `WorldTransformTest`, `AutoAMPTest`, `WavIOTest`, `EnvelopeTest`, `WavAssemblyTest`, `WavtoolProtocolTest`, `ShineTest`, `NeuralFeatureTest`, `PolishTest` and `FeatureAssemblerTest` (neural builds only).
 - Integration labels: `WorldModelCacheTest`, `WorldModelCacheVersionTest`, `WorldAnalyzerTest`, `VoicebankModelerTest`, `WorldPipelineTest`, `WorldModelTest`, `WorldSynthesizerTest`, `WavtoolCliTest`, `RenderEngineTest`, `EndToEndTest`.
+- Evaluation labels: `QualityEvaluationTest` (registered when Python 3 is found) and `SingMOSEvaluationTest` (opt-in with `LESSAMPLER_ENABLE_SINGMOS_TESTS=ON` and `LESSAMPLER_SINGMOS_PYTHON`). `test/quality/evaluate.py` produces the versioned JSON report; `test/quality/setup_singmos.sh` creates the optional SingMOS venv. See `docs/quality.md`.
 - `RenderEngineTest` checks the backend factory, WORLD and LLSM renders, A4/A#4 pitch, in-memory analysis reuse, cold/warm LLSM cache equality, source-mtime and config-fingerprint invalidation, and corrupt-cache recovery. Without LLSM it checks that selecting `llsm` is rejected.
 - `WorldAnalyzerTest` runs the fixture analysis twice and compares f0, spectrogram, and aperiodicity exactly, guarding the fixed D4C chunk partition.
-- Test data path is passed as `LESSAMPLER_TEST_DATA_DIR`; tests read `vaiueo2d.wav` and write only to temporary directories.
+- Test data path is passed as `LESSAMPLER_TEST_DATA_DIR`; tests read `vaiueo2d.wav`/`ne.wav` and write only to temporary directories. The quality evaluation uses `test/quality/fixture.ust` as its target and writes its JSON report into the build directory.
 - Sanitizer run: `cmake --preset asan-gcc && cmake --build --preset asan-gcc -j && ctest --preset asan-gcc`. Add `-DLESSAMPLER_ENABLE_LLSM=ON` to sanitize the optional backend too; `src/Vocoder/CMakeLists.txt` instruments the vendored C sources with the same flags.
 
 ## Conventions
 
 - `.clang-format` (LLVM base, 4-space indent, no column limit, `Standard: Latest`); format with `clang-format -i <file>`.
-- No test framework, linter, or package manager — CMake, CTest, and submodules only.
+- No C++ test framework, linter, or package manager — CMake, CTest, and submodules only. The optional SingMOS evaluation uses its own venv under `build/quality-venv`; the objective evaluation uses the Python standard library.
 - Optional backend dependencies: `lib/llsm` (Dreamtonics/libllsm2, GPLv3) and `lib/ciglet` (BSD). Their C sources are compiled directly by `src/Vocoder/CMakeLists.txt` with `FP_TYPE=float`; `src/Vocoder/Llsm/compat/libihnm/ihnm.h` is an empty header for a stale libllsm2 include.
 - The neural backend's ONNX Runtime is fetched by `cmake/OnnxRuntime.cmake` into `lib/onnxruntime` (gitignored) rather than committed as a submodule; the package is pinned by version and SHA-256. `onnx2ncnn` cannot import the supported singing models because they use dynamic `Scan`/`CumSum`/random ops.
 - Removed dependencies: ColorCout (ANSI constants now live in `Log.h`), FTXUI, rapidjson, inicpp, and the JSON export.

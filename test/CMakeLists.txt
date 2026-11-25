@@ -150,3 +150,44 @@ target_link_libraries(EndToEndTest PRIVATE Audio)
 target_include_directories(EndToEndTest PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 add_dependencies(EndToEndTest lessampler)
 lessampler_add_test(EndToEndTest integration)
+
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if (Python3_Interpreter_FOUND)
+    set(LESSAMPLER_QUALITY_EVAL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/quality/evaluate.py")
+    set(LESSAMPLER_QUALITY_FIXTURE "${CMAKE_CURRENT_SOURCE_DIR}/quality/fixture.ust")
+
+    add_test(NAME QualityEvaluationTest
+            COMMAND "${Python3_EXECUTABLE}" "${LESSAMPLER_QUALITY_EVAL_SCRIPT}"
+                    --mos none
+                    --ust "${LESSAMPLER_QUALITY_FIXTURE}"
+                    --lessampler "$<TARGET_FILE:lessampler>"
+                    --json "${CMAKE_CURRENT_BINARY_DIR}/quality-report.json"
+                    "${LESSAMPLER_TEST_DATA_DIR}/ne.wav")
+    set_tests_properties(QualityEvaluationTest PROPERTIES
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+            LABELS "evaluation"
+            TIMEOUT 180
+    )
+
+    if (LESSAMPLER_ENABLE_SINGMOS_TESTS)
+        if (LESSAMPLER_SINGMOS_PYTHON)
+            set(LESSAMPLER_SINGMOS_INTERPRETER "${LESSAMPLER_SINGMOS_PYTHON}")
+        else ()
+            set(LESSAMPLER_SINGMOS_INTERPRETER "${Python3_EXECUTABLE}")
+        endif ()
+        add_test(NAME SingMOSEvaluationTest
+                COMMAND "${LESSAMPLER_SINGMOS_INTERPRETER}" "${LESSAMPLER_QUALITY_EVAL_SCRIPT}"
+                        --mos singmos
+                        --ust "${LESSAMPLER_QUALITY_FIXTURE}"
+                        --lessampler "$<TARGET_FILE:lessampler>"
+                        --json "${CMAKE_CURRENT_BINARY_DIR}/singmos-report.json"
+                        "${LESSAMPLER_TEST_DATA_DIR}/ne.wav")
+        set_tests_properties(SingMOSEvaluationTest PROPERTIES
+                WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+                LABELS "evaluation;singmos"
+                TIMEOUT 900
+        )
+    endif ()
+else ()
+    message(STATUS "Python 3 not found; quality evaluation tests disabled")
+endif ()

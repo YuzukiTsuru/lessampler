@@ -32,7 +32,7 @@ Do not clone with `--depth 1`; the pinned submodule commits are not necessarily 
 
 `LESSAMPLER_ENABLE_NEURAL=ON` builds the NHVSing-compatible backend. `cmake/OnnxRuntime.cmake` downloads a pinned ONNX Runtime NuGet package into `lib/onnxruntime` and configures headers, the library, and the Windows DLL copy. `ONNXRUNTIME_ROOT` overrides it. No model weights are distributed.
 
-Other options: `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, `LESSAMPLER_WERROR`.
+Other options: `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, `LESSAMPLER_WERROR`, `LESSAMPLER_ENABLE_SINGMOS_TESTS`. `LESSAMPLER_SINGMOS_PYTHON` selects the interpreter used by the optional SingMOS test.
 
 ## Release packages
 
@@ -58,3 +58,15 @@ find src test -type f \( -name "*.cpp" -o -name "*.h" \) -print0 | \
 ```
 
 The test data path is passed as `LESSAMPLER_TEST_DATA_DIR`; tests read fixtures and write only to temporary directories. `LESSAMPLER_TIME_EVAL=ON` prints stage timings.
+
+`QualityEvaluationTest` (label `evaluation`) runs the standardized objective evaluation when Python 3 is available. The real SingMOS test is opt-in:
+
+```bash
+cmake --preset max-gcc \
+  -DLESSAMPLER_ENABLE_SINGMOS_TESTS=ON \
+  -DLESSAMPLER_SINGMOS_PYTHON="$PWD/build/quality-venv/bin/python"
+cmake --build --preset max-gcc -j
+ctest --preset max-gcc -L evaluation --output-on-failure
+```
+
+`test/quality/setup_singmos.sh` creates that virtual environment. See [quality.md](quality.md) for the protocol and JSON schema.

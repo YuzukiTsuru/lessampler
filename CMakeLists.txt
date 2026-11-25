@@ -61,6 +61,8 @@ option(LESSAMPLER_ENABLE_NEURAL "Enable the optional ONNX Runtime neural vocoder
 option(LESSAMPLER_DUMP_DATA "Enable verbose per-sample debug dumps" OFF)
 option(LESSAMPLER_TIME_EVAL "Print timing evaluation messages" OFF)
 option(LESSAMPLER_WERROR "Treat compiler warnings as errors" OFF)
+option(LESSAMPLER_ENABLE_SINGMOS_TESTS "Register the optional SingMOS quality evaluation test" OFF)
+set(LESSAMPLER_SINGMOS_PYTHON "" CACHE FILEPATH "Python interpreter with torch, torchaudio and s3prl for SingMOS tests")
 
 include("${PROJECT_SOURCE_DIR}/cmake/OnnxRuntime.cmake")
 
