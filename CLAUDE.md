@@ -66,6 +66,7 @@ Invocation modes are parsed by `Application` (`src/App/Application.cpp`):
 | none | logo and usage |
 | `lessampler <dir>` | analysis-only: models every `.wav` in `<dir>` in parallel, writing `<name>.lessaudio` beside each WAV |
 | `lessampler --polish <in.wav> <out.wav>` | whole-song neural resynthesis using `[neural] model_path` (neural builds only) |
+| `lessampler --feature-plan <plan.toml>` | feature-level assembly: note WAVs -> global mel/F0 -> one vocoder pass (neural builds only) |
 | `lessampler <in.wav> <out.wav> <note> ...` (>= 4 args) | UTAU resampler mode: render `<in.wav>` to `<out.wav>` |
 
 UTAU argument positions, parsed by `src/Host/UTAU/libUTAU/UTAUParameterParser.cpp`:
@@ -97,6 +98,7 @@ If the input WAV does not exist, a silent WAV of the requested length is written
 5. **Amplitude** — `RenderEngine` applies `AutoAMP` in place (`0.5 * volume / max(abs)`, clamped to [-1, 1]).
 6. **Output** — `WavIO::WriteWav` writes mono 16-bit PCM via libsndfile. `WavIO::ReadWav` returns a mono `WavData` (multi-channel input is averaged per frame).
 7. **Neural polish (optional)** — `lessampler --polish` takes the assembled song, estimates F0 with the shared front end, extracts 128-bin log-mel, runs one NHVSing pass over the whole timeline, and matches the output RMS to the mix. `scripts/render_ust.py --polish` runs it after `lesswavtool` and keeps the raw mix as `<output>-mix.wav`.
+8. **Feature-level assembly (optional)** — `lessampler --feature-plan plan.toml` slices each note WAV, extracts mel/F0, applies the UST envelope, assembles one global feature timeline, and runs the vocoder once. `scripts/render_ust.py --feature` uses it instead of `lesswavtool`; it is meant for WORLD/LLSM note renders and is mutually exclusive with `--polish`.
 
 The `VocoderBackend` contract deliberately separates the two operations:
 
@@ -150,6 +152,7 @@ lessampler itself renders one note per process; `lesswavtool` performs the UTAU-
 - `MelSpectrogram` (`src/Vocoder/Neural/MelSpectrogram.h`) — NHVSing-compatible 128-bin log-mel front end and windowed-sinc resampler; verified against librosa.
 - `NeuralModel` (`src/Vocoder/Neural/NeuralModel.h`) — ONNX Runtime session wrapper and process-wide model cache for `mel`/`f0`/`uv` -> `waveform`.
 - `NeuralPolisher` (`src/Vocoder/Neural/NeuralPolisher.h`) — whole-song neural resynthesis: assembled mix -> F0/mel -> one NHVSing pass -> RMS-matched continuous waveform; exposed as `backend::PolishWaveform` and `lessampler --polish`.
+- `FeatureAssembler` (`src/Vocoder/Neural/FeatureAssembler.h`) — feature-level assembly: note WAVs -> per-note mel/F0 -> global timeline -> one vocoder pass; `FeatureTypes.h` defines the shared segment type.
 - `Envelope` (`src/Host/Wavtool/Envelope.h`) — UST `p1,p2,p3,v1,v2,v3,v4[,%,p4,p5,v5]` parser and piecewise-linear gain curve.
 - `WavAssembly` (`src/Host/Wavtool/WavAssembly.h`) — interleaved double-precision mix buffer, classic seek-back placement, absolute placement, and peak-limited 16-bit write.
 - `RenderEngine` (`src/Engine/RenderEngine.h`) — config resolution, backend registry, analysis LRU, synthesis, and AutoAMP.
@@ -211,7 +214,7 @@ cmake --build --preset release-gcc -j
 ctest --preset release-gcc --output-on-failure
 ```
 
-- Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigLoaderTest`, `LOGTest`, `TimerTest`, `WorldTransformTest`, `AutoAMPTest`, `WavIOTest`, `EnvelopeTest`, `WavAssemblyTest`, `WavtoolProtocolTest`, `ShineTest`, `NeuralFeatureTest` and `PolishTest` (neural builds only).
+- Unit labels: `PitchBendTest`, `ScaleConvertTest`, `libUTAUTest`, `ConfigLoaderTest`, `LOGTest`, `TimerTest`, `WorldTransformTest`, `AutoAMPTest`, `WavIOTest`, `EnvelopeTest`, `WavAssemblyTest`, `WavtoolProtocolTest`, `ShineTest`, `NeuralFeatureTest`, `PolishTest` and `FeatureAssemblerTest` (neural builds only).
 - Integration labels: `WorldModelCacheTest`, `WorldModelCacheVersionTest`, `WorldAnalyzerTest`, `VoicebankModelerTest`, `WorldPipelineTest`, `WorldModelTest`, `WorldSynthesizerTest`, `WavtoolCliTest`, `RenderEngineTest`, `EndToEndTest`.
 - `RenderEngineTest` checks the backend factory, WORLD and LLSM renders, A4/A#4 pitch, in-memory analysis reuse, cold/warm LLSM cache equality, source-mtime and config-fingerprint invalidation, and corrupt-cache recovery. Without LLSM it checks that selecting `llsm` is rejected.
 - `WorldAnalyzerTest` runs the fixture analysis twice and compares f0, spectrogram, and aperiodicity exactly, guarding the fixed D4C chunk partition.

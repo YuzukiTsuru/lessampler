@@ -38,9 +38,18 @@ if [[ -z "$oto" ]]; then
 fi
 voicebank="$(dirname "$oto")"
 
+extra=()
+if [[ "${LESSAMPLER_FEATURE:-0}" == "1" ]]; then
+    extra+=(--feature)
+fi
+if [[ "${LESSAMPLER_POLISH:-0}" == "1" ]]; then
+    extra+=(--polish)
+fi
+
 python3 "$root/scripts/render_ust.py" \
     --ust "$ust" \
     --voicebank "$voicebank" \
     --output "$output" \
     --lessampler "$lessampler" \
-    --wavtool "$wavtool"
+    --wavtool "$wavtool" \
+    "${extra[@]}"

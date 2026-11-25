@@ -169,6 +169,23 @@ answers whether the build has it; `PolishWithNeural` throws when the model path
 is empty or missing. `scripts/render_ust.py --polish` calls it after
 `lesswavtool` and keeps the raw mix at `<output>-mix.wav`.
 
+## Feature-level assembly
+
+`lessampler --feature-plan plan.toml` is the alternative that avoids double
+vocoding. It reuses the wavtool plan (`Host/Wavtool/WavtoolPlan`): each note
+WAV is sliced by `skip_ms`/`length_ms`, normalized to the model's target RMS,
+and passed through `MelSpectrogram` and the shared F0 front end. The note's UST
+envelope weights its linear mel bins and its log-F0 values; the features are
+summed on one global timeline. `NeuralFeatures` owns the F0-to-mel-frame
+mapping, and `FeatureAssembler` owns the timeline and the single model pass.
+The output is RMS-matched to a reference mix built from the same note buffers,
+then peak-limited and resampled back to the plan's rate.
+
+Feature-level assembly is meant for WORLD or LLSM note renders. Feeding it
+per-note neural renders would run the vocoder twice. The command is exposed
+through `backend::AssembleFeatureTimeline`; `scripts/render_ust.py --feature`
+selects it instead of `lesswavtool`.
+
 ## Caches
 
 All caches are sidecars next to the source WAV:

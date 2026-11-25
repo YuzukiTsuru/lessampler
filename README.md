@@ -148,6 +148,18 @@ It estimates F0 with the configured WORLD front end, extracts the same 128-bin l
 
 `--polish` requires a neural build and `[neural] model_path`; the backend setting is not used. `scripts/render_ust.py --polish` runs the polish stage after `lesswavtool` and keeps the raw mix next to the result as `<name>-mix.wav`.
 
+### Feature-level assembly
+
+`--polish` resynthesizes a finished mix, which means the model sees the output of another vocoder. `lessampler --feature-plan plan.toml` keeps the per-note features instead:
+
+```bash
+lessampler --feature-plan build/song-plan.toml
+```
+
+The plan is the same TOML used by `lesswavtool --plan`: each note names a WAV, its absolute position, the STP skip, the used length, and its UST envelope. For every note the assembler slices the used segment, extracts 128-bin mel and F0, applies the envelope to the mel, then sums the notes on one global frame timeline. F0 is blended in log space by the same weights, and NHVSing runs once over the whole song. The output level is matched to a reference mix built from the same note buffers.
+
+Use this with WORLD or LLSM note renders. If the notes were already rendered by the per-note neural backend, feature assembly would vocode them twice. `scripts/render_ust.py --feature` selects this path; `--feature` and `--polish` are mutually exclusive.
+
 ### Release packages
 
 CI builds the maximal configuration on Ubuntu, macOS, and Windows: WORLD plus every optional backend compiled on that platform. Tagged pushes (`v*`) run `.github/workflows/release.yml`, which uploads `lessampler-<version>-<os>-<arch>` archives and SHA-256 checksums to GitHub Releases.
@@ -234,6 +246,9 @@ If `data/` contains a UST archive and a voicebank archive, the wrapper extracts 
 ```bash
 ./scripts/render_data.sh
 # output: build/data-render/main.wav
+
+LESSAMPLER_FEATURE=1 ./scripts/render_data.sh   # feature-level neural assembly
+LESSAMPLER_POLISH=1 ./scripts/render_data.sh    # wavtool mix + whole-song polish
 ```
 
 Or point it at extracted files:
@@ -248,7 +263,7 @@ python3 scripts/render_ust.py \
   --polish
 ```
 
-`--wavtool` defaults to the `lesswavtool` next to the lessampler binary. `--polish` adds the whole-song neural resynthesis described above and keeps the raw mix as `build/song-mix.wav`. Without it, the wavtool's overlap crossfade is the final stage.
+`--wavtool` defaults to the `lesswavtool` next to the lessampler binary. `--polish` adds the whole-song neural resynthesis described above and keeps the raw mix as `build/song-mix.wav`. `--feature` instead assembles the per-note mel/F0 features and runs the vocoder once, without a wavtool mix; it is mutually exclusive with `--polish`. Without either, the wavtool's overlap crossfade is the final stage.
 
 `scripts/seam_report.py` prints short-time energy dips around UST note starts and the longest near-zero run. It is useful for comparing an old render with a new one:
 

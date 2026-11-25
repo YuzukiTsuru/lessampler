@@ -567,25 +567,31 @@ def render(args: argparse.Namespace) -> None:
             )
         plan_path.write_text("\n".join(lines), encoding="utf-8")
 
-        result = subprocess.run([str(wavtool), "--plan", str(plan_path)], capture_output=True, text=True)
-        if result.returncode != 0:
-            raise SystemExit(result.stderr.strip() or "lesswavtool failed")
-
-        if args.polish:
-            mix_path = output_path.with_name(output_path.stem + "-mix" + output_path.suffix)
-            output_path.replace(mix_path)
-            polish = subprocess.run([str(args.lessampler), "--polish", str(mix_path), str(output_path)],
+        if args.feature:
+            result = subprocess.run([str(args.lessampler), "--feature-plan", str(plan_path)],
                                     capture_output=True, text=True)
-            if polish.returncode != 0:
-                mix_path.replace(output_path)
-                raise SystemExit(polish.stderr.strip() or "neural polish failed")
+            if result.returncode != 0:
+                raise SystemExit(result.stderr.strip() or "feature assembly failed")
+        else:
+            result = subprocess.run([str(wavtool), "--plan", str(plan_path)], capture_output=True, text=True)
+            if result.returncode != 0:
+                raise SystemExit(result.stderr.strip() or "lesswavtool failed")
+
+            if args.polish:
+                mix_path = output_path.with_name(output_path.stem + "-mix" + output_path.suffix)
+                output_path.replace(mix_path)
+                polish = subprocess.run([str(args.lessampler), "--polish", str(mix_path), str(output_path)],
+                                        capture_output=True, text=True)
+                if polish.returncode != 0:
+                    mix_path.replace(output_path)
+                    raise SystemExit(polish.stderr.strip() or "neural polish failed")
 
     with wave.open(str(output_path), "rb") as handle:
         duration = handle.getnframes() / handle.getframerate()
 
     for index, lyric in skipped:
         print(f"[warn] note {index}: no oto entry for {lyric!r}", file=sys.stderr)
-    suffix = " (polished)" if args.polish else ""
+    suffix = " (features)" if args.feature else (" (polished)" if args.polish else "")
     print(f"rendered {rendered}/{total} notes, {duration:.3f}s{suffix} -> {args.output}")
 
 
@@ -598,7 +604,11 @@ def main() -> int:
     parser.add_argument("--wavtool", type=Path, default=None)
     parser.add_argument("--polish", action="store_true",
                         help="re-render the assembled mix through the neural vocoder (requires [neural] model_path)")
+    parser.add_argument("--feature", action="store_true",
+                        help="assemble mel/F0 features and run the vocoder once (requires [neural] model_path)")
     args = parser.parse_args()
+    if args.polish and args.feature:
+        parser.error("--polish and --feature are mutually exclusive")
     render(args)
     return 0
 
