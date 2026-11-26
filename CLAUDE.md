@@ -150,7 +150,7 @@ lessampler renders one note per process; the same binary in wavtool mode perform
 - `F0EstimatorKind` (`src/Config/F0EstimatorKind.h`) — `auto_select` / `harvest` / `dio` / `llsm` / `neural` with name and parser.
 - `CreateF0Estimator` / `ResolveF0EstimatorConfig` / `AvailableF0Estimators` (`src/Vocoder/Common/F0Estimator.h`) — F0 factory and auto resolution; `WorldF0Estimator` (Harvest/DIO+StoneMask), `LlsmF0Estimator` (Harvest + `llsm_refine_f0`), and `RmvpeF0Estimator` (ONNX) implement it.
 - `SampleSource` (`src/Audio/SampleSource.h`) — path, `WavInfo`, `SourceFingerprint`, lazy PCM.
-- `Config` (`src/Config/Config.h`) — all analysis options, `vocoder`, and `f0_estimator`. `fingerprint()` is an FNV-1a hash of the analysis-affecting settings, stored in caches; the resolved F0 estimator, neural F0 parameters, and RMVPE model identity are included, while the backend is excluded once the estimator is concrete. An unresolved `auto` hashes as `auto:<backend>`.
+- `Config` (`src/Config/Config.h`) — all analysis options, `vocoder`, and `f0_estimator`. `fingerprint()` is an FNV-1a hash of the analysis-affecting settings, stored in caches; the resolved F0 estimator (with an implementation version), neural F0 parameters, and RMVPE model identity are included, while the backend is excluded once the estimator is concrete. An unresolved `auto` hashes as `auto:<backend>`.
 - `ConfigResolver` (`src/Config/ConfigResolver.h`) — global config plus cached per-voicebank overrides.
 - `RenderParams` (`src/Core/RenderParams.h`) — derived UTAU rendering parameters: lengths in ms, pitch bend, volume (fraction), modulation.
 - `VocoderKind` (`src/Config/VocoderKind.h`) — `world` / `llsm` config enum and parser.

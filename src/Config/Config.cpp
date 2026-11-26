@@ -22,6 +22,10 @@ namespace lessampler {
 
     namespace {
 
+        // Bump when an estimator implementation changes its output without a
+        // config field changing, so persisted analyses are invalidated.
+        constexpr std::string_view f0_estimator_version = "f0-v1";
+
         std::uint64_t fnv1a(std::string_view data) {
             std::uint64_t hash = 1469598103934665603ULL;
             for (unsigned char c: data) {
@@ -60,16 +64,16 @@ namespace lessampler {
         // cached .lessaudio holds WORLD analysis only, so switching between WORLD
         // and LLSM must not invalidate an existing WORLD cache. The F0 estimator
         // is part of the fingerprint because it changes the stored F0 track.
-        std::string estimator_identity;
+        std::string estimator_identity = std::string(f0_estimator_version) + "|";
         if (f0_estimator == F0EstimatorKind::auto_select) {
-            estimator_identity = std::format("auto:{}", VocoderKindName(vocoder));
+            estimator_identity += std::format("auto:{}", VocoderKindName(vocoder));
             if (vocoder == VocoderKind::neural) {
                 estimator_identity += "|" + neural_f0_identity(*this);
             }
         } else if (f0_estimator == F0EstimatorKind::neural) {
-            estimator_identity = "neural|" + neural_f0_identity(*this);
+            estimator_identity += "neural|" + neural_f0_identity(*this);
         } else {
-            estimator_identity = std::string(F0EstimatorKindName(f0_estimator));
+            estimator_identity += F0EstimatorKindName(f0_estimator);
         }
 
         const std::string data = std::format(
