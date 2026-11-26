@@ -57,6 +57,8 @@ The adapter accepts two common ONNX contracts:
 - `audio` / `waveform` input and a 360-bin `salience` output (`[1,T,360]` or `[1,360,T]`). Salience is decoded with the RMVPE cents mapping, a local weighted average around the peak, and `neural_threshold` for voicing.
 - `waveform` + `threshold` inputs and `f0` + `uv` outputs, as used by OpenUtau's RMVPE package. `f0` is Hz and `uv` marks unvoiced frames.
 
+The OpenUtau `rmvpe` dependency package (`230917`, `rmvpe.oudep`) is the tested source for the second contract; extract its `rmvpe.onnx` and point `[f0] neural_model_path` at it. The weights are not bundled and remain subject to their own license.
+
 Input is resampled to 16 kHz; RMVPE frames are 10 ms and are resampled to `[audio_model] frame_period`. The default `neural_ceil = 1200` matches the current WORLD transform average window; RMVPE itself supports up to 2000 Hz. Weights are not bundled. `estimator = "auto"` falls back to Harvest when the model path is missing; an explicit `estimator = "neural"` throws. `--polish` and `--feature-plan` also follow `[audio_model] backend`, so set `estimator = "neural"` explicitly if you want RMVPE on a WORLD-configured song.
 
 ## Whole-song polish
