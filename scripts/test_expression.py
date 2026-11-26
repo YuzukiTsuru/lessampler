@@ -231,6 +231,8 @@ class AutoBreathSlotTest(unittest.TestCase):
 
 class ExpressionFileTest(unittest.TestCase):
     def test_toml_overrides_defaults(self) -> None:
+        if ru.tomllib is None:
+            self.skipTest("tomllib requires Python 3.11+")
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "expression.toml"
             path.write_text(
@@ -246,6 +248,8 @@ class ExpressionFileTest(unittest.TestCase):
         self.assertEqual(expression["portamento"]["glide_ms"], 70.0)
 
     def test_invalid_file_is_reported(self) -> None:
+        if ru.tomllib is None:
+            self.skipTest("tomllib requires Python 3.11+")
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "expression.toml"
             path.write_text("[vibrato\n", encoding="utf-8")
