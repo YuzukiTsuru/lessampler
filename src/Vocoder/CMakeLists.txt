@@ -1,11 +1,29 @@
+add_library(VocoderF0Api INTERFACE)
+target_link_libraries(VocoderF0Api INTERFACE
+        Core
+        Config
+)
+
+add_library(VocoderF0World STATIC
+        Common/F0EstimatorTypes.h
+        Common/WorldF0Estimator.cpp
+        Common/WorldF0Estimator.h
+)
+target_link_libraries(VocoderF0World PUBLIC
+        VocoderF0Api
+        Core
+        Config
+        world::core
+)
+
 add_library(VocoderCommon STATIC
         Common/F0Estimator.cpp
         Common/F0Estimator.h
 )
 target_link_libraries(VocoderCommon PUBLIC
+        VocoderF0World
         Core
         Config
-        world::core
 )
 
 add_library(VocoderWorld STATIC

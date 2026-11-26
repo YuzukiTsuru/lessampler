@@ -33,7 +33,7 @@ int main() {
     CHECK(std::filesystem::exists(defaults_dir / "lessampler.less"));
     CHECK(!config.custom_fft_size);
     CHECK_EQ(config.vocoder, VocoderKind::world);
-    CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_HARVEST);
+    CHECK_EQ(config.f0_estimator, F0EstimatorKind::auto_select);
     CHECK(config.audio_model_frame_period > 0.0);
     CHECK(config.neural_model_path.empty());
     CHECK_EQ(config.neural_threads, 0);
@@ -43,6 +43,8 @@ int main() {
         const std::string content((std::istreambuf_iterator<char>(default_config)),
                                   std::istreambuf_iterator<char>());
         CHECK(content.find("backend = \"world\"") != std::string::npos);
+        CHECK(content.find("estimator = \"auto\"") != std::string::npos);
+        CHECK(content.find("f0_mode") == std::string::npos);
         CHECK(content.find("[neural]") != std::string::npos);
     }
 
@@ -81,7 +83,7 @@ target_rms = 0.1
     CHECK(config.custom_fft_size);
     CHECK_EQ(config.fft_size, 2048);
     CHECK_NEAR(config.model_amp, 0.0, 1e-12);
-    CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_DIO);
+    CHECK_EQ(config.f0_estimator, F0EstimatorKind::dio);
     CHECK_EQ(config.f0_speed, 2);
     CHECK_NEAR(config.ap_threshold, 0.2, 1e-12);
     CHECK_EQ(config.neural_model_path, (custom_dir / "model.onnx").string());
@@ -119,7 +121,7 @@ ap_threshold=0.1
     CHECK_NEAR(config.audio_model_frame_period, 5.5, 1e-12);
     CHECK_NEAR(config.model_amp, 0.8, 1e-12);
     CHECK_EQ(config.f0_speed, 2);
-    CHECK_EQ(config.f0_mode, Config::F0_MODE::F0_MODE_HARVEST);
+    CHECK_EQ(config.f0_estimator, F0EstimatorKind::harvest);
 
     const auto legacy_toml_dir = root / "legacy-toml";
     std::filesystem::create_directories(legacy_toml_dir);
@@ -165,17 +167,19 @@ frame_period = 6.0
 
 [f0]
 f0_mode = "DIO"
+neural_model_path = "rmvpe.onnx"
 )");
     Config base;
     VoicebankConfig voice_bank(voice_dir / "missing.wav", base);
     const auto voice_config = voice_bank.GetConfig();
     CHECK_NEAR(voice_config.audio_model_frame_period, 6.0, 1e-12);
-    CHECK_EQ(voice_config.f0_mode, Config::F0_MODE::F0_MODE_DIO);
+    CHECK_EQ(voice_config.f0_estimator, F0EstimatorKind::dio);
+    CHECK_EQ(voice_config.f0_neural_model_path, (voice_dir / "rmvpe.onnx").string());
 
     ConfigResolver resolver(base);
     const auto resolved = resolver.Resolve(voice_dir / "a.wav");
     CHECK_NEAR(resolved.audio_model_frame_period, 6.0, 1e-12);
-    CHECK_EQ(resolved.f0_mode, Config::F0_MODE::F0_MODE_DIO);
+    CHECK_EQ(resolved.f0_estimator, F0EstimatorKind::dio);
 
     // A voicebank config is parsed once per session.
     write_file(voice_dir / "lessvoice.less", R"([audio_model]
@@ -193,7 +197,42 @@ frame_period = 6.5
     ConfigResolver legacy_voice_resolver(base);
     CHECK_NEAR(legacy_voice_resolver.Resolve(legacy_voice_dir / "a.wav").audio_model_frame_period, 6.5, 1e-12);
 
+    const auto neural_dir = root / "f0-neural";
+    std::filesystem::create_directories(neural_dir);
+    write_file(neural_dir / "rmvpe.onnx", "model");
+    write_file(neural_dir / "lessampler.less", R"([f0]
+estimator = "NEURAL"
+f0_mode = "NOPE"
+neural_model_path = "rmvpe.onnx"
+neural_threads = 2
+neural_threshold = 0.35
+neural_floor = 50.0
+neural_ceil = 1000.0
+
+[neural]
+preset = "PC-NSF-HiFiGAN"
+
+[master]
+preset = "POWER"
+)");
+    ConfigLoader neural_config(neural_dir);
+    config = neural_config.GetConfig();
+    CHECK_EQ(config.f0_estimator, F0EstimatorKind::neural);
+    CHECK_EQ(config.f0_neural_model_path, (neural_dir / "rmvpe.onnx").string());
+    CHECK_EQ(config.f0_neural_threads, 2);
+    CHECK_NEAR(config.f0_neural_threshold, 0.35, 1e-12);
+    CHECK_NEAR(config.f0_neural_floor, 50.0, 1e-12);
+    CHECK_NEAR(config.f0_neural_ceil, 1000.0, 1e-12);
+    CHECK_EQ(config.neural_spec.preset, "pc-nsf-hifigan");
+    CHECK_EQ(config.master_preset, "power");
+
+    expect_invalid("bad-estimator", "[f0]\nestimator = \"NOPE\"\n");
+    expect_invalid("bad-neural-threshold", "[f0]\nneural_threshold = 2.0\n");
+    expect_invalid("bad-neural-floor", "[f0]\nneural_floor = 0.0\n");
+    expect_invalid("bad-neural-ceil", "[f0]\nneural_floor = 100.0\nneural_ceil = 50.0\n");
+
     Config fingerprint_config;
+    fingerprint_config.f0_estimator = F0EstimatorKind::harvest;
     const auto before = fingerprint_config.fingerprint();
     CHECK(!before.empty());
     CHECK_EQ(fingerprint_config.fingerprint(), before);
@@ -201,9 +240,28 @@ frame_period = 6.5
     CHECK_EQ(fingerprint_config.fingerprint(), before);
     fingerprint_config.neural_model_path = "some-model.onnx";
     CHECK_EQ(fingerprint_config.fingerprint(), before);
+    fingerprint_config.master_preset = "power";
+    CHECK_EQ(fingerprint_config.fingerprint(), before);
+    fingerprint_config.f0_estimator = F0EstimatorKind::dio;
+    const auto dio_before = fingerprint_config.fingerprint();
+    CHECK(dio_before != before);
+
+    Config auto_config;
+    const auto auto_before = auto_config.fingerprint();
+    auto_config.vocoder = VocoderKind::llsm;
+    CHECK(auto_config.fingerprint() != auto_before);
+
+    Config neural_fingerprint;
+    neural_fingerprint.f0_estimator = F0EstimatorKind::neural;
+    neural_fingerprint.f0_neural_model_path = neural_dir / "rmvpe.onnx";
+    CHECK(std::filesystem::exists(neural_fingerprint.f0_neural_model_path));
+    const auto neural_before = neural_fingerprint.fingerprint();
+    neural_fingerprint.f0_neural_threshold = 0.5;
+    CHECK(neural_fingerprint.fingerprint() != neural_before);
+
     fingerprint_config.custom_fft_size = true;
     fingerprint_config.fft_size = 2048;
-    CHECK(fingerprint_config.fingerprint() != before);
+    CHECK(fingerprint_config.fingerprint() != dio_before);
 
     std::filesystem::remove_all(root);
     return test::finish();

@@ -19,6 +19,7 @@
 #include "Audio/Dsp/Declick.h"
 #include "Core/Exception.h"
 #include "Core/Log.h"
+#include "Vocoder/Common/F0Estimator.h"
 
 namespace lessampler {
 
@@ -47,10 +48,10 @@ namespace lessampler {
             if (identity.empty()) {
                 return identity;
             }
+            const std::filesystem::path model_path(configure.neural_model_path);
             identity += "|" + std::to_string(configure.neural_target_rms);
             identity += "|" + configure.neural_spec.fingerprint();
 
-            const std::filesystem::path model_path(identity);
             std::error_code error;
             const auto size = std::filesystem::file_size(model_path, error);
             if (!error) {
@@ -127,7 +128,8 @@ namespace lessampler {
     }
 
     backend::RenderResult RenderEngine::Render(const SampleSource &source, const RenderParams &params) {
-        const auto configure = configs_.Resolve(source.path());
+        auto configure = configs_.Resolve(source.path());
+        configure = ResolveF0EstimatorConfig(configure, configure.vocoder);
         auto analysis = analysis_for(source, configure);
         auto &backend = backend_for(configure.vocoder);
         LOG_INFO << "Backend: " + std::string(backend.name());

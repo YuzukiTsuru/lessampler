@@ -10,11 +10,13 @@
 
 #include "Config.h"
 
-#include <algorithm>
-#include <cctype>
 #include <cstdint>
+#include <filesystem>
 #include <format>
 #include <string>
+#include <system_error>
+
+#include "Core/SourceFingerprint.h"
 
 namespace lessampler {
 
@@ -29,12 +31,47 @@ namespace lessampler {
             return hash;
         }
 
+        std::string f0_model_identity(const Config &configure) {
+            if (configure.f0_neural_model_path.empty()) {
+                return {};
+            }
+
+            std::error_code error;
+            const auto canonical = std::filesystem::weakly_canonical(configure.f0_neural_model_path, error);
+            const std::filesystem::path path = error
+                                                       ? std::filesystem::path(configure.f0_neural_model_path).lexically_normal()
+                                                       : canonical;
+            const auto source = FingerprintSource(path);
+            return std::format("{}|{}|{}", path.string(), source.size, source.mtime);
+        }
+
+        std::string neural_f0_identity(const Config &configure) {
+            return std::format("{}|{}|{}|{}",
+                               configure.f0_neural_threshold,
+                               configure.f0_neural_floor,
+                               configure.f0_neural_ceil,
+                               f0_model_identity(configure));
+        }
+
     }// namespace
 
     std::string Config::fingerprint() const {
         // The vocoder backend is deliberately not part of the fingerprint: the
         // cached .lessaudio holds WORLD analysis only, so switching between WORLD
-        // and LLSM must not invalidate an existing WORLD cache.
+        // and LLSM must not invalidate an existing WORLD cache. The F0 estimator
+        // is part of the fingerprint because it changes the stored F0 track.
+        std::string estimator_identity;
+        if (f0_estimator == F0EstimatorKind::auto_select) {
+            estimator_identity = std::format("auto:{}", VocoderKindName(vocoder));
+            if (vocoder == VocoderKind::neural) {
+                estimator_identity += "|" + neural_f0_identity(*this);
+            }
+        } else if (f0_estimator == F0EstimatorKind::neural) {
+            estimator_identity = "neural|" + neural_f0_identity(*this);
+        } else {
+            estimator_identity = std::string(F0EstimatorKindName(f0_estimator));
+        }
+
         const std::string data = std::format(
                 "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
                 audio_model_frame_period,
@@ -47,34 +84,8 @@ namespace lessampler {
                 f0_cheap_trick_floor,
                 f0_allow_range,
                 ap_threshold,
-                f0_mode_name(f0_mode));
+                estimator_identity);
         return std::format("{:016x}", fnv1a(data));
-    }
-
-    std::string_view Config::f0_mode_name(F0_MODE mode) {
-        switch (mode) {
-            case F0_MODE::F0_MODE_DIO:
-                return "DIO";
-            case F0_MODE::F0_MODE_HARVEST:
-                return "HARVEST";
-            default:
-                return "UNKNOWN";
-        }
-    }
-
-    Config::F0_MODE Config::parse_f0_mode(std::string_view name) {
-        std::string upper(name);
-        std::ranges::transform(upper, upper.begin(), [](unsigned char c) {
-            return static_cast<char>(std::toupper(c));
-        });
-
-        if (upper == "DIO") {
-            return F0_MODE::F0_MODE_DIO;
-        }
-        if (upper == "HARVEST") {
-            return F0_MODE::F0_MODE_HARVEST;
-        }
-        return F0_MODE::F0_MODE_UNKNOWN;
     }
 
 }// namespace lessampler

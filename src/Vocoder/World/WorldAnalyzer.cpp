@@ -39,7 +39,9 @@ namespace lessampler {
 
         Timer timer;
         timer.SetTimer();
-        auto track = EstimateF0(samples, sample_rate, configure);
+        const auto f0_config = ResolveF0EstimatorConfig(configure, configure.vocoder);
+        auto estimator = CreateF0Estimator(f0_config.f0_estimator, f0_config);
+        auto track = estimator->Estimate(samples, sample_rate, f0_config);
         worldPara.frame_period = track.frame_period;
         worldPara.f0 = std::move(track.f0);
         worldPara.time_axis = std::move(track.time_axis);

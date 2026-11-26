@@ -19,6 +19,7 @@
 #include "Core/Exception.h"
 #include "Engine/RenderEngine.h"
 #include "Host/UTAU/Shine.h"
+#include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/VocoderBackend.h"
 #if defined(LESSAMPLER_ENABLE_LLSM)
 #include "Vocoder/Llsm/LlsmCache.h"
@@ -161,24 +162,26 @@ int main() {
     CHECK_EQ(engine_stats.analysis_hits, 1);
 
 #if defined(LESSAMPLER_ENABLE_LLSM)
+    const auto llsm_config = ResolveF0EstimatorConfig(configure, VocoderKind::llsm);
+    const backend::AnalysisRequest llsm_request{source, llsm_config};
     auto llsm_backend = backend::CreateVocoderBackend(VocoderKind::llsm);
     REQUIRE(llsm_backend != nullptr);
     CHECK_EQ(llsm_backend->kind(), VocoderKind::llsm);
     CHECK_EQ(llsm_backend->name(), "llsm");
     CHECK(llsm_backend->analysis_version() > 0);
 
-    const auto llsm_analysis = llsm_backend->Prepare(analysis_request);
+    const auto llsm_analysis = llsm_backend->Prepare(llsm_request);
     REQUIRE(llsm_analysis != nullptr);
     const auto llsm_result = llsm_backend->Synthesize({*llsm_analysis, params});
     check_render(llsm_result, params, source.info().sample_rate, 440.0);
 
     const auto cache_path = backend::LlsmCachePath(input);
     CHECK(std::filesystem::exists(cache_path));
-    CHECK(backend::LoadLlsmCache(input, configure) != nullptr);
+    CHECK(backend::LoadLlsmCache(input, llsm_config) != nullptr);
 
     // Prepare with the cache present and a fresh source (no PCM read needed).
     const SampleSource warm_source(input);
-    const auto warm_analysis = llsm_backend->Prepare({warm_source, configure});
+    const auto warm_analysis = llsm_backend->Prepare({warm_source, llsm_config});
     REQUIRE(warm_analysis != nullptr);
     const auto warm_llsm = llsm_backend->Synthesize({*warm_analysis, params});
     CHECK(warm_llsm.samples == llsm_result.samples);
@@ -187,15 +190,15 @@ int main() {
     // A source change invalidates the layer-1 cache and regenerates it.
     const auto original_mtime = std::filesystem::last_write_time(input);
     std::filesystem::last_write_time(input, original_mtime + std::chrono::seconds(2));
-    CHECK(backend::LoadLlsmCache(input, configure) == nullptr);
+    CHECK(backend::LoadLlsmCache(input, llsm_config) == nullptr);
     const SampleSource regenerated_source(input);
-    const auto regenerated_analysis = llsm_backend->Prepare({regenerated_source, configure});
+    const auto regenerated_analysis = llsm_backend->Prepare({regenerated_source, llsm_config});
     const auto regenerated = llsm_backend->Synthesize({*regenerated_analysis, params});
     CHECK(regenerated.samples == llsm_result.samples);
     CHECK(std::filesystem::exists(cache_path));
 
     // The F0/analysis settings are part of the cache key.
-    Config changed = configure;
+    Config changed = llsm_config;
     changed.f0_speed = 2;
     CHECK(backend::LoadLlsmCache(input, changed) == nullptr);
 
@@ -204,9 +207,9 @@ int main() {
         std::ofstream corrupt(cache_path, std::ios::binary | std::ios::trunc);
         corrupt << "not an LLSM cache";
     }
-    CHECK(backend::LoadLlsmCache(input, configure) == nullptr);
+    CHECK(backend::LoadLlsmCache(input, llsm_config) == nullptr);
     const SampleSource recovered_source(input);
-    const auto recovered_analysis = llsm_backend->Prepare({recovered_source, configure});
+    const auto recovered_analysis = llsm_backend->Prepare({recovered_source, llsm_config});
     const auto recovered = llsm_backend->Synthesize({*recovered_analysis, params});
     CHECK(recovered.samples == llsm_result.samples);
     CHECK(std::filesystem::exists(cache_path));

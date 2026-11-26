@@ -24,6 +24,7 @@
 #include "Audio/SampleSource.h"
 #include "Core/Exception.h"
 #include "Core/Log.h"
+#include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/World/WorldModelStore.h"
 
 namespace lessampler {
@@ -93,7 +94,8 @@ namespace lessampler {
 
                 try {
                     const SampleSource source(wav_files_[index]);
-                    const auto configure = configs_.Resolve(source.path());
+                    auto configure = configs_.Resolve(source.path());
+                    configure = ResolveF0EstimatorConfig(configure, configure.vocoder);
                     static_cast<void>(LoadOrBuildWorldModel(source, configure, static_cast<int>(workers_per_file)));
                 } catch (...) {
                     std::lock_guard<std::mutex> lock(error_mutex);

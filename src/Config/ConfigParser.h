@@ -27,6 +27,12 @@ namespace lessampler {
     void apply_config(const toml::table &table, Config &configure);
 
     /*
+     * Resolve neural vocoder and F0 model paths relative to the config file or
+     * voicebank directory that defined them.
+     */
+    void ResolveModelPaths(Config &configure, const std::filesystem::path &base);
+
+    /*
  * Default lessampler.less content, including comments.
  */
     [[nodiscard]] std::string default_config_toml();

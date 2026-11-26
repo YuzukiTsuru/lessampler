@@ -49,12 +49,13 @@ namespace lessampler {
         if (samples.empty() || sample_rate <= 0) {
             throw parameter_error("The polish input is empty");
         }
-        if (configure.neural_model_path.empty()) {
+        const auto resolved = ResolveF0EstimatorConfig(configure, configure.vocoder);
+        if (resolved.neural_model_path.empty()) {
             throw parameter_error("--polish requires [neural] model_path in lessampler.less");
         }
 
-        const auto &spec = configure.neural_spec;
-        auto model = LoadNeuralModel(configure.neural_model_path, configure.neural_threads, spec);
+        const auto &spec = resolved.neural_spec;
+        auto model = LoadNeuralModel(resolved.neural_model_path, resolved.neural_threads, spec);
 
         std::vector<double> wave = MelSpectrogram::Resample(samples, sample_rate, spec.sample_rate);
         if (wave.empty()) {
@@ -62,7 +63,7 @@ namespace lessampler {
         }
 
         const MelSpectrogram extractor(spec);
-        const auto mel = extractor.Extract(wave, spec.sample_rate, configure.neural_target_rms);
+        const auto mel = extractor.Extract(wave, spec.sample_rate, resolved.neural_target_rms);
         const auto frames = mel.size() / static_cast<std::size_t>(spec.mel_bins);
         if (frames == 0) {
             throw parameter_error("The polish input produced no feature frames");
@@ -72,7 +73,8 @@ namespace lessampler {
             return {std::vector<double>(samples.size(), 0.0), sample_rate};
         }
 
-        const auto track = EstimateF0(wave, spec.sample_rate, configure);
+        auto f0_estimator = CreateF0Estimator(resolved.f0_estimator, resolved);
+        const auto track = f0_estimator->Estimate(wave, spec.sample_rate, resolved);
         std::vector<float> f0;
         std::vector<float> uv;
         BuildMelF0Track(track, frames, f0, uv, spec);

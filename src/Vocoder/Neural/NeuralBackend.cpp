@@ -23,6 +23,7 @@
 #include "Core/Log.h"
 #include "Core/Timer.h"
 #include "MelSpectrogram.h"
+#include "Vocoder/Common/F0Estimator.h"
 #include "NeuralModel.h"
 #include "Vocoder/World/WorldModelStore.h"
 #include "Vocoder/World/WorldSynthesizer.h"
@@ -153,20 +154,21 @@ namespace lessampler {
 
                 [[nodiscard]] std::string_view name() const noexcept override { return "neural"; }
 
-                [[nodiscard]] std::uint32_t analysis_version() const noexcept override { return 2; }
+                [[nodiscard]] std::uint32_t analysis_version() const noexcept override { return 3; }
 
                 [[nodiscard]] AnalysisPtr Prepare(const AnalysisRequest &request) override {
-                    if (request.configure.neural_model_path.empty()) {
+                    const auto configure = ResolveF0EstimatorConfig(request.configure, kind());
+                    if (configure.neural_model_path.empty()) {
                         throw parameter_error("The neural backend requires [neural] model_path");
                     }
 
-                    auto neural = LoadNeuralModel(request.configure.neural_model_path,
-                                                  request.configure.neural_threads,
-                                                  request.configure.neural_spec);
+                    auto neural = LoadNeuralModel(configure.neural_model_path,
+                                                  configure.neural_threads,
+                                                  configure.neural_spec);
 
                     Timer timer;
                     timer.SetTimer();
-                    auto model = LoadOrBuildWorldModel(request.source, request.configure, request.max_workers);
+                    auto model = LoadOrBuildWorldModel(request.source, configure, request.max_workers);
                     LOG_EVAL << timer.GetTimer("Neural Model Prepare: ");
 
                     LOG_INFO << std::format("Audio Sample Rate: {}", model.fs);
@@ -174,8 +176,8 @@ namespace lessampler {
                     LOG_INFO << std::format("Model FFT Size: {}", model.fft_size);
 
                     return std::make_shared<NeuralAnalysis>(std::move(model), std::move(neural),
-                                                            request.configure.neural_target_rms,
-                                                            request.configure.neural_spec);
+                                                            configure.neural_target_rms,
+                                                            configure.neural_spec);
                 }
 
                 [[nodiscard]] RenderResult Synthesize(const SynthesisRequest &request) override {

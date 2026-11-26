@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "Config/NeuralVocoderSpec.h"
-#include "Vocoder/Common/F0Estimator.h"
+#include "Vocoder/Common/F0EstimatorTypes.h"
 
 namespace lessampler {
 

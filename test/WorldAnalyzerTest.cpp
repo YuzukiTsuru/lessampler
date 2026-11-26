@@ -91,10 +91,9 @@ int main() {
         sine[i] = 0.4 * std::sin(phase) + 0.2 * std::sin(2.0 * phase) + 0.1 * std::sin(3.0 * phase);
     }
 
-    for (const auto mode: {Config::F0_MODE::F0_MODE_DIO,
-                           Config::F0_MODE::F0_MODE_HARVEST}) {
+    for (const auto estimator: {F0EstimatorKind::dio, F0EstimatorKind::harvest}) {
         Config sine_config;
-        sine_config.f0_mode = mode;
+        sine_config.f0_estimator = estimator;
         sine_config.f0_harvest_floor = 71.0;
         sine_config.f0_dio_floor = 71.0;
         WorldAnalyzer module(sine, fs, sine_config);

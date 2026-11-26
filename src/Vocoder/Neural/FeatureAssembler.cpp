@@ -87,10 +87,11 @@ namespace lessampler {
         if (segments.empty()) {
             throw parameter_error("The feature plan has no notes");
         }
-        if (configure.neural_model_path.empty()) {
+        const auto resolved = ResolveF0EstimatorConfig(configure, configure.vocoder);
+        if (resolved.neural_model_path.empty()) {
             throw parameter_error("Feature assembly requires [neural] model_path in lessampler.less");
         }
-        const auto &spec = configure.neural_spec;
+        const auto &spec = resolved.neural_spec;
         if (sample_rate <= 0) {
             sample_rate = spec.sample_rate;
         }
@@ -111,8 +112,9 @@ namespace lessampler {
         std::size_t last_frame = 0;
         bool any_active = false;
 
-        auto model = LoadNeuralModel(configure.neural_model_path, configure.neural_threads, spec);
+        auto model = LoadNeuralModel(resolved.neural_model_path, resolved.neural_threads, spec);
         const MelSpectrogram extractor(spec);
+        auto f0_estimator = CreateF0Estimator(resolved.f0_estimator, resolved);
 
         for (const auto &segment: segments) {
             auto resampled = read_model_rate(segment.input, spec.sample_rate);
@@ -164,7 +166,7 @@ namespace lessampler {
                 continue;
             }
 
-            const auto track = EstimateF0(wave, spec.sample_rate, configure);
+            const auto track = f0_estimator->Estimate(wave, spec.sample_rate, resolved);
             std::vector<float> f0;
             std::vector<float> uv;
             BuildMelF0Track(track, frames, f0, uv, spec);
@@ -208,8 +210,8 @@ namespace lessampler {
         }
 
         const double reference_active = active_rms(reference);
-        const double global_shift = (reference_active > 1e-9 && configure.neural_target_rms > 0.0)
-                                            ? std::clamp(std::log(configure.neural_target_rms / reference_active), -3.0, 3.0)
+        const double global_shift = (reference_active > 1e-9 && resolved.neural_target_rms > 0.0)
+                                            ? std::clamp(std::log(resolved.neural_target_rms / reference_active), -3.0, 3.0)
                                             : 0.0;
         LOG_INFO << std::format("Feature level shift: {:.3f} dB", global_shift * 8.685889638);
 
