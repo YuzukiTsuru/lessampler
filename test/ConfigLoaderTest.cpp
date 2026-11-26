@@ -253,7 +253,7 @@ preset = "POWER"
 
     Config neural_fingerprint;
     neural_fingerprint.f0_estimator = F0EstimatorKind::neural;
-    neural_fingerprint.f0_neural_model_path = neural_dir / "rmvpe.onnx";
+    neural_fingerprint.f0_neural_model_path = (neural_dir / "rmvpe.onnx").string();
     CHECK(std::filesystem::exists(neural_fingerprint.f0_neural_model_path));
     const auto neural_before = neural_fingerprint.fingerprint();
     neural_fingerprint.f0_neural_threshold = 0.5;
