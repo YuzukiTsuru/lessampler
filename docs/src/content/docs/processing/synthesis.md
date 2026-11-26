@@ -35,6 +35,6 @@ flowchart TD
 
 ## Neural
 
-The per-note neural path extracts 128-bin log-mel, continuous F0 and an unvoiced flag from the preliminary WORLD waveform, then runs the ONNX graph. Whole-song polish and feature assembly are separate modes and are described in [Neural backends](../guides/neural.md).
+The per-note neural path extracts 128-bin log-mel from the preliminary WORLD waveform, builds continuous F0 and an unvoiced flag from the transformed analysis (which carries the selected F0 estimator's track), then runs the ONNX graph. Whole-song polish and feature assembly are separate modes and are described in [Neural backends](../guides/neural.md).
 
 Next: [Output](output.md).

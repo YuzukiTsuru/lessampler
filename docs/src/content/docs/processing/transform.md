@@ -3,7 +3,7 @@ title: "Pitch and time"
 description: "Average F0, pitch equalization, time mapping and pitchbend."
 ---
 
-The analysis is re-targeted to the note pitch and the UTAU time map. This stage is shared by WORLD and LLSM.
+The analysis is re-targeted to the note pitch and the UTAU time map. WORLD, LLSM, and the per-note neural path use this transform.
 
 The average F0 uses a confidence weight over the previous six frames:
 
@@ -13,7 +13,7 @@ $$
 w_i=\prod_{j=0}^{5}\frac{f_i}{f_i+\left(f_{i-j-1}-f_i\right)^2}
 $$
 
-for $55<f_i<1000$; frames outside that range are skipped. Boundary terms use $1/(1+f_i)$.
+for $55<f_i<1200$; frames outside that range are skipped. Boundary terms use $1/(1+f_i)$.
 
 Pitch modulation and key change are applied as
 

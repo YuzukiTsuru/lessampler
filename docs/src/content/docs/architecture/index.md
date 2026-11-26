@@ -19,9 +19,10 @@ F0 is the only axis with `auto`; it resolves against the selected backend and fa
 F0 targets keep the factory below the backends, which call it during `Prepare`:
 
 ```
-VocoderF0Api      F0Track, F0Estimator, shared resampler
+VocoderF0Api      F0Track, F0Estimator, shared resampler, RMVPE decode
 VocoderF0World    Harvest / DIO + StoneMask
 VocoderF0Llsm     Harvest initial + llsm_refine_f0   (optional)
+VocoderOnnx       shared ONNX Runtime environment    (optional)
 VocoderF0Neural   RMVPE + ONNX                       (optional)
 VocoderCommon     factory + availability
 VocoderWorld / VocoderLlsm / VocoderNeural
