@@ -57,6 +57,11 @@ mel_input = "mel"
 f0_input = "f0"
 uv_input = "uv"
 waveform_output = "waveform"
+
+[style]
+default = "natural"         # "natural", "clear", "cry", or "growl"
+amount = 1.0                # 0..1, scales the default weight
+morph_ms = 0.0              # 0 = spread a start>end morph over the note
 ```
 
 `backend` selects the synthesis path. Selecting a backend that is not compiled in throws a `parameter_error`. `[neural] model_path` is required by the neural backend, `--polish`, and `--feature-plan`; model weights are not bundled. `[neural] preset = "pc-nsf-hifigan"` selects the OpenVPI 44.1 kHz / hop 512 / `mel`+`f0` contract; the remaining fields override the preset for other vocoders. Preset names are case-insensitive and stored canonical.
@@ -68,6 +73,8 @@ RMVPE requires an ONNX model at `[f0] neural_model_path`; weights are not bundle
 Old `lessampler.fex` files, both TOML and legacy INI, are migrated automatically and kept as `lessampler.fex.bak`. An unparseable `lessampler.less` is backed up as `lessampler.less.bak` before INI migration.
 
 A voicebank can override the global config with `<voicebank>/lessvoice.less`; `ConfigResolver` caches the result per directory.
+
+`[style]` sets the default voice color. A note can override it with UST `Flags` (`C`, `Y`, `G`, and `>` for a start-to-end morph). Voice style is synthesis-only and is excluded from the analysis fingerprint, so changing it does not rebuild a model cache. The flag grammar and the automatic breath/vibrato/portamento settings are in [Expression and voice color](../guides/expression.md).
 
 ## Model caches
 

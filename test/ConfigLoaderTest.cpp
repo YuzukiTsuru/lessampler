@@ -183,6 +183,11 @@ frame_period = 6.0
 [f0]
 f0_mode = "DIO"
 neural_model_path = "rmvpe.onnx"
+
+[style]
+default = "cry"
+amount = 0.4
+morph_ms = 90.0
 )");
     Config base;
     VoicebankConfig voice_bank(voice_dir / "missing.wav", base);
@@ -190,11 +195,15 @@ neural_model_path = "rmvpe.onnx"
     CHECK_NEAR(voice_config.audio_model_frame_period, 6.0, 1e-12);
     CHECK_EQ(voice_config.f0_estimator, F0EstimatorKind::dio);
     CHECK_EQ(voice_config.f0_neural_model_path, (voice_dir / "rmvpe.onnx").string());
+    CHECK_EQ(voice_config.style_default, VoiceStyleKind::cry);
+    CHECK_NEAR(voice_config.style_amount, 0.4, 1e-12);
+    CHECK_NEAR(voice_config.style_morph_ms, 90.0, 1e-12);
 
     ConfigResolver resolver(base);
     const auto resolved = resolver.Resolve(voice_dir / "a.wav");
     CHECK_NEAR(resolved.audio_model_frame_period, 6.0, 1e-12);
     CHECK_EQ(resolved.f0_estimator, F0EstimatorKind::dio);
+    CHECK_EQ(resolved.style_default, VoiceStyleKind::cry);
 
     // A voicebank config is parsed once per session.
     write_file(voice_dir / "lessvoice.less", R"([audio_model]

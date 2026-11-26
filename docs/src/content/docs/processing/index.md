@@ -14,7 +14,7 @@ flowchart TD
     E --> F["analysis cache"]
     F --> G["pitch and time modification"]
     G --> H["single-frame synthesis"]
-    H --> I["AutoAMP and WAV"]
+    H --> I["growl, de-click, AutoAMP and WAV"]
 ```
 
 ## Steps

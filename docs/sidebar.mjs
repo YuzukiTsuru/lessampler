@@ -13,6 +13,7 @@ export const sidebar = [
 		collapsed: false,
 		items: [
 			{ label: 'Rendering a UST', slug: 'guides/rendering' },
+			{ label: 'Expression and voice color', slug: 'guides/expression' },
 			{ label: 'Neural backends', slug: 'guides/neural' },
 			{ label: 'Quality evaluation', slug: 'guides/quality' },
 		],

@@ -32,9 +32,10 @@ the engine or by analysis/synthesis code.
 ```
 src/
   App/                 CLI entry point and command dispatch
-  Audio/               WAV I/O, lazy SampleSource, AutoAMP, UST envelope
+  Audio/               WAV I/O, lazy SampleSource, AutoAMP, UST envelope, Dsp/
   Config/              Config value type, loader, parser, voicebank resolver
-  Core/                Matrix, logging, timing, exceptions, fingerprints, params
+  Core/                Matrix, logging, timing, exceptions, fingerprints, params,
+                       VoiceStyle
   Engine/              RenderEngine, analysis LRU, voicebank modeler
   Host/UTAU/           UTAU parameter parser, Shine, libUTAU binding
   Host/Wavtool/        wavtool protocol, plan parser, note assembly
@@ -60,7 +61,11 @@ VocoderBackend::Prepare
    ▼
 in-memory LRU of AnalysisPtr  (note-independent; reused by later notes)
    ▼
-VocoderBackend::Synthesize (note-dependent)
+VocoderBackend::Synthesize (note-dependent; clear/cry applied here)
+   ▼
+GrowlShaper            (note-dependent; backend independent)
+   ▼
+Declick
    ▼
 AutoAMP
    ▼
@@ -86,6 +91,21 @@ F0 is the only axis with `auto`, resolved against the selected backend before
 the analysis fingerprint is computed. The factory and target details are in
 [docs/src/content/docs/processing/f0.md](docs/src/content/docs/processing/f0.md)
 and [docs/src/content/docs/architecture/index.md](docs/src/content/docs/architecture/index.md).
+
+## Expression and voice color
+
+`VoiceStyle` is a synthesis-only value on `RenderParams`. The UTAU host parses
+uppercase `C`/`Y`/`G` tokens from `Flags`; the engine fills a voicebank
+default when the note has no style flag. WORLD folds clear/cry into `P_s` and
+`A` per output frame, LLSM scales `VTMAGN` and the noise model, and
+`GrowlShaper` runs after every backend. Because style is not in the config
+fingerprint, an analysis cache is shared across colors.
+
+The Python host owns the context-dependent features that a one-note resampler
+cannot see: automatic vibrato, portamento, and breath insertion. They read the
+song-level timeline but only fill gaps left by explicit UST `VBR`,
+`PBS`/`PBW`/`PBY`, and breath markers. The details are in
+[docs/src/content/docs/guides/expression.md](docs/src/content/docs/guides/expression.md).
 
 ## Assembly and neural paths
 

@@ -25,7 +25,8 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
 - Global Transform Control
   - [x] Precise Pitch Shift and Time Stretch
   - [x] FFT Size, Samples Number, Estimation Floor and so on
-  - [ ] Support breath sound generation
+  - [x] Automatic breath, vibrato, and portamento (sample or synthesized breath)
+  - [x] Voice color presets (clear, cry, growl) with per-note start-to-end morph
   - [ ] Support timbre gender change
 - Multiple Interactive Interfaces
   - [x] [UTAU](http://utau2008.xrea.jp/) Interface
@@ -68,7 +69,7 @@ WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural backend are optio
 
 ## Configuration
 
-`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. `[f0] estimator` is `"auto"`, `"harvest"`, `"dio"`, `"llsm"`, or `"neural"`; RMVPE also needs `[f0] neural_model_path`. Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
+`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. `[f0] estimator` is `"auto"`, `"harvest"`, `"dio"`, `"llsm"`, or `"neural"`; RMVPE also needs `[f0] neural_model_path`. `[style] default` sets the voice color for a voicebank (`natural`, `clear`, `cry`, `growl`). Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
 
 ## Rendering a UST
 
@@ -85,14 +86,14 @@ python3 scripts/render_ust.py \
   --polish
 ```
 
-`--feature` selects feature-level neural assembly instead; `--polish` runs whole-song resynthesis after the wavtool. `--master` selects the final tone/level preset (`none`, `natural`, `warm` (default), or `power`), applied after assembly and after any neural pass. The wavtool mode is selected by the classic 15-argument UTAU form or by `--plan`; the protocol, plan format, placement geometry, and remaining limitations are in [docs/src/content/docs/guides/rendering.md](docs/src/content/docs/guides/rendering.md).
+`--feature` selects feature-level neural assembly instead; `--polish` runs whole-song resynthesis after the wavtool. `--master` selects the final tone/level preset (`none`, `natural`, `warm` (default), or `power`), applied after assembly and after any neural pass. Automatic breath, vibrato, and portamento are on by default and only fill gaps; `--expression`, `--auto-*`, and `--no-auto-*` control them. Voice color is read from UST `Flags` (`C`/`Y`/`G`, with `>` for a start-to-end morph) or from `[style]` in the voicebank config. The wavtool mode is selected by the classic 15-argument UTAU form or by `--plan`; the protocol, plan format, placement geometry, and remaining limitations are in [docs/src/content/docs/guides/rendering.md](docs/src/content/docs/guides/rendering.md).
 
 ## Documentation
 
 The documentation is published at <https://yuzukitsuru.github.io/lessampler/>. The site and source pages are in [`docs/`](docs/):
 
 - Getting started: [Build](docs/src/content/docs/getting-started/build.md), [Configuration](docs/src/content/docs/getting-started/configuration.md)
-- Guides: [Rendering a UST](docs/src/content/docs/guides/rendering.md), [Neural backends](docs/src/content/docs/guides/neural.md), [Quality evaluation](docs/src/content/docs/guides/quality.md)
+- Guides: [Rendering a UST](docs/src/content/docs/guides/rendering.md), [Expression and voice color](docs/src/content/docs/guides/expression.md), [Neural backends](docs/src/content/docs/guides/neural.md), [Quality evaluation](docs/src/content/docs/guides/quality.md)
 - Internals: [Processing pipeline](docs/src/content/docs/processing/index.md), [F0 estimation](docs/src/content/docs/processing/f0.md), [Architecture details](docs/src/content/docs/architecture/index.md)
 
 ## Special Thanks

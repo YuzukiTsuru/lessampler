@@ -69,6 +69,8 @@ Input is resampled to 16 kHz; RMVPE frames are 10 ms and are resampled to `[audi
 
 Feature-level assembly is meant for WORLD or LLSM note renders. Feeding it per-note neural renders would run the vocoder twice. `scripts/render_ust.py --feature` selects it instead of wavtool assembly.
 
+Per-note voice color is already baked into the note WAVs, but both `--polish` and `--feature-plan` re-estimate F0 and mel from those WAVs, so a clear/cry/growl color can be weakened. The wavtool path keeps the full color; see [Expression and voice color](expression.md).
+
 ## Settings
 
 ```toml

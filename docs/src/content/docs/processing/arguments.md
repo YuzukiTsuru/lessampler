@@ -25,7 +25,7 @@ In UTAU resampler mode the argv positions are:
 | 2 | output WAV | rendered note |
 | 3 | note | note name such as `A4` or `A#3` |
 | 4 | time percent | mapped to velocity |
-| 5 | flags | stored on `UTAUPara`, not interpreted yet |
+| 5 | flags | UTAU flags; `C`/`Y`/`G` tokens select voice color, other flags are retained but unused |
 | 6 | offset | source offset in ms |
 | 7 | required | requested output length in ms |
 | 8 | fixed | consonant/fixed part in ms |
@@ -83,16 +83,18 @@ The parser throws when the offset and last-unused section exceed the sample, whe
 | --- | --- |
 | `Tempo` | BPM; default 120 |
 | `Length` | note length in ticks; 480 ticks per quarter |
-| `Lyric` | `R` is a rest; `x` is a normal lyric that is skipped only when no oto entry matches |
+| `Lyric` | `R` is a rest; `x`, `息`, `吸`, `吐`, `・`, and `breath` are breath markers handled by the host |
 | `NoteNum` | MIDI note number |
 | `Velocity` | 0-200, default 100; passed as argv[4] |
 | `PreUtterance` | absolute preutterance override in ms |
 | `VoiceOverlap` | absolute overlap override in ms |
 | `Intensity` | volume percent, default 100; passed as argv[10] |
 | `Modulation` / `Moduration` | modulation percent, default 0 |
-| `Flags` | per-note flags; falls back to `#SETTING` flags |
+| `Flags` | per-note flags; falls back to `#SETTING` flags. `Cnn`/`Ynn`/`Gnn` set clear/cry/growl, and `>` separates start and end weights |
 | `Envelope` | UST envelope string; default `0,5,35,0,100,100,0,%,0,10,100` |
-| `PBS` / `PBW` / `PBY` | pitch start, widths and values |
+| `PBS` / `PBW` / `PBY` | pitch start, widths and values; also suppresses automatic vibrato and portamento |
+
+`scripts/render_ust.py` adds automatic vibrato to plain long notes, automatic portamento to adjacent notes, and automatic breath into phrase gaps. It only fills gaps: explicit `VBR`, pitch curves, and breath notes take precedence. See [Expression and voice color](../guides/expression.md).
 
 ## oto.ini and prefix.map
 
@@ -176,6 +178,7 @@ $$
 | `[ap]` | `ap_threshold` |
 | `[neural]` | `preset`, `model_path`, `threads`, `target_rms`, and the vocoder contract fields |
 | `[master]` | `preset` |
+| `[style]` | `default`, `amount`, `morph_ms` |
 
 `ConfigResolver` loads the global file and merges `<voicebank>/lessvoice.less`; the resolved config is cached per voicebank directory. `audio_model.backend` is `world`, `llsm` or `neural`; selecting a backend that was not compiled in throws. `[f0] estimator` is `auto`, `harvest`, `dio`, `llsm`, or `neural`; `auto` follows the backend and falls back to Harvest when the optional estimator is unavailable. `f0_mode` remains a deprecated alias.
 

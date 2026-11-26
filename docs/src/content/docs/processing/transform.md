@@ -35,7 +35,7 @@ o+F+\sigma\left(t_{\text{out}}-b\right), & t_{\text{out}}\ge b,
 b=\frac{F}{v}.
 $$
 
-Frames are read at $t_{\text{in}}/T_0$; F0 and the spectrogram are linearly interpolated, and aperiodicity takes the nearest frame. The transform requests
+Frames are read at $t_{\text{in}}/T_0$; F0, the spectrogram, and aperiodicity are linearly interpolated. The transform requests
 
 $$
 N_{\text{out}}=\left\lfloor\frac{1000N_{\text{out,samples}}}{f_sT_0}\right\rfloor+1
@@ -68,6 +68,8 @@ flowchart TD
 
 Modulation is applied once: the source contour is first mapped to the target scale, then raised to the modulation power. High notes shifted more than five semitones above the source average get a small variance layer: +1.5 dB harmonic energy, -1.5 dB aperiodic noise, and a low-harmonic tension tilt. Samples whose voiced frames have a mean aperiodicity above 0.6 get another -2 dB of noise. The natural case leaves the model unchanged.
 
-This stage is shared by WORLD and LLSM. The neural per-note backend uses the same WORLD transform; whole-song polish and feature assembly use their own feature timelines.
+Voice color is layered after that rule-based variance. Each output frame asks `StyleAt` for its current `clear`, `cry`, and `growl` weights, so a `C100>G60` note moves continuously from one color to another. Clear subtracts up to 6 dB from the aperiodic part and adds 0.5 dB to the harmonic part; cry adds 1 dB harmonic energy, a 0.25 low-harmonic tension tilt, and 0.5 dB noise. The split is recomposed from $P_s$ and $A$, and the aperiodicity is rebuilt from the new harmonic/noise ratio. A growl-only note leaves this stage bit-exact; growl runs later as a post-shaper.
+
+The WORLD transform is used by the WORLD backend and the per-note neural backend. LLSM has its own layer-1 transform; it applies the same clear/cry gains to `VTMAGN` and the noise model, and `RenderEngine` applies growl after every backend. Whole-song polish and feature assembly use their own feature timelines and may weaken a per-note color.
 
 Next: [Single-frame synthesis](synthesis.md).

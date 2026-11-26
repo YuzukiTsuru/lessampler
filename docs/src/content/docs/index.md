@@ -27,6 +27,7 @@ lessampler renders singing from UTAU `.ust` projects. It implements the resample
 | Build the project | [Build](getting-started/build/) |
 | Configure a backend | [Configuration](getting-started/configuration/) |
 | Render a UST end to end | [Rendering a UST](guides/rendering/) |
+| Add breath, vibrato, and voice color | [Expression and voice color](guides/expression/) |
 | Understand the neural paths | [Neural backends](guides/neural/) |
 | Measure render quality | [Quality evaluation](guides/quality/) |
 | Follow one note through the engine | [Processing pipeline](processing/) |
@@ -38,6 +39,7 @@ lessampler renders singing from UTAU `.ust` projects. It implements the resample
 - WORLD analysis and synthesis with `.lessaudio` sidecars.
 - Selectable F0: Harvest, DIO, LLSM refinement, and optional RMVPE.
 - Optional LLSM and NHVSing-compatible neural backends.
+- Automatic breath, vibrato, and portamento in the UST host, plus clear/cry/growl voice colors with per-note morph.
 - `lessampler`, a single binary with the resampler, the UTAU wavtool and the CLI.
 - Whole-song neural polish and feature-level neural assembly.
 - A standardized SingMOS-Pro and objective quality report.

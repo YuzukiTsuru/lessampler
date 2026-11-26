@@ -24,7 +24,7 @@ The envelope is piecewise linear:
 0 → v1 → v2     → v5        → v3       → v4    → 0
 ```
 
-`%` in a UST envelope is the overlap placeholder. PBM shapes and VBR are not implemented; the bundled data UST uses neither.
+`%` in a UST envelope is the overlap placeholder. PBM pitch-bend shapes are not applied. UST `VBR` vibrato is applied on the note tail; plain long notes receive automatic vibrato and adjacent plain notes receive automatic portamento unless disabled. See [Expression and voice color](expression.md).
 
 ## Host usage
 
@@ -53,12 +53,15 @@ python3 scripts/render_ust.py \
 
 `--master` selects the final tone and level preset: `none`, `natural` (limiter only), `warm` (default), or `power`. Names are case-insensitive and the preset factory validates them; an invalid `master` in a plan fails at parse time. The warm chain adds a 40 Hz high-pass, a low shelf, a presence peak, gentle compression, parallel saturation, and a -1 dBFS look-ahead limiter. Use `--master none` to compare against the old raw mix.
 
+`--expression <file.toml>` configures automatic breath, vibrato, and portamento. `--auto-breath`/`--auto-vibrato`/`--auto-portamento` and their `--no-...` forms override the file or built-in defaults. The features only fill gaps: an explicit UST `VBR`, `PBS`/`PBW`/`PBY`, or breath marker always wins. Voice color travels in UST `Flags` through `[style]` in `lessampler.less` or `<voicebank>/lessvoice.less`; see [Expression and voice color](expression.md).
+
 `lessampler --f0 <in.wav> <out.csv>` exports the selected F0 estimator's track as `time_ms,f0_hz` for external analysis; `[f0] estimator` and `[audio_model] backend` control which estimator `auto` resolves to.
 
 ## Limitations
 
-- 13 `x` breath notes are skipped because the bundled voicebank has no matching oto alias.
-- PBM pitch-bend shapes are not applied. UST `VBR` vibrato is applied on the note tail.
+- Explicit breath notes (`x`, `息`, `吸`, `吐`, `・`, `breath`) are rendered from a matching breath alias when one exists; a voicebank without a breath sample gets synthesized filtered noise.
+- PBM pitch-bend shapes are not applied. UST `VBR` vibrato is applied on the note tail; automatic vibrato and portamento are enabled by default but skip notes with explicit UST curves.
+- `--feature` and `--polish` re-estimate features from the note WAVs. Per-note voice color is baked into those WAVs but may be weakened by the re-render.
 - A fixed/consonant region longer than the wavtool segment is capped to keep at least 30 ms of vowel; the host prints a warning for each capped note.
 - The wavtool does not phase-align segments; the overlap crossfade is the classic behaviour.
 - AutoAMP normalizes each rendered note to `0.5 * volume`, so relative dynamics are flattened; the master chain restores macro dynamics.

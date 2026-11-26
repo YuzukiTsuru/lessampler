@@ -31,6 +31,12 @@ Vocoder           backend factory
 
 The optional F0 targets never link `VocoderCommon` back; `LlsmF0Estimator` constructs `WorldF0Estimator` directly, and `RmvpeModel` does not include the vocoder model. This keeps the target graph acyclic. The resolved estimator and its parameters are part of `Config::fingerprint()`; see [Source and cache](../processing/source.md).
 
+## Expression layers
+
+Voice color is not a factory axis. `RenderParams.style` carries additive clear/cry/growl weights; WORLD and LLSM apply the spectral part per output frame, and `RenderEngine` applies `GrowlShaper` after any backend. Style is synthesis-only and stays out of `Config::fingerprint()`, so changing a color or a per-note `C>Y` morph reuses the analysis cache.
+
+Automatic breath, vibrato, and portamento live in `scripts/render_ust.py`, not in the resampler. They need the song context that a per-note process does not have, and they only fill gaps left by explicit UST data.
+
 ## Caches
 
 All caches are sidecars next to the source WAV. Both formats are little-endian, versioned, and store a config fingerprint and the source size/mtime.
