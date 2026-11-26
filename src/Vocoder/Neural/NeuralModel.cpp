@@ -26,15 +26,11 @@
 #include "Core/Exception.h"
 #include "Core/Log.h"
 #include "Core/Timer.h"
+#include "Vocoder/Common/OnnxEnv.h"
 
 namespace lessampler {
 
     namespace {
-
-        Ort::Env &environment() {
-            static Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "lessampler");
-            return env;
-        }
 
         std::string canonical_key(const std::filesystem::path &path) {
             std::error_code error;
@@ -57,7 +53,8 @@ namespace lessampler {
         std::filesystem::path model_path;
 
         Impl(const std::filesystem::path &path, int threads, NeuralVocoderSpec vocoder)
-            : session(environment(), path.c_str(), make_options(threads)), spec(std::move(vocoder)), model_path(path) {
+            : session(OnnxEnvironment(), path.c_str(), make_options(threads)), spec(std::move(vocoder)),
+              model_path(path) {
             collect_names();
         }
 

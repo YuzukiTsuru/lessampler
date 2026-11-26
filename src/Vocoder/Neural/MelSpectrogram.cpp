@@ -20,6 +20,7 @@
 #include <world/fft.h>
 
 #include "Core/Exception.h"
+#include "Vocoder/Common/Resample.h"
 
 namespace lessampler {
 
@@ -162,46 +163,7 @@ namespace lessampler {
     }
 
     std::vector<double> MelSpectrogram::Resample(std::span<const double> samples, int from_rate, int to_rate) {
-        if (from_rate <= 0 || to_rate <= 0) {
-            throw parameter_error("Invalid sample rate for resampling");
-        }
-        if (samples.empty() || from_rate == to_rate) {
-            return std::vector<double>(samples.begin(), samples.end());
-        }
-
-        const double ratio = static_cast<double>(to_rate) / static_cast<double>(from_rate);
-        const auto output_length = static_cast<std::size_t>(std::llround(static_cast<double>(samples.size()) * ratio));
-        std::vector<double> output(output_length, 0.0);
-
-        constexpr int half_taps = 16;
-        const double cutoff = std::min(1.0, ratio) * 0.97;
-
-        for (std::size_t n = 0; n < output_length; ++n) {
-            const double position = static_cast<double>(n) / ratio;
-            const auto center = static_cast<std::ptrdiff_t>(std::floor(position));
-            double sum = 0.0;
-            double weight_sum = 0.0;
-            for (int tap = -half_taps + 1; tap <= half_taps; ++tap) {
-                const auto index = center + tap;
-                if (index < 0 || static_cast<std::size_t>(index) >= samples.size()) {
-                    continue;
-                }
-                const double distance = position - static_cast<double>(index);
-                if (std::abs(distance) >= half_taps) {
-                    continue;
-                }
-                const double window = 0.5 + 0.5 * std::cos(std::numbers::pi * distance / half_taps);
-                const double sinc = std::abs(distance) < 1e-12
-                                            ? 1.0
-                                            : std::sin(std::numbers::pi * cutoff * distance) /
-                                                      (std::numbers::pi * cutoff * distance);
-                const double weight = cutoff * sinc * window;
-                sum += samples[static_cast<std::size_t>(index)] * weight;
-                weight_sum += weight;
-            }
-            output[n] = weight_sum == 0.0 ? 0.0 : sum / weight_sum;
-        }
-        return output;
+        return lessampler::Resample(samples, from_rate, to_rate);
     }
 
     std::vector<float> MelSpectrogram::Extract(std::span<const double> samples, int source_rate,

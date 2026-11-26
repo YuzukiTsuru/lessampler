@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <numbers>
@@ -16,6 +17,7 @@
 #include "Config/Config.h"
 #include "Core/Exception.h"
 #include "Vocoder/Common/F0Estimator.h"
+#include "Vocoder/Common/Resample.h"
 
 using namespace lessampler;
 
@@ -175,6 +177,49 @@ int main() {
         }
         const auto llsm_repeated = llsm_estimator->Estimate(samples, fs, llsm_config);
         CHECK(llsm_repeated.f0 == llsm_track.f0);
+    }
+
+    {
+        F0Track constant;
+        constant.frame_period = 10.0;
+        constant.f0.assign(2, 100.0);
+        constant.time_axis = {0.0, 0.01};
+        const auto resampled = ResampleF0Track(constant, 1600, 16000, 5.0);
+        CHECK_EQ(resampled.f0.size(), static_cast<std::size_t>(1000 * 1600 / 16000 / 5 + 1));
+        CHECK_EQ(resampled.f0.size(), resampled.time_axis.size());
+        for (double value: resampled.f0) {
+            CHECK_NEAR(value, 100.0, 1e-12);
+        }
+
+        F0Track ramp;
+        ramp.frame_period = 10.0;
+        ramp.f0 = {100.0, 200.0};
+        ramp.time_axis = {0.0, 0.01};
+        const auto midpoint = ResampleF0Track(ramp, 160, 16000, 5.0);
+        REQUIRE(midpoint.f0.size() >= 3);
+        CHECK_NEAR(midpoint.f0[0], 100.0, 1e-12);
+        CHECK_NEAR(midpoint.f0[1], 150.0, 1e-12);
+        CHECK_NEAR(midpoint.f0[2], 200.0, 1e-12);
+
+        F0Track mixed;
+        mixed.frame_period = 10.0;
+        mixed.f0 = {100.0, 0.0};
+        mixed.time_axis = {0.0, 0.01};
+        const auto boundary = ResampleF0Track(mixed, 1600, 16000, 10.0);
+        REQUIRE(!boundary.f0.empty());
+        CHECK_NEAR(boundary.f0.front(), 100.0, 1e-12);
+        CHECK_NEAR(boundary.f0.back(), 0.0, 1e-12);
+    }
+
+    if (const char *model = std::getenv("LESSAMPLER_RMVPE_MODEL"); model != nullptr && *model != '\0') {
+        Config neural;
+        neural.f0_estimator = F0EstimatorKind::neural;
+        neural.f0_neural_model_path = model;
+        auto estimator = CreateF0Estimator(F0EstimatorKind::neural, neural);
+        const auto track = estimator->Estimate(samples, fs, neural);
+        CHECK_EQ(track.f0.size(), track.time_axis.size());
+        CHECK(!track.f0.empty());
+        CHECK_NEAR(average_voiced_f0(track), frequency, 30.0);
     }
 
     Config harvest_config;
