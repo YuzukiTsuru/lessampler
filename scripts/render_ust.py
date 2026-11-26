@@ -18,6 +18,11 @@ import tempfile
 import wave
 from pathlib import Path
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11
+    tomllib = None
+
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 NOTE_OFFSETS = {name: index for index, name in enumerate(NOTE_NAMES)}
 PITCH_SUFFIX = re.compile(r"([A-G]#?-?\d)$")
@@ -278,6 +283,152 @@ def parse_vbr(note: dict[str, str]) -> tuple[float, float, float, float, float, 
     return length, period, depth, fade_in, fade_out, phase
 
 
+def default_expression() -> dict[str, dict[str, object]]:
+    """Automatic expression defaults. Every feature only fills a gap."""
+    return {
+        "breath": {
+            "enabled": True,
+            "min_gap_ms": 180.0,
+            "max_ms": 600.0,
+            "level": 0.30,
+        },
+        "vibrato": {
+            "enabled": True,
+            "min_duration_ms": 600.0,
+            "delay_ms": 180.0,
+            "fade_ms": 200.0,
+            "rate_hz": 5.4,
+            "depth_cents": 28.0,
+        },
+        "portamento": {
+            "enabled": True,
+            "max_gap_ms": 200.0,
+            "max_semitones": 12.0,
+            "glide_ms": 70.0,
+        },
+    }
+
+
+def load_expression(path: Path | None) -> dict[str, dict[str, object]]:
+    """Load an optional expression.toml on top of the built-in defaults."""
+    expression = default_expression()
+    if path is None:
+        return expression
+    if tomllib is None:
+        print("[warn] tomllib unavailable; ignoring --expression", file=sys.stderr)
+        return expression
+    try:
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, tomllib.TOMLDecodeError) as error:
+        raise SystemExit(f"cannot read expression config {path}: {error}") from error
+
+    for section, defaults in expression.items():
+        table = data.get(section)
+        if not isinstance(table, dict):
+            continue
+        for key, default in defaults.items():
+            if key not in table:
+                continue
+            value = table[key]
+            if isinstance(default, bool):
+                if isinstance(value, bool):
+                    defaults[key] = value
+            else:
+                try:
+                    defaults[key] = float(value)
+                except (TypeError, ValueError):
+                    continue
+
+    expression["breath"]["min_gap_ms"] = max(0.0, float(expression["breath"]["min_gap_ms"]))
+    expression["breath"]["max_ms"] = max(1.0, float(expression["breath"]["max_ms"]))
+    expression["breath"]["level"] = max(0.0, min(1.0, float(expression["breath"]["level"])))
+    vibrato = expression["vibrato"]
+    vibrato["min_duration_ms"] = max(0.0, float(vibrato["min_duration_ms"]))
+    vibrato["delay_ms"] = max(0.0, float(vibrato["delay_ms"]))
+    vibrato["fade_ms"] = max(0.0, float(vibrato["fade_ms"]))
+    vibrato["rate_hz"] = max(0.5, min(20.0, float(vibrato["rate_hz"])))
+    vibrato["depth_cents"] = max(0.0, min(200.0, float(vibrato["depth_cents"])))
+    portamento = expression["portamento"]
+    portamento["max_gap_ms"] = max(0.0, float(portamento["max_gap_ms"]))
+    portamento["max_semitones"] = max(0.0, min(48.0, float(portamento["max_semitones"])))
+    portamento["glide_ms"] = max(0.0, float(portamento["glide_ms"]))
+    return expression
+
+
+def has_pitch_curve(note: dict[str, str]) -> bool:
+    return bool(pitch_points(note))
+
+
+def auto_vibrato(duration_ms: float,
+                 options: dict[str, object]) -> tuple[float, float, float, float, float, float] | None:
+    if not bool(options.get("enabled", True)):
+        return None
+    if duration_ms < float(options.get("min_duration_ms", 600.0)):
+        return None
+    delay = max(0.0, float(options.get("delay_ms", 180.0)))
+    vibrato_ms = duration_ms - delay
+    if vibrato_ms <= 0.0:
+        return None
+    fade_ms = max(0.0, float(options.get("fade_ms", 200.0)))
+    rate = max(0.5, min(20.0, float(options.get("rate_hz", 5.4))))
+    depth = max(0.0, min(200.0, float(options.get("depth_cents", 28.0))))
+    if depth <= 0.0:
+        return None
+    length = 100.0 * vibrato_ms / duration_ms
+    period = 1000.0 / rate
+    fade_in = 100.0 * min(fade_ms, vibrato_ms) / vibrato_ms
+    return length, period, depth, fade_in, 0.0, 0.0
+
+
+def effective_vbr(note: dict[str, str],
+                  duration_ms: float,
+                  expression: dict[str, dict[str, object]] | None = None
+                  ) -> tuple[float, float, float, float, float, float] | None:
+    """Explicit UST VBR wins; otherwise synthesize one for a long plain note."""
+    if note.get("VBR", "").strip():
+        # A present VBR field is a manual decision, even when it is zero or
+        # malformed. Do not override it with automatic vibrato.
+        return parse_vbr(note)
+    if has_pitch_curve(note):
+        return None
+    options = expression["vibrato"] if expression is not None else default_expression()["vibrato"]
+    return auto_vibrato(duration_ms, options)
+
+
+def auto_portamento_glide(note: dict[str, str],
+                          previous_midi: int | None,
+                          midi: int,
+                          gap_ms: float,
+                          duration_ms: float,
+                          options: dict[str, object]) -> float | None:
+    """Return a glide length when the note has no explicit pitch curve."""
+    if not bool(options.get("enabled", True)) or previous_midi is None:
+        return None
+    if has_pitch_curve(note):
+        return None
+    if gap_ms > float(options.get("max_gap_ms", 200.0)):
+        return None
+    if abs(previous_midi - midi) > float(options.get("max_semitones", 12.0)):
+        return None
+    glide = max(0.0, float(options.get("glide_ms", 70.0)))
+    if glide <= 0.0 or duration_ms < glide:
+        return None
+    return glide
+
+
+def fallback_pitch_points(start_ms: float,
+                          previous_end: float,
+                          glide_ms: float | None) -> list[tuple[float, float]]:
+    """Hold the previous pitch, then glide into the note when auto is on."""
+    default = [(start_ms, previous_end), (0.0, 0.0)]
+    if glide_ms is None or previous_end == 0.0:
+        return default
+    glide_start = max(start_ms, -glide_ms)
+    if glide_start <= start_ms:
+        return default
+    return [(start_ms, previous_end), (glide_start, previous_end), (0.0, 0.0)]
+
+
 def vibrato_cents(vbr: tuple[float, float, float, float, float, float] | None,
                   time_ms: float, duration_ms: float) -> float:
     if vbr is None or duration_ms <= 0.0 or time_ms <= 0.0 or time_ms > duration_ms:
@@ -326,9 +477,11 @@ def pitchbend_string(
     start_ms: float,
     previous_end: float,
     duration_ms: float,
+    expression: dict[str, dict[str, object]] | None = None,
+    portamento_ms: float | None = None,
 ) -> str:
     points = pitch_points(note)
-    vbr = parse_vbr(note)
+    vbr = effective_vbr(note, duration_ms, expression)
     if not points:
         # The buffer head is the previous note's VCV vowel. Without a UST
         # pitch curve it must still carry the previous pitch until the note
@@ -336,7 +489,7 @@ def pitchbend_string(
         # note's pitch.
         if vbr is None and (previous_end == 0.0 or start_ms >= 0.0):
             return ""
-        points = [(start_ms, previous_end), (0.0, 0.0)]
+        points = fallback_pitch_points(start_ms, previous_end, portamento_ms)
     elif points[0][0] > 0.0:
         points = [(0.0, 0.0)] + points
 
@@ -398,6 +551,12 @@ def render(args: argparse.Namespace) -> None:
     wavtool = find_wavtool(args.lessampler, args.wavtool)
     if not wavtool.is_file():
         raise SystemExit(f"wavtool binary not found: {wavtool}")
+
+    expression = load_expression(args.expression)
+    for name in ("breath", "vibrato", "portamento"):
+        override = getattr(args, f"auto_{name}", None)
+        if override is not None:
+            expression[name]["enabled"] = override
 
     prefix_map = parse_prefix_map(args.voicebank)
     sample_rates: dict[Path, int] = {}
@@ -553,6 +712,17 @@ def render(args: argparse.Namespace) -> None:
             previous_midi = int(previous["_midi"]) if previous is not None else None
             previous_duration = float(previous["_duration"]) if previous is not None else 0.0
             hold = previous_pitch_context(note, midi, previous_midi, previous, previous_duration)
+            portamento_ms = None
+            if previous is not None and previous_midi is not None:
+                gap_ms = start_ms - (float(previous["_start"]) + previous_duration)
+                portamento_ms = auto_portamento_glide(
+                    note,
+                    previous_midi,
+                    midi,
+                    gap_ms,
+                    duration_ms,
+                    expression["portamento"],
+                )
             pitch = pitchbend_string(
                 note,
                 required,
@@ -561,6 +731,8 @@ def render(args: argparse.Namespace) -> None:
                 -(p_eff + skip),
                 hold,
                 duration_ms,
+                expression,
+                portamento_ms,
             )
 
             output = temporary / f"note-{idx:04d}.wav"
@@ -671,6 +843,20 @@ def main() -> int:
                         help="assemble mel/F0 features and run the vocoder once (requires [neural] model_path)")
     parser.add_argument("--master", choices=["none", "natural", "warm", "power"], default="warm",
                         help="final tone/level preset (default: warm; use none for the old raw mix)")
+    parser.add_argument("--expression", type=Path, default=None,
+                        help="optional expression.toml for automatic breath/vibrato/portamento")
+    parser.add_argument("--auto-breath", dest="auto_breath", action="store_true", default=None,
+                        help="insert breath segments into phrase gaps (default: on)")
+    parser.add_argument("--no-auto-breath", dest="auto_breath", action="store_false",
+                        help="disable automatic breath insertion")
+    parser.add_argument("--auto-vibrato", dest="auto_vibrato", action="store_true", default=None,
+                        help="synthesize vibrato for plain long notes (default: on)")
+    parser.add_argument("--no-auto-vibrato", dest="auto_vibrato", action="store_false",
+                        help="disable automatic vibrato")
+    parser.add_argument("--auto-portamento", dest="auto_portamento", action="store_true", default=None,
+                        help="glide into notes without a UST pitch curve (default: on)")
+    parser.add_argument("--no-auto-portamento", dest="auto_portamento", action="store_false",
+                        help="keep the legacy first-note pitch fallback")
     args = parser.parse_args()
     if args.polish and args.feature:
         parser.error("--polish and --feature are mutually exclusive")

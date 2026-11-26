@@ -173,6 +173,14 @@ lessampler_add_test(EndToEndTest integration)
 
 find_package(Python3 COMPONENTS Interpreter QUIET)
 if (Python3_Interpreter_FOUND)
+    add_test(NAME ExpressionTest
+            COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/test_expression.py")
+    set_tests_properties(ExpressionTest PROPERTIES
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+            LABELS "unit"
+            TIMEOUT 60
+    )
+
     set(LESSAMPLER_QUALITY_EVAL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/quality/evaluate.py")
     set(LESSAMPLER_QUALITY_FIXTURE "${CMAKE_CURRENT_SOURCE_DIR}/quality/fixture.ust")
 
