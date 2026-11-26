@@ -59,7 +59,7 @@ python3 scripts/render_ust.py \
 
 ## Limitations
 
-- Explicit breath notes (`x`, `息`, `吸`, `吐`, `・`, `breath`) are rendered from a matching breath alias when one exists; a voicebank without a breath sample gets synthesized filtered noise.
+- Explicit breath notes (`x`, `息`, `吸`, `吐`, `・`, `breath`, or an alias lyric containing `R息`/`R吐`) are rendered from a matching breath alias when one exists; a voicebank without a breath sample gets synthesized filtered noise.
 - PBM pitch-bend shapes are not applied. UST `VBR` vibrato is applied on the note tail; automatic vibrato and portamento are enabled by default but skip notes with explicit UST curves.
 - `--feature` and `--polish` re-estimate features from the note WAVs. Per-note voice color is baked into those WAVs but may be weakened by the re-render.
 - A fixed/consonant region longer than the wavtool segment is capped to keep at least 30 ms of vowel; the host prints a warning for each capped note.

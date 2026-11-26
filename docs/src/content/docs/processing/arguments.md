@@ -83,7 +83,7 @@ The parser throws when the offset and last-unused section exceed the sample, whe
 | --- | --- |
 | `Tempo` | BPM; default 120 |
 | `Length` | note length in ticks; 480 ticks per quarter |
-| `Lyric` | `R` is a rest; `x`, `息`, `吸`, `吐`, `・`, and `breath` are breath markers handled by the host |
+| `Lyric` | `R` is a rest; `x`, `息`, `吸`, `吐`, `・`, `breath`, and `R息`/`R吐` alias lyrics are breath markers handled by the host |
 | `NoteNum` | MIDI note number |
 | `Velocity` | 0-200, default 100; passed as argv[4] |
 | `PreUtterance` | absolute preutterance override in ms |

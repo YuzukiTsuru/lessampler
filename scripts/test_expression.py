@@ -81,10 +81,17 @@ class PortamentoTest(unittest.TestCase):
 
 class BreathTest(unittest.TestCase):
     def test_breath_lyric_detection(self) -> None:
-        for lyric in ("x", "X", "息", "吸", "吐", "・", "breath", "?x"):
+        for lyric in ("x", "X", "息", "吸", "吐", "・", "breath", "?x", "a R吐", "e R息F4"):
             self.assertTrue(ru.is_breath_lyric(lyric), lyric)
         for lyric in ("R", "あ", "a", ""):
             self.assertFalse(ru.is_breath_lyric(lyric), lyric)
+
+    def test_breath_alias_from_lyric(self) -> None:
+        self.assertEqual(ru.breath_alias("a R吐"), "a R吐")
+        self.assertEqual(ru.breath_alias("e R息F4"), "e R息")
+        self.assertEqual(ru.breath_alias("?i R吐A3"), "i R吐")
+        self.assertIsNone(ru.breath_alias("x"))
+        self.assertIsNone(ru.breath_alias("あ"))
 
     def test_breath_vowel(self) -> None:
         self.assertEqual(ru.breath_vowel("あ"), "a")
@@ -101,6 +108,7 @@ class BreathTest(unittest.TestCase):
             {"Lyric": "あ"},
             {"Lyric": "x"},
             {"Lyric": "R"},
+            {"Lyric": "a R吐"},
             {"Lyric": "い"},
         ]
         self.assertEqual(ru.surrounding_lyric(notes, 1), "い")
@@ -125,6 +133,9 @@ class BreathTest(unittest.TestCase):
         self.assertIsNotNone(selected)
         self.assertEqual(selected["base"], "a R息")
         self.assertEqual(ru.find_breath_entry(entries, None, 60, {})["base"], "a R息")
+        requested = ru.find_breath_entry(entries, None, 60, {}, "a R吐")
+        self.assertIsNotNone(requested)
+        self.assertEqual(requested["base"], "a R吐")
 
     def test_synth_breath_is_deterministic_and_bounded(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

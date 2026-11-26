@@ -75,9 +75,9 @@ The shape holds the previous pitch, glides into the note over `glide_ms` (defaul
 
 ## Automatic breath
 
-The host recognizes explicit breath notes by lyric: `x`, `息`, `吸`, `吐`, `・`, or `breath`. `R` stays a rest. Explicit breath notes are rendered even with `--no-auto-breath`, and they do not become the pitch context for the next sung note.
+The host recognizes explicit breath notes by lyric: `x`, `息`, `吸`, `吐`, `・`, or `breath`, plus alias lyrics that contain `R息` or `R吐` such as `a R吐`. `R` stays a rest. Explicit breath notes are rendered even with `--no-auto-breath`, and they do not become the pitch context for the next sung note.
 
-For each explicit breath, the host looks at the nearest sung lyric and tries the voicebank alias `<vowel> R息`, then `<vowel> R吐`, then a generic `R息`/`R吐`/`・`/`breath` entry. If no sample is usable at the render sample rate, it writes deterministic filtered noise as a fallback. The fallback is a placeholder, not a recorded breath.
+For an explicit alias lyric, the host uses that alias directly. Otherwise it looks at the nearest sung lyric and tries `<vowel> R息`, then `<vowel> R吐`, then a generic `R息`/`R吐`/`・`/`breath` entry. If no sample is usable at the render sample rate, it writes deterministic filtered noise as a fallback. The fallback is a placeholder, not a recorded breath.
 
 Automatic insertion runs after preutterance handling, so it never changes the ACPT values of sung notes. A gap gets one breath when:
 

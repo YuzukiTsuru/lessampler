@@ -575,7 +575,20 @@ def find_wavtool(lessampler: Path, explicit: Path | None) -> Path:
 
 
 def is_breath_lyric(lyric: str) -> bool:
-    return lyric.strip().lstrip("?").lower() in BREATH_LYRIC_TOKENS
+    text = lyric.strip().lstrip("?")
+    if text.lower() in BREATH_LYRIC_TOKENS:
+        return True
+    lower = text.lower()
+    return any(token.lower() in lower for token in BREATH_ALIAS_TOKENS)
+
+
+def breath_alias(lyric: str) -> str | None:
+    """Return an explicit alias such as "a R吐" from the lyric, if present."""
+    text = lyric.strip().lstrip("?")
+    lower = text.lower()
+    if not any(token.lower() in lower for token in BREATH_ALIAS_TOKENS):
+        return None
+    return strip_pitch(text)[0].strip()
 
 
 def breath_vowel(lyric: str) -> str | None:
@@ -622,8 +635,11 @@ def find_breath_entry(
     vowel: str | None,
     midi: int,
     prefix_map: dict[str, str],
+    requested: str | None = None,
 ) -> dict[str, object] | None:
     aliases: list[str] = []
+    if requested:
+        aliases.append(requested)
     if vowel:
         aliases.extend(f"{vowel} {token}" for token in BREATH_ALIAS_TOKENS)
     aliases.extend(BREATH_ALIAS_TOKENS)
@@ -835,6 +851,7 @@ def render(args: argparse.Namespace) -> None:
                 breath_events.append(
                     {
                         "index": index,
+                        "lyric": lyric,
                         "start": start_ms,
                         "duration": duration_ms,
                         "midi": midi,
@@ -1029,9 +1046,10 @@ def render(args: argparse.Namespace) -> None:
         breaths_added = 0
         for event in breath_events:
             event_index = int(event["index"])
+            requested = breath_alias(str(event.get("lyric", "")))
             lyric = surrounding_lyric(notes, event_index)
             vowel = breath_vowel(lyric) if lyric else None
-            entry = find_breath_entry(entries, vowel, int(event["midi"]), prefix_map)
+            entry = find_breath_entry(entries, vowel, int(event["midi"]), prefix_map, requested)
             segment = make_breath_segment(
                 args.lessampler,
                 temporary,
