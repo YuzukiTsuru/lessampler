@@ -151,6 +151,32 @@ int main() {
         CHECK(repeated.time_axis == track.time_axis);
     }
 
+    if (llsm_available) {
+        Config llsm_config;
+        llsm_config.f0_estimator = F0EstimatorKind::llsm;
+        llsm_config.f0_harvest_floor = 71.0;
+
+        Config harvest_config_for_compare;
+        harvest_config_for_compare.f0_estimator = F0EstimatorKind::harvest;
+        harvest_config_for_compare.f0_harvest_floor = 71.0;
+        const auto harvest_track = CreateF0Estimator(F0EstimatorKind::harvest, harvest_config_for_compare)
+                                           ->Estimate(samples, fs, harvest_config_for_compare);
+
+        auto llsm_estimator = CreateF0Estimator(F0EstimatorKind::llsm, llsm_config);
+        CHECK_EQ(llsm_estimator->name(), "llsm");
+        const auto llsm_track = llsm_estimator->Estimate(samples, fs, llsm_config);
+        CHECK_EQ(llsm_track.f0.size(), harvest_track.f0.size());
+        CHECK_EQ(llsm_track.time_axis.size(), llsm_track.f0.size());
+        CHECK_NEAR(average_voiced_f0(llsm_track), frequency, 20.0);
+        for (std::size_t i = 0; i < llsm_track.f0.size(); ++i) {
+            if (harvest_track.f0[i] == 0.0) {
+                CHECK_EQ(llsm_track.f0[i], 0.0);
+            }
+        }
+        const auto llsm_repeated = llsm_estimator->Estimate(samples, fs, llsm_config);
+        CHECK(llsm_repeated.f0 == llsm_track.f0);
+    }
+
     Config harvest_config;
     harvest_config.f0_estimator = F0EstimatorKind::harvest;
     const auto harvest_fingerprint = harvest_config.fingerprint();

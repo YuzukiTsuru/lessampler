@@ -167,6 +167,22 @@ if (LESSAMPLER_ENABLE_LLSM)
     )
     target_link_libraries(VocoderLlsm PRIVATE llsm2)
     target_compile_definitions(VocoderLlsm PRIVATE LESSAMPLER_ENABLE_LLSM=1)
+
+    add_library(VocoderF0Llsm STATIC
+            Common/LlsmF0Estimator.cpp
+            Common/LlsmF0Estimator.h
+    )
+    target_link_libraries(VocoderF0Llsm PUBLIC
+            VocoderF0Api
+            VocoderF0World
+            Core
+            Config
+    )
+    target_link_libraries(VocoderF0Llsm PRIVATE llsm2)
+
+    target_link_libraries(VocoderCommon PUBLIC VocoderF0Llsm)
+    target_link_libraries(VocoderCommon PUBLIC "$<LINK_ONLY:llsm2>")
+    target_compile_definitions(VocoderCommon PRIVATE LESSAMPLER_ENABLE_LLSM=1)
 endif ()
 
 add_library(Vocoder STATIC
