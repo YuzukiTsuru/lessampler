@@ -51,9 +51,9 @@ python3 scripts/render_ust.py \
 
 `--wavtool` overrides the concatenation binary and defaults to the `--lessampler` binary. `--polish` adds whole-song neural resynthesis and keeps the raw mix as `<output>-mix.wav`. `--feature` instead assembles per-note mel/F0 features and runs the vocoder once; it is mutually exclusive with `--polish`. Without either, the wavtool overlap is the final stage.
 
-`--master` selects the final tone and level preset: `none`, `natural` (limiter only), `warm` (default), or `power`. The warm chain adds a 40 Hz high-pass, a low shelf, a presence peak, gentle compression, parallel saturation, and a -1 dBFS look-ahead limiter. Use `--master none` to compare against the old raw mix.
+`--master` selects the final tone and level preset: `none`, `natural` (limiter only), `warm` (default), or `power`. Names are case-insensitive and the preset factory validates them; an invalid `master` in a plan fails at parse time. The warm chain adds a 40 Hz high-pass, a low shelf, a presence peak, gentle compression, parallel saturation, and a -1 dBFS look-ahead limiter. Use `--master none` to compare against the old raw mix.
 
-`lessampler --f0 <in.wav> <out.csv>` exports the configured F0 track as `time_ms,f0_hz` for external analysis.
+`lessampler --f0 <in.wav> <out.csv>` exports the selected F0 estimator's track as `time_ms,f0_hz` for external analysis; `[f0] estimator` and `[audio_model] backend` control which estimator `auto` resolves to.
 
 ## Limitations
 

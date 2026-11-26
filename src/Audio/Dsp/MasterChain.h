@@ -12,7 +12,10 @@
 #define LESSAMPLER_DSP_MASTERCHAIN_H
 
 #include <span>
+#include <string>
 #include <string_view>
+
+#include "Core/MasterPresetKind.h"
 
 namespace lessampler {
 
@@ -36,6 +39,12 @@ namespace lessampler {
 
         [[nodiscard]] static MasterOptions Preset(std::string_view name);
     };
+
+    [[nodiscard]] MasterOptions CreateMasterOptions(MasterPresetKind kind);
+
+    [[nodiscard]] MasterOptions CreateMasterOptions(std::string_view name);
+
+    [[nodiscard]] std::string AvailableMasterPresets();
 
     class MasterChain {
     public:

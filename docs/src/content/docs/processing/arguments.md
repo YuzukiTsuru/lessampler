@@ -172,11 +172,12 @@ $$
 | --- | --- |
 | `[config]` | `version`, `debug` |
 | `[audio_model]` | `backend`, `frame_period`, `fft_size`, `model_amp` |
-| `[f0]` | `f0_mode`, `f0_speed`, `f0_dio_floor`, `f0_harvest_floor`, `f0_cheap_trick_floor`, `f0_allow_range` |
+| `[f0]` | `estimator`, `f0_speed`, `f0_dio_floor`, `f0_harvest_floor`, `f0_ceil`, `f0_cheap_trick_floor`, `f0_allow_range`, `neural_model_path`, `neural_threads`, `neural_threshold`, `neural_floor`, `neural_ceil` |
 | `[ap]` | `ap_threshold` |
-| `[neural]` | `model_path`, `threads`, `target_rms` |
+| `[neural]` | `preset`, `model_path`, `threads`, `target_rms`, and the vocoder contract fields |
+| `[master]` | `preset` |
 
-`ConfigResolver` loads the global file and merges `<voicebank>/lessvoice.less`; the resolved config is cached per voicebank directory. `audio_model.backend` is `world`, `llsm` or `neural`; selecting a backend that was not compiled in throws.
+`ConfigResolver` loads the global file and merges `<voicebank>/lessvoice.less`; the resolved config is cached per voicebank directory. `audio_model.backend` is `world`, `llsm` or `neural`; selecting a backend that was not compiled in throws. `[f0] estimator` is `auto`, `harvest`, `dio`, `llsm`, or `neural`; `auto` follows the backend and falls back to Harvest when the optional estimator is unavailable. `f0_mode` remains a deprecated alias.
 
 The output of this stage is `RenderParams` plus the effective `Config`.
 

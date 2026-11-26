@@ -16,16 +16,18 @@
 
 #include "Audio/AutoAMP.h"
 #include "Core/Log.h"
+#include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/World/WorldModelBuilder.h"
 #include "Vocoder/World/WorldModelCache.h"
 
 namespace lessampler {
 
     WorldModel LoadOrBuildWorldModel(const SampleSource &source, const Config &configure, int max_workers) {
+        const auto resolved = ResolveF0EstimatorConfig(configure, configure.vocoder);
         WorldModelCache cache(source.path());
-        if (cache.CheckAudioModel(configure)) {
+        if (cache.CheckAudioModel(resolved)) {
             try {
-                return cache.ReadAudioModel(configure);
+                return cache.ReadAudioModel(resolved);
             } catch (const std::exception &error) {
                 LOG_WARN << "Cannot read WORLD model cache, rebuilding: " + std::string(error.what());
             }
@@ -33,15 +35,15 @@ namespace lessampler {
 
         std::span<const double> samples = source.samples();
         std::vector<double> amplified;
-        if (configure.model_amp != 0.0) {
+        if (resolved.model_amp != 0.0) {
             amplified.assign(samples.begin(), samples.end());
-            AutoAMP::ApplyInPlace(amplified, configure.model_amp);
+            AutoAMP::ApplyInPlace(amplified, resolved.model_amp);
             samples = amplified;
         }
 
-        auto model = BuildWorldModel(samples, source.info().sample_rate, configure, max_workers);
+        auto model = BuildWorldModel(samples, source.info().sample_rate, resolved, max_workers);
         try {
-            WorldModelCache writer(source.path(), model, configure);
+            WorldModelCache writer(source.path(), model, resolved);
             writer.SaveAudioModel();
         } catch (const std::exception &error) {
             LOG_WARN << "Cannot save WORLD model cache: " + std::string(error.what());

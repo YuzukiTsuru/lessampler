@@ -14,18 +14,14 @@
 #include <string>
 #include <string_view>
 
+#include "Config/F0EstimatorKind.h"
+#include "Config/NeuralVocoderSpec.h"
 #include "Config/VocoderKind.h"
 
 namespace lessampler {
 
     class Config {
     public:
-        enum class F0_MODE {
-            F0_MODE_UNKNOWN = 0,
-            F0_MODE_HARVEST = 1,
-            F0_MODE_DIO = 2,
-        };
-
         std::string version;
         bool debug_mode = false;
         VocoderKind vocoder = VocoderKind::world;
@@ -33,7 +29,7 @@ namespace lessampler {
         double audio_model_frame_period = (1000.0 * 256 / 44100);
         bool custom_fft_size = false;
         int fft_size = 1024;
-        F0_MODE f0_mode = F0_MODE::F0_MODE_HARVEST;
+        F0EstimatorKind f0_estimator = F0EstimatorKind::auto_select;
         int f0_speed = 1;
         double f0_dio_floor = 40.0;
         double f0_harvest_floor = 40.0;
@@ -43,6 +39,17 @@ namespace lessampler {
         double ap_threshold = 0.10;
 
         /*
+         * Optional RMVPE F0 estimator. The model maps 16 kHz audio to a
+         * 360-bin salience tensor; it is independent of the neural vocoder
+         * model in [neural].
+         */
+        std::string f0_neural_model_path;
+        int f0_neural_threads = 0;
+        double f0_neural_threshold = 0.03;
+        double f0_neural_floor = 40.0;
+        double f0_neural_ceil = 1200.0;
+
+        /*
      * Optional neural vocoder. The model is an NHVSing-compatible ONNX graph
      * (mel/f0/uv -> waveform). Paths are resolved relative to the config file
      * that defines them.
@@ -50,6 +57,7 @@ namespace lessampler {
         std::string neural_model_path;
         int neural_threads = 0;
         double neural_target_rms = 0.111;
+        NeuralVocoderSpec neural_spec;
 
         /*
          * Final tone/loudness preset for --polish and --feature-plan. It is
@@ -63,10 +71,6 @@ namespace lessampler {
      * .lessaudio files so a configuration change invalidates cached models.
      */
         [[nodiscard]] std::string fingerprint() const;
-
-        [[nodiscard]] static std::string_view f0_mode_name(F0_MODE mode);
-
-        [[nodiscard]] static F0_MODE parse_f0_mode(std::string_view name);
     };
 
 }// namespace lessampler

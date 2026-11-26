@@ -16,9 +16,13 @@
 #include <format>
 #include <fstream>
 #include <optional>
+#include <stdexcept>
+#include <string>
 #include <string_view>
 
 #include "Core/Exception.h"
+#include "Core/Log.h"
+#include "Core/MasterPresetKind.h"
 #include "lessconfig.h"
 
 namespace lessampler {
@@ -83,6 +87,29 @@ namespace lessampler {
                 invalid_value(section, key, "expected an integer");
             }
             invalid_value(section, key, "expected a number");
+        }
+
+        std::string read_string(const toml::table &table, std::string_view section, std::string_view key,
+                                std::string current) {
+            const auto node = table[key];
+            if (!node) {
+                return current;
+            }
+            if (auto value = node.value<std::string>()) {
+                return *value;
+            }
+            invalid_value(section, key, "expected a string");
+        }
+
+        bool read_bool(const toml::table &table, std::string_view section, std::string_view key, bool current) {
+            const auto node = table[key];
+            if (!node) {
+                return current;
+            }
+            if (auto value = node.value<bool>()) {
+                return *value;
+            }
+            invalid_value(section, key, "expected a boolean");
         }
 
         void require_positive(double value, std::string_view section, std::string_view key) {
@@ -154,11 +181,23 @@ namespace lessampler {
         }
 
         if (const auto *section = table["f0"].as_table()) {
-            if (const auto value = (*section)["f0_mode"].value<std::string>()) {
-                configure.f0_mode = Config::parse_f0_mode(*value);
-                if (configure.f0_mode == Config::F0_MODE::F0_MODE_UNKNOWN) {
+            if (const auto value = (*section)["estimator"].value<std::string>()) {
+                const auto kind = ParseF0EstimatorKind(*value);
+                if (!kind) {
+                    invalid_value("f0", "estimator",
+                                  "expected \"auto\", \"harvest\", \"dio\", \"llsm\", or \"neural\"");
+                }
+                configure.f0_estimator = *kind;
+                if ((*section)["f0_mode"]) {
+                    LOG_WARN << "[f0] f0_mode is deprecated and ignored because [f0] estimator is set";
+                }
+            } else if (const auto value = (*section)["f0_mode"].value<std::string>()) {
+                const auto kind = ParseF0EstimatorKind(*value);
+                if (!kind || (*kind != F0EstimatorKind::harvest && *kind != F0EstimatorKind::dio)) {
                     invalid_value("f0", "f0_mode", "expected \"DIO\" or \"HARVEST\"");
                 }
+                configure.f0_estimator = *kind;
+                LOG_WARN << "[f0] f0_mode is deprecated; use [f0] estimator";
             }
             configure.f0_speed = static_cast<int>(read_int(*section, "f0", "f0_speed", configure.f0_speed));
             configure.f0_dio_floor = read_double(*section, "f0", "f0_dio_floor", configure.f0_dio_floor);
@@ -167,6 +206,14 @@ namespace lessampler {
             configure.f0_cheap_trick_floor = read_double(*section, "f0", "f0_cheap_trick_floor",
                                                          configure.f0_cheap_trick_floor);
             configure.f0_allow_range = read_double(*section, "f0", "f0_allow_range", configure.f0_allow_range);
+            configure.f0_neural_model_path = read_string(*section, "f0", "neural_model_path",
+                                                         configure.f0_neural_model_path);
+            configure.f0_neural_threads = static_cast<int>(
+                    read_int(*section, "f0", "neural_threads", configure.f0_neural_threads));
+            configure.f0_neural_threshold = read_double(*section, "f0", "neural_threshold",
+                                                        configure.f0_neural_threshold);
+            configure.f0_neural_floor = read_double(*section, "f0", "neural_floor", configure.f0_neural_floor);
+            configure.f0_neural_ceil = read_double(*section, "f0", "neural_ceil", configure.f0_neural_ceil);
         }
 
         if (const auto *section = table["ap"].as_table()) {
@@ -174,19 +221,63 @@ namespace lessampler {
         }
 
         if (const auto *section = table["neural"].as_table()) {
+            if (const auto preset = (*section)["preset"].value<std::string>()) {
+                if (preset->empty()) {
+                    configure.neural_spec = CreateNeuralVocoderPreset(NeuralVocoderPresetKind::nhv);
+                } else {
+                    const auto kind = ParseNeuralVocoderPresetKind(*preset);
+                    if (!kind) {
+                        invalid_value("neural", "preset", "expected \"nhv\" or \"pc-nsf-hifigan\"");
+                    }
+                    configure.neural_spec = CreateNeuralVocoderPreset(*kind);
+                }
+            }
+            auto &spec = configure.neural_spec;
             if (const auto value = (*section)["model_path"].value<std::string>()) {
                 configure.neural_model_path = *value;
             }
             configure.neural_threads = static_cast<int>(read_int(*section, "neural", "threads", configure.neural_threads));
             configure.neural_target_rms = read_double(*section, "neural", "target_rms", configure.neural_target_rms);
+
+            spec.sample_rate = static_cast<int>(read_int(*section, "neural", "sample_rate", spec.sample_rate));
+            spec.hop_size = static_cast<int>(read_int(*section, "neural", "hop_size", spec.hop_size));
+            spec.fft_size = static_cast<int>(read_int(*section, "neural", "fft_size", spec.fft_size));
+            spec.mel_bins = static_cast<int>(read_int(*section, "neural", "mel_bins", spec.mel_bins));
+            spec.mel_fmin = read_double(*section, "neural", "mel_fmin", spec.mel_fmin);
+            spec.mel_fmax = read_double(*section, "neural", "mel_fmax", spec.mel_fmax);
+            spec.f0_min = read_double(*section, "neural", "f0_min", spec.f0_min);
+            spec.f0_max = read_double(*section, "neural", "f0_max", spec.f0_max);
+            spec.has_f0 = read_bool(*section, "neural", "has_f0", spec.has_f0);
+            spec.has_uv = read_bool(*section, "neural", "has_uv", spec.has_uv);
+            spec.pitch_controllable = read_bool(*section, "neural", "pitch_controllable", spec.pitch_controllable);
+            spec.normalize_mel = read_bool(*section, "neural", "normalize_mel", spec.normalize_mel);
+            spec.mel_input = read_string(*section, "neural", "mel_input", spec.mel_input);
+            spec.f0_input = read_string(*section, "neural", "f0_input", spec.f0_input);
+            spec.uv_input = read_string(*section, "neural", "uv_input", spec.uv_input);
+            spec.waveform_output = read_string(*section, "neural", "waveform_output", spec.waveform_output);
+            try {
+                spec.mel_base = NeuralVocoderSpec::parse_mel_base(
+                        read_string(*section, "neural", "mel_base", std::string(NeuralVocoderSpec::mel_base_name(spec.mel_base))));
+                spec.mel_scale = NeuralVocoderSpec::parse_mel_scale(
+                        read_string(*section, "neural", "mel_scale", std::string(NeuralVocoderSpec::mel_scale_name(spec.mel_scale))));
+                spec.mel_layout = NeuralVocoderSpec::parse_mel_layout(
+                        read_string(*section, "neural", "mel_layout", std::string(NeuralVocoderSpec::mel_layout_name(spec.mel_layout))));
+            } catch (const std::invalid_argument &error) {
+                invalid_value("neural", "mel_base/mel_scale/mel_layout", error.what());
+            }
+            const auto error = spec.Validate();
+            if (!error.empty()) {
+                invalid_value("neural", "config", error);
+            }
         }
 
         if (const auto *section = table["master"].as_table()) {
             if (const auto value = (*section)["preset"].value<std::string>()) {
-                if (*value != "none" && *value != "natural" && *value != "warm" && *value != "power") {
+                const auto kind = ParseMasterPresetKind(*value);
+                if (!kind) {
                     invalid_value("master", "preset", "expected \"none\", \"natural\", \"warm\", or \"power\"");
                 }
-                configure.master_preset = *value;
+                configure.master_preset = std::string(MasterPresetKindName(*kind));
             }
         }
 
@@ -207,6 +298,17 @@ namespace lessampler {
         if (configure.f0_allow_range < 0.0) {
             invalid_value("f0", "f0_allow_range", "must be zero or greater");
         }
+        if (configure.f0_neural_threads < 0) {
+            invalid_value("f0", "neural_threads", "must be zero or greater");
+        }
+        if (configure.f0_neural_threshold < 0.0 || configure.f0_neural_threshold > 1.0) {
+            invalid_value("f0", "neural_threshold", "must be between 0 and 1");
+        }
+        require_positive(configure.f0_neural_floor, "f0", "neural_floor");
+        require_positive(configure.f0_neural_ceil, "f0", "neural_ceil");
+        if (configure.f0_neural_ceil <= configure.f0_neural_floor) {
+            invalid_value("f0", "neural_ceil", "must be greater than neural_floor");
+        }
         if (configure.ap_threshold < 0.0 || configure.ap_threshold > 1.0) {
             invalid_value("ap", "ap_threshold", "must be between 0 and 1");
         }
@@ -214,6 +316,20 @@ namespace lessampler {
             invalid_value("neural", "threads", "must be zero or greater");
         }
         require_positive(configure.neural_target_rms, "neural", "target_rms");
+    }
+
+    void ResolveModelPaths(Config &configure, const std::filesystem::path &base) {
+        const auto resolve = [&](std::string &path) {
+            if (path.empty()) {
+                return;
+            }
+            const std::filesystem::path model_path(path);
+            if (model_path.is_relative()) {
+                path = (base / model_path).lexically_normal().string();
+            }
+        };
+        resolve(configure.neural_model_path);
+        resolve(configure.f0_neural_model_path);
     }
 
     std::string default_config_toml() {
@@ -233,22 +349,47 @@ fft_size = "auto"        # "auto" or an integer such as 1024
 model_amp = {}           # 0 disables AutoAMP before modeling
 
 [f0]
-f0_mode = "{}"           # "DIO" or "HARVEST"
+estimator = "{}"         # "auto", "harvest", "dio", "llsm", or "neural"
 f0_speed = {}
 f0_dio_floor = {}
 f0_harvest_floor = {}
 f0_ceil = {}
 f0_cheap_trick_floor = {}
 f0_allow_range = {}
+neural_model_path = {}   # RMVPE ONNX model; independent of [neural] model_path
+neural_threads = {}
+neural_threshold = {}
+neural_floor = {}
+neural_ceil = {}
 
 [ap]
 ap_threshold = {}
 
 [neural]
 # NHVSing-compatible ONNX model used by backend = "neural".
+preset = {}            # "nhv" or "pc-nsf-hifigan"
 model_path = {}
 threads = {}           # 0 lets ONNX Runtime choose
 target_rms = {}        # feature normalization used during training
+sample_rate = {}
+hop_size = {}
+fft_size = {}
+mel_bins = {}
+mel_fmin = {}
+mel_fmax = {}
+mel_base = {}          # "e" or "10"
+mel_scale = {}         # "slaney" or "htk"
+mel_layout = {}        # "time-major" or "bin-major"
+has_f0 = {}
+has_uv = {}
+pitch_controllable = {}
+normalize_mel = {}
+f0_min = {}
+f0_max = {}
+mel_input = {}
+f0_input = {}
+uv_input = {}
+waveform_output = {}
 
 [master]
 preset = {}            # none / natural / warm / power
@@ -258,17 +399,42 @@ preset = {}            # none / natural / warm / power
                            VocoderKindName(configure.vocoder),
                            configure.audio_model_frame_period,
                            configure.model_amp,
-                           Config::f0_mode_name(configure.f0_mode),
+                           F0EstimatorKindName(configure.f0_estimator),
                            configure.f0_speed,
                            configure.f0_dio_floor,
                            configure.f0_harvest_floor,
                            configure.f0_ceil,
                            configure.f0_cheap_trick_floor,
                            configure.f0_allow_range,
+                           toml_quote(configure.f0_neural_model_path),
+                           configure.f0_neural_threads,
+                           configure.f0_neural_threshold,
+                           configure.f0_neural_floor,
+                           configure.f0_neural_ceil,
                            configure.ap_threshold,
+                           toml_quote(configure.neural_spec.preset),
                            toml_quote(configure.neural_model_path),
                            configure.neural_threads,
                            configure.neural_target_rms,
+                           configure.neural_spec.sample_rate,
+                           configure.neural_spec.hop_size,
+                           configure.neural_spec.fft_size,
+                           configure.neural_spec.mel_bins,
+                           configure.neural_spec.mel_fmin,
+                           configure.neural_spec.mel_fmax,
+                           toml_quote(NeuralVocoderSpec::mel_base_name(configure.neural_spec.mel_base)),
+                           toml_quote(NeuralVocoderSpec::mel_scale_name(configure.neural_spec.mel_scale)),
+                           toml_quote(NeuralVocoderSpec::mel_layout_name(configure.neural_spec.mel_layout)),
+                           configure.neural_spec.has_f0,
+                           configure.neural_spec.has_uv,
+                           configure.neural_spec.pitch_controllable,
+                           configure.neural_spec.normalize_mel,
+                           configure.neural_spec.f0_min,
+                           configure.neural_spec.f0_max,
+                           toml_quote(configure.neural_spec.mel_input),
+                           toml_quote(configure.neural_spec.f0_input),
+                           toml_quote(configure.neural_spec.uv_input),
+                           toml_quote(configure.neural_spec.waveform_output),
                            toml_quote(configure.master_preset));
     }
 
@@ -293,21 +459,46 @@ fft_size = {}
 model_amp = {}
 
 [f0]
-f0_mode = "{}"
+estimator = "{}"
 f0_speed = {}
 f0_dio_floor = {}
 f0_harvest_floor = {}
 f0_ceil = {}
 f0_cheap_trick_floor = {}
 f0_allow_range = {}
+neural_model_path = {}
+neural_threads = {}
+neural_threshold = {}
+neural_floor = {}
+neural_ceil = {}
 
 [ap]
 ap_threshold = {}
 
 [neural]
+preset = {}
 model_path = {}
 threads = {}
 target_rms = {}
+sample_rate = {}
+hop_size = {}
+fft_size = {}
+mel_bins = {}
+mel_fmin = {}
+mel_fmax = {}
+mel_base = {}
+mel_scale = {}
+mel_layout = {}
+has_f0 = {}
+has_uv = {}
+pitch_controllable = {}
+normalize_mel = {}
+f0_min = {}
+f0_max = {}
+mel_input = {}
+f0_input = {}
+uv_input = {}
+waveform_output = {}
 
 [master]
 preset = {}
@@ -318,17 +509,42 @@ preset = {}
                            configure.audio_model_frame_period,
                            fft_size,
                            configure.model_amp,
-                           Config::f0_mode_name(configure.f0_mode),
+                           F0EstimatorKindName(configure.f0_estimator),
                            configure.f0_speed,
                            configure.f0_dio_floor,
                            configure.f0_harvest_floor,
                            configure.f0_ceil,
                            configure.f0_cheap_trick_floor,
                            configure.f0_allow_range,
+                           toml_quote(configure.f0_neural_model_path),
+                           configure.f0_neural_threads,
+                           configure.f0_neural_threshold,
+                           configure.f0_neural_floor,
+                           configure.f0_neural_ceil,
                            configure.ap_threshold,
+                           toml_quote(configure.neural_spec.preset),
                            toml_quote(configure.neural_model_path),
                            configure.neural_threads,
                            configure.neural_target_rms,
+                           configure.neural_spec.sample_rate,
+                           configure.neural_spec.hop_size,
+                           configure.neural_spec.fft_size,
+                           configure.neural_spec.mel_bins,
+                           configure.neural_spec.mel_fmin,
+                           configure.neural_spec.mel_fmax,
+                           toml_quote(NeuralVocoderSpec::mel_base_name(configure.neural_spec.mel_base)),
+                           toml_quote(NeuralVocoderSpec::mel_scale_name(configure.neural_spec.mel_scale)),
+                           toml_quote(NeuralVocoderSpec::mel_layout_name(configure.neural_spec.mel_layout)),
+                           configure.neural_spec.has_f0,
+                           configure.neural_spec.has_uv,
+                           configure.neural_spec.pitch_controllable,
+                           configure.neural_spec.normalize_mel,
+                           configure.neural_spec.f0_min,
+                           configure.neural_spec.f0_max,
+                           toml_quote(configure.neural_spec.mel_input),
+                           toml_quote(configure.neural_spec.f0_input),
+                           toml_quote(configure.neural_spec.uv_input),
+                           toml_quote(configure.neural_spec.waveform_output),
                            toml_quote(configure.master_preset));
 
         if (!out) {
@@ -406,11 +622,18 @@ preset = {}
                     }
                 }
             } else if (section == "f0") {
-                if (key == "f0_mode") {
-                    configure.f0_mode = Config::parse_f0_mode(raw_value);
-                    if (configure.f0_mode == Config::F0_MODE::F0_MODE_UNKNOWN) {
+                if (key == "estimator") {
+                    const auto kind = ParseF0EstimatorKind(raw_value);
+                    if (!kind) {
                         return false;
                     }
+                    configure.f0_estimator = *kind;
+                } else if (key == "f0_mode") {
+                    const auto kind = ParseF0EstimatorKind(raw_value);
+                    if (!kind || (*kind != F0EstimatorKind::harvest && *kind != F0EstimatorKind::dio)) {
+                        return false;
+                    }
+                    configure.f0_estimator = *kind;
                 } else if (key == "f0_speed") {
                     if (!parse_number(raw_value, configure.f0_speed)) {
                         return false;
@@ -421,6 +644,10 @@ preset = {}
                     }
                 } else if (key == "f0_harvest_floor") {
                     if (!parse_number(raw_value, configure.f0_harvest_floor)) {
+                        return false;
+                    }
+                } else if (key == "f0_ceil") {
+                    if (!parse_number(raw_value, configure.f0_ceil)) {
                         return false;
                     }
                 } else if (key == "f0_cheap_trick_floor") {

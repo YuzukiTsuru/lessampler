@@ -10,59 +10,141 @@
 
 #include "F0Estimator.h"
 
+#include <filesystem>
+#include <format>
+#include <string>
+#include <system_error>
 #include <utility>
 
-#include <world/dio.h>
-#include <world/harvest.h>
-#include <world/stonemask.h>
-
 #include "Core/Exception.h"
+#include "Core/Log.h"
+#include "Vocoder/Common/WorldF0Estimator.h"
+
+#if defined(LESSAMPLER_ENABLE_LLSM)
+#include "Vocoder/Common/LlsmF0Estimator.h"
+#endif
+
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+#include "Vocoder/Common/RmvpeF0Estimator.h"
+#endif
 
 namespace lessampler {
 
-    F0Track EstimateF0(std::span<const double> x, int fs, const Config &configure) {
-        if (x.empty() || fs <= 0) {
-            throw parameter_error("Empty audio input");
+    namespace {
+
+        bool neural_model_available(const Config &configure) {
+            if (configure.f0_neural_model_path.empty()) {
+                return false;
+            }
+            std::error_code error;
+            const bool regular = std::filesystem::is_regular_file(configure.f0_neural_model_path, error);
+            return !error && regular;
         }
 
-        F0Track track;
-        track.frame_period = configure.audio_model_frame_period;
+    }// namespace
 
-        if (configure.f0_mode == Config::F0_MODE::F0_MODE_DIO) {
-            DioOption option{};
-            InitializeDioOption(&option);
-            option.frame_period = track.frame_period;
-            option.speed = configure.f0_speed;
-            option.f0_floor = configure.f0_dio_floor;
-            option.f0_ceil = configure.f0_ceil;
-            option.allowed_range = configure.f0_allow_range;
+    bool F0EstimatorCompiled(F0EstimatorKind kind) noexcept {
+        switch (kind) {
+            case F0EstimatorKind::harvest:
+            case F0EstimatorKind::dio:
+            case F0EstimatorKind::auto_select:
+                return true;
+            case F0EstimatorKind::llsm:
+#if defined(LESSAMPLER_ENABLE_LLSM)
+                return true;
+#else
+                return false;
+#endif
+            case F0EstimatorKind::neural:
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+                return true;
+#else
+                return false;
+#endif
+        }
+        return false;
+    }
 
-            const int f0_length = GetSamplesForDIO(fs, static_cast<int>(x.size()), track.frame_period);
-            track.f0.resize(static_cast<std::size_t>(f0_length));
-            track.time_axis.resize(static_cast<std::size_t>(f0_length));
-            std::vector<double> refined_f0(static_cast<std::size_t>(f0_length));
+    F0EstimatorKind DefaultF0EstimatorFor(VocoderKind backend) noexcept {
+        switch (backend) {
+            case VocoderKind::llsm:
+                return F0EstimatorKind::llsm;
+            case VocoderKind::neural:
+                return F0EstimatorKind::neural;
+            case VocoderKind::world:
+            default:
+                return F0EstimatorKind::harvest;
+        }
+    }
 
-            Dio(x.data(), static_cast<int>(x.size()), fs, &option, track.time_axis.data(), track.f0.data());
-            StoneMask(x.data(), static_cast<int>(x.size()), fs, track.time_axis.data(), track.f0.data(), f0_length,
-                      refined_f0.data());
-            track.f0 = std::move(refined_f0);
-        } else if (configure.f0_mode == Config::F0_MODE::F0_MODE_HARVEST) {
-            HarvestOption option{};
-            InitializeHarvestOption(&option);
-            option.frame_period = track.frame_period;
-            option.f0_floor = configure.f0_harvest_floor;
-            option.f0_ceil = configure.f0_ceil;
-
-            const int f0_length = GetSamplesForHarvest(fs, static_cast<int>(x.size()), track.frame_period);
-            track.f0.resize(static_cast<std::size_t>(f0_length));
-            track.time_axis.resize(static_cast<std::size_t>(f0_length));
-
-            Harvest(x.data(), static_cast<int>(x.size()), fs, &option, track.time_axis.data(), track.f0.data());
-        } else {
-            throw parameter_error("F0 estimation mode is unknown");
+    F0EstimatorKind ResolveF0EstimatorKind(const Config &configure, VocoderKind backend) {
+        if (configure.f0_estimator != F0EstimatorKind::auto_select) {
+            return configure.f0_estimator;
         }
 
-        return track;
+        const auto kind = DefaultF0EstimatorFor(backend);
+        if (!F0EstimatorCompiled(kind)) {
+            LOG_WARN << std::format(
+                    "F0 estimator '{}' is not enabled in this build; using 'harvest'",
+                    F0EstimatorKindName(kind));
+            return F0EstimatorKind::harvest;
+        }
+        if (kind == F0EstimatorKind::neural && !neural_model_available(configure)) {
+            LOG_WARN << "automatic neural F0 has no usable [f0] neural_model_path; using 'harvest'";
+            return F0EstimatorKind::harvest;
+        }
+        return kind;
+    }
+
+    Config ResolveF0EstimatorConfig(const Config &configure, VocoderKind backend) {
+        Config resolved = configure;
+        resolved.f0_estimator = ResolveF0EstimatorKind(configure, backend);
+        return resolved;
+    }
+
+    std::unique_ptr<F0Estimator> CreateF0Estimator(F0EstimatorKind kind, const Config &configure) {
+        const auto resolved = kind == F0EstimatorKind::auto_select
+                                      ? ResolveF0EstimatorKind(configure, configure.vocoder)
+                                      : kind;
+
+        switch (resolved) {
+            case F0EstimatorKind::harvest:
+            case F0EstimatorKind::dio:
+                return std::make_unique<WorldF0Estimator>(resolved);
+            case F0EstimatorKind::llsm:
+#if defined(LESSAMPLER_ENABLE_LLSM)
+                return std::make_unique<LlsmF0Estimator>();
+#else
+                throw parameter_error("The LLSM F0 estimator is not enabled in this build");
+#endif
+            case F0EstimatorKind::neural:
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+                if (configure.f0_neural_model_path.empty()) {
+                    throw parameter_error("The neural F0 estimator requires [f0] neural_model_path");
+                }
+                if (!neural_model_available(configure)) {
+                    throw parameter_error(std::format(
+                            "RMVPE model not found: {}", configure.f0_neural_model_path));
+                }
+                return std::make_unique<RmvpeF0Estimator>(configure);
+#else
+                throw parameter_error("The neural F0 estimator is not enabled in this build");
+#endif
+            case F0EstimatorKind::auto_select:
+            default:
+                throw parameter_error("The F0 estimator is unresolved");
+        }
+    }
+
+    std::string AvailableF0Estimators() {
+        std::string estimators = "harvest dio";
+#if defined(LESSAMPLER_ENABLE_LLSM)
+        estimators += " llsm";
+#endif
+#if defined(LESSAMPLER_ENABLE_NEURAL)
+        estimators += " neural";
+#endif
+        return estimators;
     }
 
 }// namespace lessampler

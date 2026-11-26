@@ -25,7 +25,7 @@ flowchart TD
 | `.lessaudio` | `Vocoder/World/WorldModelCache` | WORLD, neural |
 | `.lessllsm` | `Vocoder/Llsm/LlsmCache` | LLSM |
 
-Both sidecars store the config fingerprint and source size and mtime. The backend is not part of the fingerprint, so switching between WORLD, LLSM and neural keeps the WORLD analysis. A stale or corrupt cache is discarded and rebuilt; cache writes are best-effort.
+Both sidecars store the config fingerprint and source size and mtime. The resolved F0 estimator is part of the fingerprint. With a fixed estimator the backend stays out of the key, so WORLD and neural can share one `.lessaudio`; with `estimator = "auto"` the resolved kind follows the backend and switching backends may rebuild it. A stale or corrupt cache is discarded and rebuilt; cache writes are best-effort.
 
 ## Cache fingerprint
 
@@ -37,6 +37,6 @@ h_0=1469598103934665603,
 h_{i+1}=\left(h_i\oplus c_i\right)\cdot 1099511628211\pmod{2^{64}}.
 $$
 
-The hash is formatted as 16 hex digits. The fields are `frame_period`, `fft_size`, `model_amp`, `f0_speed`, the three F0 floors, `f0_allow_range`, `ap_threshold` and `f0_mode`; the backend is excluded.
+The hash is formatted as 16 hex digits. The fields are `frame_period`, `fft_size`, `model_amp`, `f0_speed`, the three F0 floors, `f0_allow_range`, `ap_threshold`, and the resolved F0 estimator identity. The identity starts with an estimator version string (`f0-v1`) so an implementation change can invalidate caches explicitly. For `neural` it includes `neural_threshold`, `neural_floor`, `neural_ceil`, and the RMVPE model's canonical path, size, and mtime. An unresolved `auto` hashes as `auto:<backend>` so it cannot alias another backend's cache. The backend is not otherwise part of the key.
 
 Next: [Modeling](modeling.md).

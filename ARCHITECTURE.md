@@ -39,7 +39,8 @@ src/
   Host/UTAU/           UTAU parameter parser, Shine, libUTAU binding
   Host/Wavtool/        wavtool protocol, plan parser, note assembly
   Vocoder/             vocoder interface and implementations
-    Common/            F0 estimation shared by WORLD and LLSM
+    Common/            F0 estimator interface/factory, WORLD implementations,
+                       RMVPE, LLSM refinement, shared resampler
     World/             WORLD model, analyzer, transform, synthesizer, caches
     Neural/            ONNX vocoder, mel front end, polish, feature assembly
     Llsm/              LLSM backend, layer-1 cache, compatibility header
@@ -75,6 +76,16 @@ RenderResult Synthesize(const SynthesisRequest &);  // per note
 
 `Analysis` is an opaque shared handle. The engine never inspects
 backend-specific data, so adding a backend does not change the engine.
+
+## Selection factories
+
+Four axes have small per-module factories: vocoder backend, F0 estimator,
+neural vocoder preset, and master preset. Each has a kind enum/parser, a
+`Create...` function, and an `Available...` list; there is no generic registry.
+F0 is the only axis with `auto`, resolved against the selected backend before
+the analysis fingerprint is computed. The factory and target details are in
+[docs/src/content/docs/processing/f0.md](docs/src/content/docs/processing/f0.md)
+and [docs/src/content/docs/architecture/index.md](docs/src/content/docs/architecture/index.md).
 
 ## Assembly and neural paths
 

@@ -29,9 +29,6 @@ namespace lessampler {
 
     namespace {
 
-        constexpr int model_rate = 44100;
-        constexpr int hop = MelSpectrogram::hop_size;
-        constexpr int bins = MelSpectrogram::mel_bins;
         constexpr float silence_threshold = -9.2f;
 
         std::int64_t milliseconds_to_samples(double milliseconds, int sample_rate) {
@@ -71,7 +68,7 @@ namespace lessampler {
             return std::sqrt(sum / static_cast<double>(active));
         }
 
-        std::vector<double> read_model_rate(const std::filesystem::path &path) {
+        std::vector<double> read_model_rate(const std::filesystem::path &path, int model_rate) {
             auto data = WavIO::ReadWav(path);
             if (data.sample_rate == model_rate) {
                 return std::move(data.samples);
@@ -90,11 +87,13 @@ namespace lessampler {
         if (segments.empty()) {
             throw parameter_error("The feature plan has no notes");
         }
-        if (sample_rate <= 0) {
-            sample_rate = model_rate;
-        }
-        if (configure.neural_model_path.empty()) {
+        const auto resolved = ResolveF0EstimatorConfig(configure, configure.vocoder);
+        if (resolved.neural_model_path.empty()) {
             throw parameter_error("Feature assembly requires [neural] model_path in lessampler.less");
+        }
+        const auto &spec = resolved.neural_spec;
+        if (sample_rate <= 0) {
+            sample_rate = spec.sample_rate;
         }
 
         double total_ms = 0.0;
@@ -102,10 +101,10 @@ namespace lessampler {
             total_ms = std::max(total_ms, segment.position_ms + std::max(0.0, segment.length_ms));
         }
         const auto total_samples = static_cast<std::size_t>(
-                std::max<std::int64_t>(1, milliseconds_to_samples(total_ms, model_rate)));
-        const auto max_frames = total_samples / static_cast<std::size_t>(hop) + 3;
+                std::max<std::int64_t>(1, milliseconds_to_samples(total_ms, spec.sample_rate)));
+        const auto max_frames = total_samples / static_cast<std::size_t>(spec.hop_size) + 3;
 
-        std::vector<double> sum_mel(max_frames * static_cast<std::size_t>(bins), 0.0);
+        std::vector<double> sum_mel(max_frames * static_cast<std::size_t>(spec.mel_bins), 0.0);
         std::vector<double> log_f0(max_frames, 0.0);
         std::vector<double> voiced_weight(max_frames, 0.0);
         std::vector<std::uint8_t> active(max_frames, 0);
@@ -113,17 +112,18 @@ namespace lessampler {
         std::size_t last_frame = 0;
         bool any_active = false;
 
-        auto model = LoadNeuralModel(configure.neural_model_path, configure.neural_threads);
-        static const MelSpectrogram extractor;
+        auto model = LoadNeuralModel(resolved.neural_model_path, resolved.neural_threads, spec);
+        const MelSpectrogram extractor(spec);
+        auto f0_estimator = CreateF0Estimator(resolved.f0_estimator, resolved);
 
         for (const auto &segment: segments) {
-            auto resampled = read_model_rate(segment.input);
+            auto resampled = read_model_rate(segment.input, spec.sample_rate);
             if (resampled.empty()) {
                 continue;
             }
 
-            auto skip = milliseconds_to_samples(segment.skip_ms, model_rate);
-            auto length = milliseconds_to_samples(segment.length_ms, model_rate);
+            auto skip = milliseconds_to_samples(segment.skip_ms, spec.sample_rate);
+            auto length = milliseconds_to_samples(segment.length_ms, spec.sample_rate);
             if (length <= 0) {
                 continue;
             }
@@ -136,8 +136,8 @@ namespace lessampler {
                 }
             }
 
-            auto position = milliseconds_to_samples(segment.position_ms, model_rate);
-            auto gains = segment.envelope.GainCurve(wave.size(), model_rate);
+            auto position = milliseconds_to_samples(segment.position_ms, spec.sample_rate);
+            auto gains = segment.envelope.GainCurve(wave.size(), spec.sample_rate);
 
             // Negative positions drop the head of the segment, matching the
             // wavtool's start<0 handling.
@@ -160,24 +160,26 @@ namespace lessampler {
 
             // Extract raw mel; a single global level shift is applied after
             // assembly so per-note dynamics are not flattened.
-            const auto mel = extractor.Extract(wave, model_rate, 0.0);
-            const auto frames = mel.size() / static_cast<std::size_t>(bins);
+            const auto mel = extractor.Extract(wave, spec.sample_rate, 0.0);
+            const auto frames = mel.size() / static_cast<std::size_t>(spec.mel_bins);
             if (frames == 0) {
                 continue;
             }
 
-            const auto track = EstimateF0(wave, model_rate, configure);
+            const auto track = f0_estimator->Estimate(wave, spec.sample_rate, resolved);
             std::vector<float> f0;
             std::vector<float> uv;
-            BuildMelF0Track(track, frames, f0, uv);
+            BuildMelF0Track(track, frames, f0, uv, spec);
 
-            const auto global_start = start / static_cast<std::size_t>(hop);
+            const auto global_start = start / static_cast<std::size_t>(spec.hop_size);
             for (std::size_t k = 0; k < frames; ++k) {
                 const auto global_frame = global_start + k;
                 if (global_frame >= max_frames) {
                     break;
                 }
-                const auto center = std::min(gains.size() - 1, k * static_cast<std::size_t>(hop) + 128);
+                const auto center = std::min(gains.size() - 1,
+                                             k * static_cast<std::size_t>(spec.hop_size) +
+                                                     static_cast<std::size_t>(spec.hop_size / 2));
                 const double gain = std::clamp(gains[center], 0.0, 2.0);
                 if (gain <= 1e-9) {
                     continue;
@@ -187,9 +189,9 @@ namespace lessampler {
                 any_active = true;
                 last_frame = std::max(last_frame, global_frame);
 
-                for (int bin = 0; bin < bins; ++bin) {
-                    const auto index = k * static_cast<std::size_t>(bins) + static_cast<std::size_t>(bin);
-                    sum_mel[global_frame * static_cast<std::size_t>(bins) + static_cast<std::size_t>(bin)] +=
+                for (int bin = 0; bin < spec.mel_bins; ++bin) {
+                    const auto index = k * static_cast<std::size_t>(spec.mel_bins) + static_cast<std::size_t>(bin);
+                    sum_mel[global_frame * static_cast<std::size_t>(spec.mel_bins) + static_cast<std::size_t>(bin)] +=
                             static_cast<double>(std::exp(mel[index])) * gain;
                 }
 
@@ -208,16 +210,16 @@ namespace lessampler {
         }
 
         const double reference_active = active_rms(reference);
-        const double global_shift = (reference_active > 1e-9 && configure.neural_target_rms > 0.0)
-                                            ? std::clamp(std::log(configure.neural_target_rms / reference_active), -3.0, 3.0)
+        const double global_shift = (reference_active > 1e-9 && resolved.neural_target_rms > 0.0)
+                                            ? std::clamp(std::log(resolved.neural_target_rms / reference_active), -3.0, 3.0)
                                             : 0.0;
         LOG_INFO << std::format("Feature level shift: {:.3f} dB", global_shift * 8.685889638);
 
         const auto frames = last_frame + 1;
-        std::vector<float> global_mel(frames * static_cast<std::size_t>(bins), std::log(1e-5f));
+        std::vector<float> global_mel(frames * static_cast<std::size_t>(spec.mel_bins), std::log(1e-5f));
         for (std::size_t frame = 0; frame < frames; ++frame) {
-            for (int bin = 0; bin < bins; ++bin) {
-                const auto index = frame * static_cast<std::size_t>(bins) + static_cast<std::size_t>(bin);
+            for (int bin = 0; bin < spec.mel_bins; ++bin) {
+                const auto index = frame * static_cast<std::size_t>(spec.mel_bins) + static_cast<std::size_t>(bin);
                 if (sum_mel[index] > 0.0) {
                     global_mel[index] = static_cast<float>(std::log(std::max(sum_mel[index], 1e-5)) + global_shift);
                 }
@@ -283,8 +285,8 @@ namespace lessampler {
             }
         }
 
-        if (sample_rate != model_rate) {
-            output = MelSpectrogram::Resample(output, model_rate, sample_rate);
+        if (sample_rate != spec.sample_rate) {
+            output = MelSpectrogram::Resample(output, spec.sample_rate, sample_rate);
         }
         const auto target_samples = static_cast<std::size_t>(
                 std::max<std::int64_t>(1, milliseconds_to_samples(total_ms, sample_rate)));

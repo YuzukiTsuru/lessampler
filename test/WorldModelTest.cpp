@@ -20,7 +20,7 @@ int main() {
     }
 
     Config configure;
-    configure.f0_mode = Config::F0_MODE::F0_MODE_DIO;
+    configure.f0_estimator = F0EstimatorKind::dio;
     const auto model = BuildWorldModel(samples, fs, configure);
 
     CHECK_EQ(model.fs, fs);

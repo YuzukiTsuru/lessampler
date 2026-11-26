@@ -18,6 +18,7 @@ int main() {
     std::filesystem::copy_file(source, target);
 
     Config configure;
+    configure.f0_estimator = F0EstimatorKind::harvest;
     VoicebankModeler generator(root, configure);
 
     CHECK(std::filesystem::exists(root / "vaiueo2d.lessaudio"));

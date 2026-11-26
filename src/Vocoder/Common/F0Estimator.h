@@ -11,24 +11,43 @@
 #ifndef LESSAMPLER_F0ESTIMATOR_H
 #define LESSAMPLER_F0ESTIMATOR_H
 
-#include <span>
-#include <vector>
+#include <memory>
+#include <string>
 
 #include "Config/Config.h"
+#include "Config/VocoderKind.h"
+#include "Vocoder/Common/F0EstimatorTypes.h"
 
 namespace lessampler {
 
-    struct F0Track {
-        double frame_period = 5.0;
-        std::vector<double> f0;
-        std::vector<double> time_axis;
-    };
+    /*
+     * F0 estimator factory. The concrete estimator changes the stored F0
+     * track, so callers must resolve auto_select before computing a cache
+     * fingerprint.
+     */
+    [[nodiscard]] bool F0EstimatorCompiled(F0EstimatorKind kind) noexcept;
+
+    [[nodiscard]] F0EstimatorKind DefaultF0EstimatorFor(VocoderKind backend) noexcept;
+
+    [[nodiscard]] F0EstimatorKind ResolveF0EstimatorKind(const Config &configure, VocoderKind backend);
 
     /*
- * Backend-neutral F0 estimation. Both the WORLD and LLSM backends use the same
- * DIO/Harvest front end.
- */
-    [[nodiscard]] F0Track EstimateF0(std::span<const double> x, int fs, const Config &configure);
+     * Return a copy of configure whose f0_estimator is concrete. Use this
+     * before LoadOrBuildWorldModel or any other analysis cache lookup.
+     */
+    [[nodiscard]] Config ResolveF0EstimatorConfig(const Config &configure, VocoderKind backend);
+
+    /*
+     * Throws parameter_error for an explicitly requested estimator that is not
+     * available in this build or has no usable model. auto_select is resolved
+     * against configure.vocoder as a defensive fallback.
+     */
+    [[nodiscard]] std::unique_ptr<F0Estimator> CreateF0Estimator(F0EstimatorKind kind, const Config &configure);
+
+    /*
+     * Space-separated list of the F0 estimators compiled into this binary.
+     */
+    [[nodiscard]] std::string AvailableF0Estimators();
 
 }// namespace lessampler
 

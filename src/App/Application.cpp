@@ -120,6 +120,8 @@ namespace lessampler {
                   << color::reset << '\n'
                   << color::dim << std::format(" Backends: {}", backend::AvailableVocoderBackends())
                   << color::reset << '\n'
+                  << color::dim << std::format(" F0 estimators: {}", AvailableF0Estimators())
+                  << color::reset << '\n'
                   << color::dim << " Copyright (c) 2018 - 2026 YuzukiTsuru" << color::reset << '\n'
                   << std::endl;
     }
@@ -310,14 +312,16 @@ namespace lessampler {
         auto result = backend::PolishWaveform(input.samples, input.sample_rate, configure_);
         LOG_INFO << timer.GetTimer("Neural polish: ");
         const std::string master = argc_ >= 5 ? std::string(argv_[4]) : configure_.master_preset;
-        MasterChain::Process(result.samples, result.fs, 1, MasterOptions::Preset(master));
+        MasterChain::Process(result.samples, result.fs, 1, CreateMasterOptions(master));
         WavIO::WriteWav(argv_[3], result.samples, result.fs);
         LOG_OK << "Polished " + std::string(argv_[2]) + " -> " + std::string(argv_[3]);
     }
 
     void Application::f0_dump() {
         const WavData input = WavIO::ReadWav(argv_[2]);
-        const auto track = EstimateF0(input.samples, input.sample_rate, configure_);
+        const auto resolved = ResolveF0EstimatorConfig(configure_, configure_.vocoder);
+        auto estimator = CreateF0Estimator(resolved.f0_estimator, resolved);
+        const auto track = estimator->Estimate(input.samples, input.sample_rate, resolved);
         const std::filesystem::path output(argv_[3]);
         if (!output.parent_path().empty()) {
             std::filesystem::create_directories(output.parent_path());
@@ -352,7 +356,7 @@ namespace lessampler {
         const int sample_rate = plan.sample_rate > 0 ? plan.sample_rate : 44100;
         auto result = backend::AssembleFeatureTimeline(segments, sample_rate, plan.peak_normalize, configure_);
         LOG_INFO << timer.GetTimer("Feature assembly: ");
-        MasterChain::Process(result.samples, result.sample_rate, 1, MasterOptions::Preset(plan.master));
+        MasterChain::Process(result.samples, result.sample_rate, 1, CreateMasterOptions(plan.master));
         WavIO::WriteWav(plan.output, result.samples, result.sample_rate);
         LOG_OK << "Feature assembly written to " + plan.output.string();
     }

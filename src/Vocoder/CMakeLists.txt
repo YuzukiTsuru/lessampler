@@ -1,11 +1,35 @@
+add_library(VocoderF0Api STATIC
+        Common/F0EstimatorTypes.h
+        Common/Resample.cpp
+        Common/Resample.h
+        Common/RmvpeDecode.cpp
+        Common/RmvpeDecode.h
+)
+target_link_libraries(VocoderF0Api PUBLIC
+        Core
+        Config
+)
+
+add_library(VocoderF0World STATIC
+        Common/F0EstimatorTypes.h
+        Common/WorldF0Estimator.cpp
+        Common/WorldF0Estimator.h
+)
+target_link_libraries(VocoderF0World PUBLIC
+        VocoderF0Api
+        Core
+        Config
+        world::core
+)
+
 add_library(VocoderCommon STATIC
         Common/F0Estimator.cpp
         Common/F0Estimator.h
 )
 target_link_libraries(VocoderCommon PUBLIC
+        VocoderF0World
         Core
         Config
-        world::core
 )
 
 add_library(VocoderWorld STATIC
@@ -38,6 +62,30 @@ target_link_libraries(VocoderWorld PUBLIC
 if (LESSAMPLER_ENABLE_NEURAL)
     lessampler_setup_onnxruntime()
 
+    add_library(VocoderOnnx STATIC
+            Common/OnnxEnv.cpp
+            Common/OnnxEnv.h
+    )
+    lessampler_link_onnxruntime(VocoderOnnx)
+
+    add_library(VocoderF0Neural STATIC
+            Common/RmvpeF0Estimator.cpp
+            Common/RmvpeF0Estimator.h
+            Common/RmvpeModel.cpp
+            Common/RmvpeModel.h
+    )
+    lessampler_link_onnxruntime(VocoderF0Neural)
+    target_link_libraries(VocoderF0Neural PUBLIC
+            VocoderF0Api
+            VocoderOnnx
+            Core
+            Config
+    )
+
+    target_link_libraries(VocoderCommon PUBLIC VocoderF0Neural)
+    target_link_libraries(VocoderCommon PUBLIC "$<LINK_ONLY:${LESSAMPLER_ONNXRUNTIME_LIBRARY}>")
+    target_compile_definitions(VocoderCommon PRIVATE LESSAMPLER_ENABLE_NEURAL=1)
+
     add_library(VocoderNeural STATIC
             Neural/FeatureAssembler.cpp
             Neural/FeatureAssembler.h
@@ -55,6 +103,7 @@ if (LESSAMPLER_ENABLE_NEURAL)
     lessampler_link_onnxruntime(VocoderNeural)
     target_link_libraries(VocoderNeural PUBLIC
             VocoderWorld
+            VocoderOnnx
             Core
             Config
             Audio
@@ -149,6 +198,22 @@ if (LESSAMPLER_ENABLE_LLSM)
     )
     target_link_libraries(VocoderLlsm PRIVATE llsm2)
     target_compile_definitions(VocoderLlsm PRIVATE LESSAMPLER_ENABLE_LLSM=1)
+
+    add_library(VocoderF0Llsm STATIC
+            Common/LlsmF0Estimator.cpp
+            Common/LlsmF0Estimator.h
+    )
+    target_link_libraries(VocoderF0Llsm PUBLIC
+            VocoderF0Api
+            VocoderF0World
+            Core
+            Config
+    )
+    target_link_libraries(VocoderF0Llsm PRIVATE llsm2)
+
+    target_link_libraries(VocoderCommon PUBLIC VocoderF0Llsm)
+    target_link_libraries(VocoderCommon PUBLIC "$<LINK_ONLY:llsm2>")
+    target_compile_definitions(VocoderCommon PRIVATE LESSAMPLER_ENABLE_LLSM=1)
 endif ()
 
 add_library(Vocoder STATIC

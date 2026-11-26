@@ -1,4 +1,5 @@
 add_library(Core
+        MasterPresetKind.h
         SourceFingerprint.cpp
         SourceFingerprint.h
 )

@@ -1,0 +1,119 @@
+{
+  "title": "lessampler 音质对比",
+  "heading": "音质对比台",
+  "kicker": "lessampler / listening bench",
+  "lede": "八条渲染路径，同一个时间轴。先 solo 一条，再切另一条；高音段和接缝都留了跳转。",
+  "root": "../..",
+  "facts": ["244.964 s", "44.1 kHz · mono", "674 notes", "8 renders"],
+  "stats": [
+    {"label": "整曲 SingMOS · polish", "before": "2.68", "after": "3.18"},
+    {"label": "高音段 35–80 s · polish", "before": "2.99", "after": "3.69"}
+  ],
+  "notes_html": "<ul><li>先 solo <code>改动前</code>，再 solo <code>warm</code>，在 35 s 和 75 s 附近听高音区的厚度和噪声。想听更大动态就切 <code>power</code>。</li><li><code>polish</code> 是整曲 NHVSing 重渲染，MOS 最高，但音色会变；<code>feature</code> 保留逐音符音色，接缝比 raw 少。</li><li><code>pcnsf-*</code> 是 OpenVPI PC-NSF-HiFiGAN：整曲 polish 与 NHV 持平（3.18），逐音符高音段更好（3.26）但整曲 MOS 只有 2.82。</li><li>125.7 s 是 <code>a く</code> 的辅音闭塞接缝，184 s 是刚好落在 0.3 阈值下方的点。它们更多反映 oto/辅音本身，不是 master 造成的。</li></ul><p class=\"footnote\">接缝：2 ms 中心窗与 10–50 ms 侧窗的 RMS 比小于 0.3 的音符数。MOS：SingMOS-Pro，整曲 10 s 分块；高音段取 35–80 s。网页音频由工具按需编码，原始 WAV 在 <code>data/render/</code>。</p>",
+  "tracks": [
+    {
+      "id": "baseline",
+      "name": "改动前",
+      "tag": "baseline",
+      "sub": "WORLD wavtool · 旧代码，无 master",
+      "source": "data/render/main-baseline.wav",
+      "color": "--t-baseline",
+      "peak": "-4.15",
+      "rms": "-17.92",
+      "dips": "8",
+      "mos": "2.68",
+      "high": "2.99"
+    },
+    {
+      "id": "natural",
+      "name": "natural",
+      "tag": "仅限幅",
+      "sub": "WORLD wavtool · 只修边界和峰值",
+      "source": "data/render/main-natural.wav",
+      "color": "--t-natural",
+      "peak": "-4.15",
+      "rms": "-17.92",
+      "dips": "8",
+      "mos": "2.69",
+      "high": "—"
+    },
+    {
+      "id": "warm",
+      "name": "warm",
+      "tag": "默认",
+      "sub": "WORLD wavtool · 低频 + 轻压缩 + 轻微饱和",
+      "source": "data/render/main-final.wav",
+      "color": "--t-warm",
+      "peak": "-3.00",
+      "rms": "-17.17",
+      "dips": "9",
+      "mos": "2.70",
+      "high": "2.99"
+    },
+    {
+      "id": "power",
+      "name": "power",
+      "tag": "更响",
+      "sub": "WORLD wavtool · 更强压缩和饱和",
+      "source": "data/render/main-power.wav",
+      "color": "--t-power",
+      "peak": "-1.00",
+      "rms": "-16.27",
+      "dips": "9",
+      "mos": "2.72",
+      "high": "3.05"
+    },
+    {
+      "id": "feature",
+      "name": "feature",
+      "tag": "逐音符",
+      "sub": "NHVSing feature assembly · mel/F0 拼一次声码器",
+      "source": "data/render/main-feature-final.wav",
+      "color": "--t-feature",
+      "peak": "-2.27",
+      "rms": "-17.22",
+      "dips": "3",
+      "mos": "3.08",
+      "high": "—"
+    },
+    {
+      "id": "polish",
+      "name": "polish",
+      "tag": "整曲",
+      "sub": "NHVSing whole-song polish · 音色会变",
+      "source": "data/render/main-polished-final.wav",
+      "color": "--t-polish",
+      "peak": "-2.23",
+      "rms": "-17.22",
+      "dips": "0",
+      "mos": "3.18",
+      "high": "3.69"
+    },
+    {
+      "id": "pcnsf-polish",
+      "name": "pcnsf-polish",
+      "tag": "PC-NSF",
+      "sub": "OpenVPI PC-NSF-HiFiGAN · 整曲 polish",
+      "source": "data/render/main-pcnsf-polished.wav",
+      "color": "#b07a2a",
+      "peak": "-2.32",
+      "rms": "-17.21",
+      "dips": "2",
+      "mos": "3.18",
+      "high": "3.60"
+    },
+    {
+      "id": "pcnsf-neural",
+      "name": "pcnsf-neural",
+      "tag": "PC-NSF 逐音符",
+      "sub": "OpenVPI PC-NSF-HiFiGAN · backend = neural",
+      "source": "data/render/main-pcnsf-neural2.wav",
+      "color": "#4f8a7a",
+      "peak": "-3.46",
+      "rms": "-17.23",
+      "dips": "3",
+      "mos": "2.82",
+      "high": "3.26"
+    }
+  ]
+}

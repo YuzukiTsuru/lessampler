@@ -16,6 +16,7 @@
 
 #include "Core/Log.h"
 #include "Core/Timer.h"
+#include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/World/WorldModelStore.h"
 #include "Vocoder/World/WorldSynthesizer.h"
 #include "Vocoder/World/WorldTransform.h"
@@ -44,12 +45,13 @@ namespace lessampler {
 
                 [[nodiscard]] std::string_view name() const noexcept override { return "world"; }
 
-                [[nodiscard]] std::uint32_t analysis_version() const noexcept override { return 1; }
+                [[nodiscard]] std::uint32_t analysis_version() const noexcept override { return 2; }
 
                 [[nodiscard]] AnalysisPtr Prepare(const AnalysisRequest &request) override {
                     Timer timer;
                     timer.SetTimer();
-                    auto model = LoadOrBuildWorldModel(request.source, request.configure, request.max_workers);
+                    const auto resolved = ResolveF0EstimatorConfig(request.configure, kind());
+                    auto model = LoadOrBuildWorldModel(request.source, resolved, request.max_workers);
                     LOG_EVAL << timer.GetTimer("WORLD Model Prepare: ");
 
                     LOG_INFO << std::format("Audio Sample Rate: {}", model.fs);

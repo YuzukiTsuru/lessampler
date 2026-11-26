@@ -21,6 +21,7 @@
 #include "Audio/Dsp/MasterChain.h"
 #include "Audio/WavIO.h"
 #include "Core/Exception.h"
+#include "Core/MasterPresetKind.h"
 #include "Host/Wavtool/WavAssembly.h"
 
 namespace lessampler::wavtool {
@@ -100,7 +101,16 @@ namespace lessampler::wavtool {
             if (!value) {
                 throw parameter_error("wavtool plan field 'master' must be a string");
             }
-            plan.master = *value;
+            if (value->empty()) {
+                plan.master = "warm";
+            } else {
+                const auto kind = ParseMasterPresetKind(*value);
+                if (!kind) {
+                    throw parameter_error("wavtool plan field 'master' must be one of: " +
+                                          AvailableMasterPresets());
+                }
+                plan.master = std::string(MasterPresetKindName(*kind));
+            }
         }
 
         const auto *notes = table["notes"].as_array();
@@ -178,7 +188,7 @@ namespace lessampler::wavtool {
         }
 
         MasterChain::Process(output.samples, output.sample_rate, output.channels,
-                             MasterOptions::Preset(plan.master));
+                             CreateMasterOptions(plan.master));
         WavAssembly::Write(output, plan.output, plan.peak_normalize);
     }
 

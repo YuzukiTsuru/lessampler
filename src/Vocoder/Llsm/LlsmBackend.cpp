@@ -306,16 +306,17 @@ namespace lessampler {
 
                 [[nodiscard]] std::string_view name() const noexcept override { return "llsm"; }
 
-                [[nodiscard]] std::uint32_t analysis_version() const noexcept override { return 1; }
+                [[nodiscard]] std::uint32_t analysis_version() const noexcept override { return 2; }
 
                 [[nodiscard]] AnalysisPtr Prepare(const AnalysisRequest &request) override {
                     static_assert(std::is_same_v<FP_TYPE, float>);
+                    const auto configure = ResolveF0EstimatorConfig(request.configure, kind());
                     const int fs = request.source.info().sample_rate;
-                    double frame_period = request.configure.audio_model_frame_period;
+                    double frame_period = configure.audio_model_frame_period;
 
                     Timer timer;
                     timer.SetTimer();
-                    ChunkPtr source = LoadLlsmCache(request.source.path(), request.configure);
+                    ChunkPtr source = LoadLlsmCache(request.source.path(), configure);
                     std::vector<double> f0;
                     if (source && !ReadCachedF0(source.get(), f0)) {
                         source.reset();
@@ -333,7 +334,8 @@ namespace lessampler {
                     }
 
                     timer.SetTimer();
-                    auto track = EstimateF0(samples, fs, request.configure);
+                    auto estimator = CreateF0Estimator(configure.f0_estimator, configure);
+                    auto track = estimator->Estimate(samples, fs, configure);
                     if (track.f0.empty()) {
                         throw parameter_error("LLSM F0 estimation produced no frames");
                     }
@@ -349,8 +351,8 @@ namespace lessampler {
                     analysis_options->maxnhar = 400;
                     analysis_options->maxnhar_e = 5;
                     analysis_options->hm_method = LLSM_AOPTION_HMPP;
-                    // The shared DIO/Harvest front end already applies StoneMask,
-                    // so keep libllsm2 from refining the same F0 track again.
+                    // The selected F0 estimator already applied any refinement
+                    // (llsm_refine_f0 when estimator = llsm); do not refine twice.
                     analysis_options->f0_refine = 0;
 
                     timer.SetTimer();
@@ -388,7 +390,7 @@ namespace lessampler {
                     f0 = std::move(track.f0);
                     timer.SetTimer();
                     try {
-                        SaveLlsmCache(request.source.path(), request.configure, source.get());
+                        SaveLlsmCache(request.source.path(), configure, source.get());
                         LOG_EVAL << timer.GetTimer("LLSM Cache Save: ");
                     } catch (const std::exception &error) {
                         LOG_DEBUG << std::format("Cannot save LLSM cache: {}", error.what());
