@@ -39,7 +39,7 @@ Automatic breath, vibrato, and portamento live in `scripts/render_ust.py`, not i
 
 ## Caches
 
-All caches are sidecars next to the source WAV. Both formats are little-endian, versioned, and store a config fingerprint and the source size/mtime.
+All caches are sidecars next to the source WAV. Both formats are little-endian, versioned, and store a config fingerprint and the source size/mtime. An active `[preprocess]` configuration is part of that fingerprint; with preprocessing disabled the fingerprint and stored analyses are unchanged.
 
 | File | Owner | Contents |
 | --- | --- | --- |
