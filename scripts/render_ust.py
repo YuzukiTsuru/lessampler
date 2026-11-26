@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import argparse
 import math
+import random
 import re
+import struct
 import subprocess
 import sys
 import tempfile
@@ -34,6 +36,37 @@ DEFAULT_ENVELOPE = "0,5,35,0,100,100,0,%,0,10,100"
 # that uses them. Without a cap the wavtool segment ends inside the consonant
 # and the vowel never sounds. Keep at least this much vowel in the segment.
 MIN_VOWEL_MS = 30.0
+BREATH_ALIAS_TOKENS = ("R息", "R吐")
+BREATH_LYRIC_TOKENS = {"x", "breath", "息", "吸", "吐", "・"}
+
+_KANA_ROWS = (
+    ("あいうえお", "aiueo"),
+    ("かきくけこ", "aiueo"),
+    ("がぎぐげご", "aiueo"),
+    ("さしすせそ", "aiueo"),
+    ("ざじずぜぞ", "aiueo"),
+    ("たちつてと", "aiueo"),
+    ("だぢづでど", "aiueo"),
+    ("なにぬねの", "aiueo"),
+    ("はひふへほ", "aiueo"),
+    ("ばびぶべぼ", "aiueo"),
+    ("ぱぴぷぺぽ", "aiueo"),
+    ("まみむめも", "aiueo"),
+    ("やゆよ", "auo"),
+    ("らりるれろ", "aiueo"),
+    ("わを", "ao"),
+    ("ん", "n"),
+    ("ぁぃぅぇぉ", "aiueo"),
+    ("ゃゅょ", "auo"),
+    ("ゔ", "u"),
+    ("ゐ", "i"),
+    ("ゑ", "e"),
+)
+KANA_VOWELS = {
+    kana: vowel
+    for row, vowels in _KANA_ROWS
+    for kana, vowel in zip(row, vowels)
+}
 
 
 def decode_text(data: bytes) -> str:
@@ -541,6 +574,216 @@ def find_wavtool(lessampler: Path, explicit: Path | None) -> Path:
     return explicit if explicit is not None else lessampler
 
 
+def is_breath_lyric(lyric: str) -> bool:
+    return lyric.strip().lstrip("?").lower() in BREATH_LYRIC_TOKENS
+
+
+def breath_vowel(lyric: str) -> str | None:
+    """Extract the vowel used by a voicebank's breath aliases."""
+    text = lyric.strip().lstrip("?")
+    if not text:
+        return None
+    token = text.split()[-1]
+    for char in reversed(token):
+        code = ord(char)
+        if 0x30A1 <= code <= 0x30F6:
+            char = chr(code - 0x60)
+        if char in KANA_VOWELS:
+            return KANA_VOWELS[char]
+    lower = token.lower()
+    for char in reversed(lower):
+        if char in "aiueo":
+            return char
+    return "n" if lower.endswith("n") else None
+
+
+def surrounding_lyric(notes: list[dict[str, str]], index: int) -> str | None:
+    for direction in (1, -1):
+        position = index + direction
+        while 0 <= position < len(notes):
+            lyric = notes[position].get("Lyric", "").strip()
+            if lyric and lyric.upper() != "R" and not is_breath_lyric(lyric):
+                return lyric
+            position += direction
+    return None
+
+
+def closest_pitch_entry(entries: list[dict[str, object]], midi: int) -> dict[str, object] | None:
+    if not entries:
+        return None
+    return min(
+        entries,
+        key=lambda entry: abs((entry["pitch"] or 0) - midi) if entry["pitch"] is not None else 999,
+    )
+
+
+def find_breath_entry(
+    entries: list[dict[str, object]],
+    vowel: str | None,
+    midi: int,
+    prefix_map: dict[str, str],
+) -> dict[str, object] | None:
+    aliases: list[str] = []
+    if vowel:
+        aliases.extend(f"{vowel} {token}" for token in BREATH_ALIAS_TOKENS)
+    aliases.extend(BREATH_ALIAS_TOKENS)
+    aliases.extend(("・", "breath"))
+    for alias in aliases:
+        entry = select_entry(entries, alias, midi, prefix_map)
+        if entry is not None:
+            return entry
+
+    for token in (*BREATH_ALIAS_TOKENS, "・", "breath"):
+        matches = [
+            entry
+            for entry in entries
+            if token in str(entry["base"]) or token in str(entry["alias"])
+        ]
+        if matches:
+            return closest_pitch_entry(matches, midi)
+    return None
+
+
+def synthesize_breath(path: Path, sample_rate: int, duration_ms: float, seed: int,
+                      peak: float) -> None:
+    """Deterministic filtered-noise breath for voicebanks without a sample."""
+    frames = max(1, int(round(duration_ms * 0.001 * sample_rate)))
+    attack = max(1, int(round(0.025 * sample_rate)))
+    release = max(1, int(round(0.060 * sample_rate)))
+    rng = random.Random(seed)
+    low_pass = 0.0
+    slow = 0.0
+    values: list[float] = []
+    for index in range(frames):
+        white = rng.uniform(-1.0, 1.0)
+        low_pass += 0.25 * (white - low_pass)
+        slow += 0.002 * (low_pass - slow)
+        envelope = min(1.0, index / attack)
+        envelope *= min(1.0, (frames - 1 - index) / release)
+        values.append((low_pass - slow) * envelope)
+
+    magnitude = max(abs(value) for value in values)
+    if magnitude > 0.0:
+        scale = peak / magnitude
+        values = [value * scale for value in values]
+    encoded = struct.pack(f"<{frames}h", *(max(-32768, min(32767, int(round(value * 32767.0)))) for value in values))
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(sample_rate)
+        handle.writeframes(encoded)
+
+
+def make_breath_segment(
+    lessampler: Path,
+    temporary: Path,
+    name: str,
+    entry: dict[str, object] | None,
+    sample_rate: int,
+    position_ms: float,
+    duration_ms: float,
+    midi: int,
+    tempo: float,
+    volume_percent: float,
+    seed: int,
+    envelope: str,
+) -> dict[str, object] | None:
+    """Render one breath to a plan segment, using synthesis as a fallback."""
+    duration_ms = max(0.0, duration_ms)
+    if duration_ms < 20.0:
+        return None
+    volume_percent = max(0.0, min(100.0, volume_percent))
+    source = None
+    if entry is not None:
+        probed = probe_wav(entry["wav"])
+        if probed is not None and probed[0] == sample_rate:
+            available_ms = probed[1] * 1000.0 / sample_rate - float(entry["offset"])
+            if available_ms >= 20.0:
+                duration_ms = min(duration_ms, available_ms)
+                source = entry
+
+    if source is not None:
+        output = temporary / f"{name}.wav"
+        fixed = min(float(source["consonant"]), max(0.0, duration_ms - 10.0))
+        required = (math.floor(max(duration_ms, fixed) / 50.0 + 0.5) + 1.0) * 50.0
+        command = [
+            str(lessampler),
+            str(source["wav"]),
+            str(output),
+            midi_to_name(midi),
+            "100",
+            "C0Y0G0",
+            f"{float(source['offset']):.3f}",
+            f"{required:.3f}",
+            f"{fixed:.3f}",
+            f"{float(source['cutoff']):.3f}",
+            f"{volume_percent:.0f}",
+            "0",
+            f"!{tempo:g}",
+            "",
+        ]
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode == 0 and output.is_file():
+            return {
+                "input": str(output),
+                "position_ms": position_ms,
+                "skip_ms": 0.0,
+                "length_ms": duration_ms,
+                "envelope": envelope,
+            }
+        message = result.stderr.strip() or result.stdout.strip()
+        print(f"[warn] breath {name} failed: {message}; using synthesized noise", file=sys.stderr)
+
+    output = temporary / f"{name}-synth.wav"
+    synthesize_breath(output, sample_rate, duration_ms, seed, 0.5 * volume_percent / 100.0)
+    return {
+        "input": str(output),
+        "position_ms": position_ms,
+        "skip_ms": 0.0,
+        "length_ms": duration_ms,
+        "envelope": envelope,
+    }
+
+
+def auto_breath_slots(
+    rendered_notes: list[dict[str, str]],
+    breath_events: list[dict[str, object]],
+    options: dict[str, object],
+) -> list[dict[str, float | int]]:
+    """Plan one breath per phrase gap, skipping gaps with explicit breaths."""
+    if not bool(options.get("enabled", True)):
+        return []
+    min_gap = float(options.get("min_gap_ms", 180.0))
+    max_breath = float(options.get("max_ms", 600.0))
+    slots: list[dict[str, float | int]] = []
+    previous_end = 0.0
+    for idx, note in enumerate(rendered_notes):
+        start_ms = float(note["_start"])
+        duration_ms = float(note["_duration"])
+        gap_ms = start_ms - previous_end
+        if gap_ms >= min_gap:
+            has_explicit = any(
+                float(event["start"]) + float(event["duration"]) > previous_end + 1e-4
+                and float(event["start"]) < start_ms - 1e-4
+                for event in breath_events
+            )
+            if not has_explicit:
+                next_position = start_ms - max(0.0, float(note["_p_eff"]))
+                end_ms = next_position - 20.0
+                available = end_ms - (previous_end + 10.0)
+                if available >= 60.0:
+                    breath_duration = min(gap_ms * 0.6, max_breath, available)
+                    slots.append(
+                        {
+                            "index": idx,
+                            "start": end_ms - breath_duration,
+                            "duration": breath_duration,
+                        }
+                    )
+        previous_end = start_ms + duration_ms
+    return slots
+
+
 def render(args: argparse.Namespace) -> None:
     tempo, default_flags, notes = parse_ust(args.ust)
     entries = parse_oto(args.voicebank)
@@ -565,6 +808,7 @@ def render(args: argparse.Namespace) -> None:
     rendered = 0
     total = len(notes)
     skipped: list[tuple[int, str]] = []
+    breath_events: list[dict[str, object]] = []
 
     with tempfile.TemporaryDirectory(prefix="lessampler-ust-") as temporary:
         temporary = Path(temporary)
@@ -587,6 +831,18 @@ def render(args: argparse.Namespace) -> None:
                 midi = int(note.get("NoteNum", "60"))
             except ValueError:
                 continue
+            if is_breath_lyric(lyric):
+                breath_events.append(
+                    {
+                        "index": index,
+                        "start": start_ms,
+                        "duration": duration_ms,
+                        "midi": midi,
+                        "volume": parse_float(note.get("Intensity", "100"), 100.0),
+                        "envelope": note.get("Envelope", DEFAULT_ENVELOPE),
+                    }
+                )
+                continue
             entry = select_entry(entries, lyric, midi, prefix_map)
             if entry is None:
                 skipped.append((index, lyric))
@@ -595,6 +851,7 @@ def render(args: argparse.Namespace) -> None:
             velocity = float(round(max(0.0, min(200.0, parse_float(note.get("Velocity", "100"), 100.0)))))
             note["_velocity"] = str(int(velocity))
             note["_entry"] = entry  # type: ignore[assignment]
+            note["_lyric"] = lyric
             note["_midi"] = str(midi)
             note["_start"] = f"{start_ms:.6f}"
             note["_duration"] = f"{duration_ms:.6f}"
@@ -769,6 +1026,60 @@ def render(args: argparse.Namespace) -> None:
             )
             rendered += 1
 
+        breaths_added = 0
+        for event in breath_events:
+            event_index = int(event["index"])
+            lyric = surrounding_lyric(notes, event_index)
+            vowel = breath_vowel(lyric) if lyric else None
+            entry = find_breath_entry(entries, vowel, int(event["midi"]), prefix_map)
+            segment = make_breath_segment(
+                args.lessampler,
+                temporary,
+                f"breath-{event_index:04d}",
+                entry,
+                fs,
+                float(event["start"]),
+                float(event["duration"]),
+                int(event["midi"]),
+                tempo,
+                float(event["volume"]),
+                event_index,
+                str(event["envelope"]),
+            )
+            if segment is not None:
+                plan_notes.append(segment)
+                breaths_added += 1
+
+        breath_options = expression["breath"]
+        level = float(breath_options["level"]) * 100.0
+        for slot in auto_breath_slots(rendered_notes, breath_events, breath_options):
+            idx = int(slot["index"])
+            note = rendered_notes[idx]
+            previous_lyric = ""
+            if idx > 0:
+                previous_lyric = str(rendered_notes[idx - 1].get("_lyric", ""))
+            next_lyric = str(note.get("_lyric", ""))
+            vowel = breath_vowel(next_lyric) or breath_vowel(previous_lyric)
+            midi = int(note["_midi"])
+            entry = find_breath_entry(entries, vowel, midi, prefix_map)
+            segment = make_breath_segment(
+                args.lessampler,
+                temporary,
+                f"breath-auto-{idx:04d}",
+                entry,
+                fs,
+                float(slot["start"]),
+                float(slot["duration"]),
+                midi,
+                tempo,
+                level,
+                len(notes) + idx,
+                DEFAULT_ENVELOPE,
+            )
+            if segment is not None:
+                plan_notes.append(segment)
+                breaths_added += 1
+
         if rendered == 0 or not plan_notes:
             raise SystemExit("no notes rendered")
 
@@ -826,7 +1137,8 @@ def render(args: argparse.Namespace) -> None:
     for index, lyric in skipped:
         print(f"[warn] note {index}: no oto entry for {lyric!r}", file=sys.stderr)
     suffix = " (features)" if args.feature else (" (polished)" if args.polish else "")
-    print(f"rendered {rendered}/{total} notes, {duration:.3f}s{suffix} -> {args.output}")
+    breath_text = f", {breaths_added} breaths" if breaths_added else ""
+    print(f"rendered {rendered}/{total} notes{breath_text}, {duration:.3f}s{suffix} -> {args.output}")
 
 
 def main() -> int:

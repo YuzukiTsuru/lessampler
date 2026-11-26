@@ -40,6 +40,7 @@ from render_ust import (  # noqa: E402
     TICKS_PER_QUARTER,
     default_expression,
     effective_vbr,
+    is_breath_lyric,
     parse_ust,
     pitch_points,
     pitch_value,
@@ -132,7 +133,7 @@ def note_targets(ust: Path) -> list[dict[str, object]]:
         start_ms = tick * 60_000.0 / (tempo * TICKS_PER_QUARTER)
         tick += length
         lyric = note.get("Lyric", "").strip()
-        if not lyric or lyric.upper() == "R" or lyric.lower() == "x":
+        if not lyric or lyric.upper() == "R" or is_breath_lyric(lyric):
             continue
         try:
             midi = int(note.get("NoteNum", "60"))
@@ -266,7 +267,7 @@ def seam_metrics(ust: Path, samples: array, sample_rate: int) -> dict[str, objec
         start_ms = tick * 60_000.0 / (tempo * TICKS_PER_QUARTER)
         tick += length
         lyric = note.get("Lyric", "").strip()
-        if lyric and lyric.upper() != "R" and lyric.lower() != "x":
+        if lyric and lyric.upper() != "R" and not is_breath_lyric(lyric):
             starts.append(start_ms)
 
     window = max(1, int(0.002 * sample_rate))
