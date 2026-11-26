@@ -7,6 +7,8 @@ add_library(Audio
         Dsp/Compressor.h
         Dsp/Declick.cpp
         Dsp/Declick.h
+        Dsp/GrowlShaper.cpp
+        Dsp/GrowlShaper.h
         Dsp/Limiter.cpp
         Dsp/Limiter.h
         Dsp/MasterChain.cpp

@@ -126,6 +126,19 @@ namespace lessampler {
         return 1.0;
     }
 
+    /*
+     * Style weights at one point inside a note. A note without style returns
+     * an empty weight set, which lets every consumer keep its natural path
+     * bit-exact.
+     */
+    inline StyleWeights StyleAt(const VoiceStyle &style, double elapsed_ms, double note_duration_ms) {
+        if (!style.active()) {
+            return {};
+        }
+        const double position = StyleMorphPosition(elapsed_ms, note_duration_ms, style.morph_ms);
+        return LerpWeights(style.start, style.end, position);
+    }
+
     namespace detail {
 
         inline bool parse_style_group(std::string_view group, StyleWeights &weights) {

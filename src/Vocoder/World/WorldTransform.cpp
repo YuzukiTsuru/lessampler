@@ -153,6 +153,7 @@ namespace lessampler {
         const double voicing_gain = std::pow(10.0, voicing_db / 20.0);
         const double breathiness_gain = std::pow(10.0, breathiness_db / 20.0);
         const bool style_active = high_note || mean_ap > 0.6;
+        const double note_duration_ms = static_cast<double>(output_frames) * audioModel.frame_period;
 
         for (std::size_t i = 0; i < output_frames; ++i) {
             const double out_sample_index = audioModel.frame_period * static_cast<double>(i);
@@ -231,15 +232,29 @@ namespace lessampler {
                 output_ap[j] = current_ap[j] * (1.0 - sp_fraction) + next_ap[j] * sp_fraction;
             }
 
-            if (style_active) {
+            // Clear and cry are spectral voice colors layered on top of the
+            // rule-based variance above. Growl is a post-synthesis shaper, so
+            // a growl-only note leaves the WORLD model untouched.
+            const StyleWeights weights = StyleAt(shine.style, out_sample_index, note_duration_ms);
+            const bool spectral_style = weights.clear > 0.0 || weights.cry > 0.0;
+            if (style_active || spectral_style) {
+                const double frame_voicing_gain = spectral_style
+                                                          ? voicing_gain * std::pow(10.0, (0.5 * weights.clear + 1.0 * weights.cry) / 20.0)
+                                                          : voicing_gain;
+                const double frame_breathiness_gain = spectral_style
+                                                              ? breathiness_gain * std::pow(10.0, (-6.0 * weights.clear + 0.5 * weights.cry) / 20.0)
+                                                              : breathiness_gain;
+                const double frame_tension = spectral_style
+                                                     ? tension * (1.0 - 0.5 * weights.clear) + 0.25 * weights.cry
+                                                     : tension;
                 for (std::size_t j = 0; j < w_length; ++j) {
                     const double aperiodicity = std::clamp(output_ap[j], 0.0, 0.999999);
-                    double harmonic = output_row[j] * (1.0 - aperiodicity) * voicing_gain;
-                    double noise = output_row[j] * aperiodicity * breathiness_gain;
-                    if (tension > 0.0 && audioModel.fft_size > 0) {
+                    double harmonic = output_row[j] * (1.0 - aperiodicity) * frame_voicing_gain;
+                    double noise = output_row[j] * aperiodicity * frame_breathiness_gain;
+                    if (frame_tension > 0.0 && audioModel.fft_size > 0) {
                         const double frequency = static_cast<double>(j) * static_cast<double>(audioModel.fs) /
                                                  static_cast<double>(audioModel.fft_size);
-                        harmonic *= 1.0 + tension * std::max(0.0, 1.0 - frequency / 2000.0);
+                        harmonic *= 1.0 + frame_tension * std::max(0.0, 1.0 - frequency / 2000.0);
                     }
                     const double power = harmonic + noise;
                     output_row[j] = power;

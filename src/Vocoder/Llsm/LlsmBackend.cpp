@@ -24,6 +24,7 @@
 #include "Core/Exception.h"
 #include "Core/Log.h"
 #include "Core/Timer.h"
+#include "Core/VoiceStyle.h"
 #include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/Llsm/LlsmCache.h"
 
@@ -220,6 +221,45 @@ namespace lessampler {
 
                 if (dst_nm != nullptr && src_nm != nullptr) {
                     InterpNoiseFrame(dst_nm, src_nm, ratio);
+                }
+            }
+
+            /*
+             * Clear and cry for LLSM: shift the vocal-tract magnitude response
+             * and the noise model. Both quantities are stored in dB, so the
+             * weight-derived gains are simply added or subtracted.
+             */
+            void ApplyStyleToLlsmFrame(llsm_container *frame, const StyleWeights &weights) {
+                if (weights.clear == 0.0 && weights.cry == 0.0) {
+                    return;
+                }
+                const double harmonic_db = 0.5 * weights.clear + 1.0 * weights.cry;
+                const double noise_db = -6.0 * weights.clear + 0.5 * weights.cry;
+
+                if (auto *vtmagn = static_cast<FP_TYPE *>(llsm_container_get(frame, LLSM_FRAME_VTMAGN))) {
+                    const int count = llsm_fparray_length(vtmagn);
+                    for (int i = 0; i < count; ++i) {
+                        vtmagn[i] += static_cast<FP_TYPE>(harmonic_db);
+                    }
+                }
+
+                auto *nm = static_cast<llsm_nmframe *>(llsm_container_get(frame, LLSM_FRAME_NM));
+                if (nm == nullptr) {
+                    return;
+                }
+                for (int i = 0; i < nm->npsd; ++i) {
+                    nm->psd[i] += static_cast<FP_TYPE>(noise_db);
+                }
+                const double noise_gain = std::pow(10.0, noise_db / 20.0);
+                for (int channel = 0; channel < nm->nchannel; ++channel) {
+                    nm->edc[channel] = static_cast<FP_TYPE>(nm->edc[channel] * noise_gain);
+                    if (nm->eenv[channel] == nullptr) {
+                        continue;
+                    }
+                    for (int i = 0; i < nm->eenv[channel]->nhar; ++i) {
+                        nm->eenv[channel]->ampl[i] =
+                                static_cast<FP_TYPE>(nm->eenv[channel]->ampl[i] * noise_gain);
+                    }
                 }
             }
 
@@ -438,6 +478,7 @@ namespace lessampler {
 
                     const std::size_t last_input = input_frames - 1;
                     const std::size_t max_pitch_index = params.pitch_bend.size() - 2;
+                    const double note_duration_ms = static_cast<double>(output_frames) * frame_period;
 
                     timer.SetTimer();
                     for (std::size_t i = 0; i < output_frames; ++i) {
@@ -511,6 +552,10 @@ namespace lessampler {
                         } else {
                             frame_f0[0] = target_f0;
                         }
+
+                        ApplyStyleToLlsmFrame(
+                                transformed->frames[i],
+                                StyleAt(params.style, out_sample, note_duration_ms));
                     }
                     LOG_INFO << timer.GetTimer("LLSM Transform: ");
 

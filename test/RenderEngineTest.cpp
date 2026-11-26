@@ -175,6 +175,45 @@ int main() {
     CHECK_EQ(engine_stats.analysis_misses, 1);
     CHECK_EQ(engine_stats.analysis_hits, 1);
 
+    // Explicit natural style is still the natural path.
+    auto natural_params = params;
+    natural_params.style.from_flags = true;
+    const auto natural_again = engine.Render(source, natural_params);
+    CHECK(natural_again.samples == engine_first.samples);
+
+    // A style change is synthesis-only: the analysis is reused and the PCM
+    // changes without a second Prepare call.
+    auto clear_params = params;
+    clear_params.style.from_flags = true;
+    clear_params.style.start = StyleWeights{1.0, 0.0, 0.0};
+    clear_params.style.end = clear_params.style.start;
+    const auto clear_result = engine.Render(source, clear_params);
+    CHECK(all_finite(clear_result.samples));
+    CHECK(clear_result.samples != engine_first.samples);
+    CHECK_EQ(engine.stats().analysis_misses, 1);
+    CHECK_EQ(engine.stats().analysis_hits, 3);
+
+    // A voicebank default applies when the note carries no style flags.
+    Config clear_config = configure;
+    clear_config.style_default = VoiceStyleKind::clear;
+    RenderEngine clear_engine(clear_config);
+    CHECK(clear_engine.Render(source, params).samples != engine_first.samples);
+
+    // Per-note flags override the voicebank default.
+    Config growl_config = configure;
+    growl_config.style_default = VoiceStyleKind::growl;
+    RenderEngine growl_engine(growl_config);
+    CHECK(growl_engine.Render(source, clear_params).samples == clear_result.samples);
+
+    auto growl_params = params;
+    growl_params.style.from_flags = true;
+    growl_params.style.start = StyleWeights{0.0, 0.0, 1.0};
+    growl_params.style.end = growl_params.style.start;
+    const auto growl_result = engine.Render(source, growl_params);
+    CHECK(all_finite(growl_result.samples));
+    CHECK(growl_result.samples != engine_first.samples);
+    CHECK(std::ranges::all_of(growl_result.samples, [](double value) { return std::abs(value) <= 1.0; }));
+
 #if defined(LESSAMPLER_ENABLE_LLSM)
     const auto llsm_config = ResolveF0EstimatorConfig(configure, VocoderKind::llsm);
     const backend::AnalysisRequest llsm_request{source, llsm_config};
@@ -188,6 +227,14 @@ int main() {
     REQUIRE(llsm_analysis != nullptr);
     const auto llsm_result = llsm_backend->Synthesize({*llsm_analysis, params});
     check_render(llsm_result, params, source.info().sample_rate, 440.0);
+
+    auto llsm_clear = params;
+    llsm_clear.style.from_flags = true;
+    llsm_clear.style.start = StyleWeights{1.0, 0.0, 0.0};
+    llsm_clear.style.end = llsm_clear.style.start;
+    const auto llsm_clear_result = llsm_backend->Synthesize({*llsm_analysis, llsm_clear});
+    CHECK(all_finite(llsm_clear_result.samples));
+    CHECK(llsm_clear_result.samples != llsm_result.samples);
 
     const auto cache_path = backend::LlsmCachePath(input);
     CHECK(std::filesystem::exists(cache_path));

@@ -92,5 +92,30 @@ int main() {
     CHECK_NEAR(StyleMorphPosition(50.0, 1000.0, 100.0), 0.5, 1e-12);
     CHECK_NEAR(StyleMorphPosition(500.0, 1000.0, 100.0), 1.0, 1e-12);
 
+    {
+        VoiceStyle style;
+        CHECK(StyleAt(style, 100.0, 1000.0).empty());
+    }
+
+    {
+        VoiceStyle style;
+        style.start = StyleWeights{1.0, 0.0, 0.0};
+        style.end = StyleWeights{0.0, 0.0, 1.0};
+        style.morph_ms = 100.0;
+        const auto quarter = StyleAt(style, 25.0, 1000.0);
+        CHECK_NEAR(quarter.clear, 0.75, 1e-12);
+        CHECK_NEAR(quarter.growl, 0.25, 1e-12);
+        const auto held = StyleAt(style, 500.0, 1000.0);
+        CHECK_NEAR(held.growl, 1.0, 1e-12);
+        CHECK_NEAR(held.clear, 0.0, 1e-12);
+    }
+
+    {
+        VoiceStyle style;
+        style.start = StyleWeights{0.0, 0.0, 1.0};
+        style.end = style.start;
+        CHECK_NEAR(StyleAt(style, 500.0, 1000.0).growl, 1.0, 1e-12);
+    }
+
     return test::finish();
 }

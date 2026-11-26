@@ -122,5 +122,46 @@ int main() {
     CHECK(high_transformed.spectrogram[0][0] > 0.1);
     CHECK(high_transformed.aperiodicity[0][0] < 0.5);
 
+    // A growl-only style is a post-synthesis shaper; the WORLD model itself
+    // stays bit-identical to the natural path.
+    auto growl_shine = shine;
+    growl_shine.style.start = StyleWeights{0.0, 0.0, 1.0};
+    growl_shine.style.end = growl_shine.style.start;
+    WorldTransform growl_process(model, growl_shine);
+    const auto &growl_model = growl_process.GetTransAudioModel();
+    CHECK(std::ranges::equal(growl_model.spectrogram[0], transformed.spectrogram[0]));
+    CHECK(std::ranges::equal(growl_model.aperiodicity[0], transformed.aperiodicity[0]));
+
+    // Clear lowers the aperiodic share, cry raises harmonic energy.
+    auto clear_shine = shine;
+    clear_shine.style.start = StyleWeights{1.0, 0.0, 0.0};
+    clear_shine.style.end = clear_shine.style.start;
+    WorldTransform clear_process(model, clear_shine);
+    const auto &clear_model = clear_process.GetTransAudioModel();
+    CHECK(clear_model.spectrogram[0][0] < transformed.spectrogram[0][0]);
+    CHECK(clear_model.aperiodicity[0][0] < transformed.aperiodicity[0][0]);
+    CHECK_NEAR(clear_model.aperiodicity[0][0], 0.3212, 1e-3);
+
+    auto cry_shine = shine;
+    cry_shine.style.start = StyleWeights{0.0, 1.0, 0.0};
+    cry_shine.style.end = cry_shine.style.start;
+    WorldTransform cry_process(model, cry_shine);
+    const auto &cry_model = cry_process.GetTransAudioModel();
+    CHECK(cry_model.spectrogram[0][0] > transformed.spectrogram[0][0]);
+    CHECK(cry_model.aperiodicity[0][0] < transformed.aperiodicity[0][0]);
+    CHECK(cry_model.aperiodicity[0][0] > clear_model.aperiodicity[0][0]);
+
+    // A note that morphs from clear to cry holds the end color after
+    // morph_ms, and its midpoint lies between the two steady states.
+    auto morph_shine = shine;
+    morph_shine.style.start = StyleWeights{1.0, 0.0, 0.0};
+    morph_shine.style.end = StyleWeights{0.0, 1.0, 0.0};
+    morph_shine.style.morph_ms = 200.0;
+    WorldTransform morph_process(model, morph_shine);
+    const auto &morph_model = morph_process.GetTransAudioModel();
+    CHECK_NEAR(morph_model.aperiodicity[0][0], clear_model.aperiodicity[0][0], 1e-12);
+    CHECK_NEAR(morph_model.aperiodicity[50][0], cry_model.aperiodicity[0][0], 1e-12);
+    CHECK_NEAR(morph_model.aperiodicity[60][0], morph_model.aperiodicity[50][0], 1e-12);
+
     return test::finish();
 }

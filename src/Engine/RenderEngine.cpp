@@ -17,6 +17,7 @@
 
 #include "Audio/AutoAMP.h"
 #include "Audio/Dsp/Declick.h"
+#include "Audio/Dsp/GrowlShaper.h"
 #include "Core/Exception.h"
 #include "Core/Log.h"
 #include "Vocoder/Common/F0Estimator.h"
@@ -145,6 +146,7 @@ namespace lessampler {
         }
 
         auto result = backend.Synthesize(backend::SynthesisRequest{*analysis, render_params});
+        GrowlShaper::Apply(result.samples, result.fs, render_params.style);
         Declick::Apply(result.samples, result.fs);
         AutoAMP::ApplyInPlace(result.samples, render_params.volumes);
         return result;

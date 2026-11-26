@@ -95,6 +95,10 @@ add_executable(MasterChainTest MasterChainTest.cpp)
 target_link_libraries(MasterChainTest PRIVATE Audio)
 lessampler_add_test(MasterChainTest unit)
 
+add_executable(GrowlShaperTest GrowlShaperTest.cpp)
+target_link_libraries(GrowlShaperTest PRIVATE Audio Core)
+lessampler_add_test(GrowlShaperTest unit)
+
 add_executable(WavtoolProtocolTest WavtoolProtocolTest.cpp)
 target_link_libraries(WavtoolProtocolTest PRIVATE Wavtool)
 lessampler_add_test(WavtoolProtocolTest unit)
