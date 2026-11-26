@@ -28,6 +28,13 @@ int main() {
     }
     CHECK_EQ(para.required_frame, 201);
 
+    args[5] = "C50G25";
+    Shine styled(args, info, Shine::SHINE_MODE::UTAU);
+    const auto styled_para = styled.GetShine();
+    CHECK(styled_para.style.from_flags);
+    CHECK_NEAR(styled_para.style.start.clear, 0.5, 1e-12);
+    CHECK_NEAR(styled_para.style.start.growl, 0.25, 1e-12);
+
     args[13] = "1E#4#";
     Shine bent(args, info, Shine::SHINE_MODE::UTAU);
     const auto bent_para = bent.GetShine();

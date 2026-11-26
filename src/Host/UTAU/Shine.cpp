@@ -77,6 +77,7 @@ namespace lessampler {
         shine_para.scale_num = utau_para.scale_num;
         shine_para.tempo_num = utau_para.tempo_num;
         shine_para.is_custom_pitch = utau_para.is_custom_pitch;
+        ParseVoiceStyleFlags(utau_para.flags, shine_para.style);
         DecodePitchBend(audioInfo.fs, audioInfo.frame_period, utau_para.pitch);
     }
 

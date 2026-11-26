@@ -134,9 +134,19 @@ namespace lessampler {
         auto &backend = backend_for(configure.vocoder);
         LOG_INFO << "Backend: " + std::string(backend.name());
 
-        auto result = backend.Synthesize(backend::SynthesisRequest{*analysis, params});
+        auto render_params = params;
+        if (!render_params.style.from_flags) {
+            const auto weights = WeightsFor(configure.style_default, configure.style_amount);
+            render_params.style.start = weights;
+            render_params.style.end = weights;
+            render_params.style.morph_ms = configure.style_morph_ms;
+        } else if (render_params.style.morphs() && render_params.style.morph_ms == 0.0) {
+            render_params.style.morph_ms = configure.style_morph_ms;
+        }
+
+        auto result = backend.Synthesize(backend::SynthesisRequest{*analysis, render_params});
         Declick::Apply(result.samples, result.fs);
-        AutoAMP::ApplyInPlace(result.samples, params.volumes);
+        AutoAMP::ApplyInPlace(result.samples, render_params.volumes);
         return result;
     }
 

@@ -17,6 +17,7 @@
 #include "Config/F0EstimatorKind.h"
 #include "Config/NeuralVocoderSpec.h"
 #include "Config/VocoderKind.h"
+#include "Core/VoiceStyle.h"
 
 namespace lessampler {
 
@@ -65,6 +66,15 @@ namespace lessampler {
          * fingerprint; "none" disables the master chain.
          */
         std::string master_preset = "warm";
+
+        /*
+         * Voice color default for the voicebank. Style is synthesis-only and
+         * intentionally excluded from the analysis fingerprint; UST Flags can
+         * override it per note.
+         */
+        VoiceStyleKind style_default = VoiceStyleKind::natural;
+        double style_amount = 1.0;
+        double style_morph_ms = 0.0;
 
         /*
      * Hash of every setting that changes WORLD analysis. It is stored in

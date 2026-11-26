@@ -38,6 +38,9 @@ int main() {
     CHECK(config.neural_model_path.empty());
     CHECK_EQ(config.neural_threads, 0);
     CHECK_NEAR(config.neural_target_rms, 0.111, 1e-12);
+    CHECK_EQ(config.style_default, VoiceStyleKind::natural);
+    CHECK_NEAR(config.style_amount, 1.0, 1e-12);
+    CHECK_NEAR(config.style_morph_ms, 0.0, 1e-12);
     {
         std::ifstream default_config(defaults_dir / "lessampler.less");
         const std::string content((std::istreambuf_iterator<char>(default_config)),
@@ -46,6 +49,7 @@ int main() {
         CHECK(content.find("estimator = \"auto\"") != std::string::npos);
         CHECK(content.find("f0_mode") == std::string::npos);
         CHECK(content.find("[neural]") != std::string::npos);
+        CHECK(content.find("[style]") != std::string::npos);
     }
 
     const auto custom_dir = root / "custom";
@@ -75,6 +79,11 @@ ap_threshold = 0.2
 model_path = "model.onnx"
 threads = 2
 target_rms = 0.1
+
+[style]
+default = "clear"
+amount = 0.5
+morph_ms = 120.0
 )");
     ConfigLoader custom(custom_dir);
     config = custom.GetConfig();
@@ -89,6 +98,9 @@ target_rms = 0.1
     CHECK_EQ(config.neural_model_path, (custom_dir / "model.onnx").string());
     CHECK_EQ(config.neural_threads, 2);
     CHECK_NEAR(config.neural_target_rms, 0.1, 1e-12);
+    CHECK_EQ(config.style_default, VoiceStyleKind::clear);
+    CHECK_NEAR(config.style_amount, 0.5, 1e-12);
+    CHECK_NEAR(config.style_morph_ms, 120.0, 1e-12);
 
     const auto legacy_dir = root / "legacy";
     std::filesystem::create_directories(legacy_dir);
@@ -159,6 +171,9 @@ frame_period = 5.7
     expect_invalid("bad-ap", "[ap]\nap_threshold = 2.0\n");
     expect_invalid("bad-threads", "[neural]\nthreads = -1\n");
     expect_invalid("bad-rms", "[neural]\ntarget_rms = 0.0\n");
+    expect_invalid("bad-style", "[style]\ndefault = \"NOPE\"\n");
+    expect_invalid("bad-style-amount", "[style]\namount = 2.0\n");
+    expect_invalid("bad-style-morph", "[style]\nmorph_ms = -1.0\n");
 
     const auto voice_dir = root / "voice";
     std::filesystem::create_directories(voice_dir);
@@ -241,6 +256,10 @@ preset = "POWER"
     fingerprint_config.neural_model_path = "some-model.onnx";
     CHECK_EQ(fingerprint_config.fingerprint(), before);
     fingerprint_config.master_preset = "power";
+    CHECK_EQ(fingerprint_config.fingerprint(), before);
+    fingerprint_config.style_default = VoiceStyleKind::growl;
+    fingerprint_config.style_amount = 0.5;
+    fingerprint_config.style_morph_ms = 80.0;
     CHECK_EQ(fingerprint_config.fingerprint(), before);
     fingerprint_config.f0_estimator = F0EstimatorKind::dio;
     const auto dio_before = fingerprint_config.fingerprint();

@@ -125,6 +125,10 @@ add_executable(PresetFactoryTest PresetFactoryTest.cpp)
 target_link_libraries(PresetFactoryTest PRIVATE Config Audio)
 lessampler_add_test(PresetFactoryTest unit)
 
+add_executable(VoiceStyleTest VoiceStyleTest.cpp)
+target_link_libraries(VoiceStyleTest PRIVATE Core)
+lessampler_add_test(VoiceStyleTest unit)
+
 add_executable(F0EstimatorTest F0EstimatorTest.cpp)
 target_link_libraries(F0EstimatorTest PRIVATE VocoderCommon Audio Config)
 lessampler_add_test(F0EstimatorTest integration)

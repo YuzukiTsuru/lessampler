@@ -281,6 +281,18 @@ namespace lessampler {
             }
         }
 
+        if (const auto *section = table["style"].as_table()) {
+            if (const auto value = (*section)["default"].value<std::string>()) {
+                const auto kind = ParseVoiceStyleKind(*value);
+                if (!kind) {
+                    invalid_value("style", "default", "expected \"natural\", \"clear\", \"cry\", or \"growl\"");
+                }
+                configure.style_default = *kind;
+            }
+            configure.style_amount = read_double(*section, "style", "amount", configure.style_amount);
+            configure.style_morph_ms = read_double(*section, "style", "morph_ms", configure.style_morph_ms);
+        }
+
         require_positive(configure.audio_model_frame_period, "audio_model", "frame_period");
         if (configure.model_amp < 0.0) {
             invalid_value("audio_model", "model_amp", "must be zero or greater");
@@ -316,6 +328,12 @@ namespace lessampler {
             invalid_value("neural", "threads", "must be zero or greater");
         }
         require_positive(configure.neural_target_rms, "neural", "target_rms");
+        if (configure.style_amount < 0.0 || configure.style_amount > 1.0) {
+            invalid_value("style", "amount", "must be between 0 and 1");
+        }
+        if (configure.style_morph_ms < 0.0) {
+            invalid_value("style", "morph_ms", "must be zero or greater");
+        }
     }
 
     void ResolveModelPaths(Config &configure, const std::filesystem::path &base) {
@@ -393,6 +411,11 @@ waveform_output = {}
 
 [master]
 preset = {}            # none / natural / warm / power
+
+[style]
+default = {}            # natural / clear / cry / growl
+amount = {}
+morph_ms = {}
 )",
                            toml_quote(configure.version),
                            configure.debug_mode,
@@ -435,7 +458,10 @@ preset = {}            # none / natural / warm / power
                            toml_quote(configure.neural_spec.f0_input),
                            toml_quote(configure.neural_spec.uv_input),
                            toml_quote(configure.neural_spec.waveform_output),
-                           toml_quote(configure.master_preset));
+                           toml_quote(configure.master_preset),
+                           toml_quote(VoiceStyleKindName(configure.style_default)),
+                           configure.style_amount,
+                           configure.style_morph_ms);
     }
 
     void write_config_toml(const std::filesystem::path &path, const Config &configure) {
@@ -502,6 +528,11 @@ waveform_output = {}
 
 [master]
 preset = {}
+
+[style]
+default = {}
+amount = {}
+morph_ms = {}
 )",
                            toml_quote(configure.version),
                            configure.debug_mode,
@@ -545,7 +576,10 @@ preset = {}
                            toml_quote(configure.neural_spec.f0_input),
                            toml_quote(configure.neural_spec.uv_input),
                            toml_quote(configure.neural_spec.waveform_output),
-                           toml_quote(configure.master_preset));
+                           toml_quote(configure.master_preset),
+                           toml_quote(VoiceStyleKindName(configure.style_default)),
+                           configure.style_amount,
+                           configure.style_morph_ms);
 
         if (!out) {
             throw file_open_error(path.string());

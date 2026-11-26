@@ -18,6 +18,8 @@
 #include <iostream>
 #include <vector>
 
+#include "Core/VoiceStyle.h"
+
 namespace lessampler {
 
     class RenderParams {
@@ -61,6 +63,10 @@ namespace lessampler {
         double gender_value = 0.0;
         double breath_value = 0.0;
         double opening = 0.0;
+
+    public:
+        // Synthesis-only voice color. Not part of the analysis cache key.
+        VoiceStyle style;
     };
 
 }// namespace lessampler
