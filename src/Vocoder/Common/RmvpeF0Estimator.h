@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "Vocoder/Common/F0EstimatorTypes.h"
+#include "Vocoder/Common/RmvpeDecode.h"
 #include "Vocoder/Common/RmvpeModel.h"
 
 namespace lessampler {

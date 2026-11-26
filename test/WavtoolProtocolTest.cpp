@@ -1,9 +1,13 @@
 #include "TestSupport.h"
 
 #include <array>
+#include <filesystem>
+#include <fstream>
+#include <string>
 #include <string_view>
 
 #include "Core/Exception.h"
+#include "Host/Wavtool/WavtoolPlan.h"
 #include "Host/Wavtool/WavtoolProtocol.h"
 
 using namespace lessampler;
@@ -65,6 +69,48 @@ int main() {
         rejected = true;
     }
     CHECK(rejected);
+
+    const auto plan_path = std::filesystem::temp_directory_path() / "lessampler-wavtool-plan-test.toml";
+    {
+        std::ofstream plan(plan_path);
+        plan << "output = \"out.wav\"\n"
+                "master = \"WARM\"\n"
+                "[[notes]]\n"
+                "input = \"in.wav\"\n"
+                "position_ms = 0.0\n"
+                "length_ms = 10.0\n";
+    }
+    const auto plan = WavtoolPlan::Parse(plan_path);
+    CHECK_EQ(plan.master, "warm");
+
+    {
+        std::ofstream plan(plan_path);
+        plan << "output = \"out.wav\"\n"
+                "master = \"\"\n"
+                "[[notes]]\n"
+                "input = \"in.wav\"\n"
+                "position_ms = 0.0\n"
+                "length_ms = 10.0\n";
+    }
+    CHECK_EQ(WavtoolPlan::Parse(plan_path).master, "warm");
+
+    {
+        std::ofstream plan(plan_path);
+        plan << "output = \"out.wav\"\n"
+                "master = \"not-a-preset\"\n"
+                "[[notes]]\n"
+                "input = \"in.wav\"\n"
+                "position_ms = 0.0\n"
+                "length_ms = 10.0\n";
+    }
+    rejected = false;
+    try {
+        (void) WavtoolPlan::Parse(plan_path);
+    } catch (const parameter_error &) {
+        rejected = true;
+    }
+    CHECK(rejected);
+    std::filesystem::remove(plan_path);
 
     return test::finish();
 }

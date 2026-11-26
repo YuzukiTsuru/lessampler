@@ -120,6 +120,20 @@ int main() {
     }
     CHECK(!ParseVocoderKind("nope").has_value());
 
+    {
+        const std::string names = backend::AvailableVocoderBackends();
+        std::size_t start = 0;
+        while (start < names.size()) {
+            const auto end = names.find(' ', start);
+            const auto name = names.substr(start, end == std::string::npos ? std::string::npos : end - start);
+            CHECK(ParseVocoderKind(name).has_value());
+            if (end == std::string::npos) {
+                break;
+            }
+            start = end + 1;
+        }
+    }
+
     const auto root = std::filesystem::temp_directory_path() / "lessampler-backend-test";
     std::filesystem::remove_all(root);
     std::filesystem::create_directories(root);

@@ -12,7 +12,7 @@
 #define LESSAMPLER_ONNXENV_H
 
 namespace Ort {
-    class Env;
+    struct Env;
 }
 
 namespace lessampler {

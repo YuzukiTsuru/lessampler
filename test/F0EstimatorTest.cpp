@@ -18,6 +18,7 @@
 #include "Core/Exception.h"
 #include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/Common/Resample.h"
+#include "Vocoder/Common/RmvpeDecode.h"
 
 using namespace lessampler;
 
@@ -209,6 +210,32 @@ int main() {
         REQUIRE(!boundary.f0.empty());
         CHECK_NEAR(boundary.f0.front(), 100.0, 1e-12);
         CHECK_NEAR(boundary.f0.back(), 0.0, 1e-12);
+    }
+
+    {
+        RmvpeOutput salience;
+        salience.frames = 1;
+        salience.bins = 360;
+        salience.salience.assign(360, 0.0f);
+        salience.salience[228] = 1.0f;
+        Config decode_config;
+        const auto decoded = DecodeRmvpeOutput(salience, decode_config);
+        REQUIRE(decoded.f0.size() == static_cast<std::size_t>(1));
+        CHECK_NEAR(decoded.f0[0], 440.0, 20.0);
+        CHECK_NEAR(decoded.time_axis[0], 0.0, 1e-12);
+
+        salience.salience[228] = 0.01f;
+        CHECK_EQ(DecodeRmvpeOutput(salience, decode_config).f0[0], 0.0);
+
+        RmvpeOutput direct;
+        direct.direct_f0 = true;
+        direct.frames = 2;
+        direct.f0 = {440.0f, 0.0f};
+        direct.uv = {0, 1};
+        const auto direct_decoded = DecodeRmvpeOutput(direct, decode_config);
+        REQUIRE(direct_decoded.f0.size() == static_cast<std::size_t>(2));
+        CHECK_NEAR(direct_decoded.f0[0], 440.0, 1e-9);
+        CHECK_EQ(direct_decoded.f0[1], 0.0);
     }
 
     if (const char *model = std::getenv("LESSAMPLER_RMVPE_MODEL"); model != nullptr && *model != '\0') {

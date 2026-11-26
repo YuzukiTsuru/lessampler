@@ -18,6 +18,10 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
   - [x] World
   - [x] llsm (optional build)
   - [x] NHVSing-compatible neural vocoder (optional build)
+- Multiple F0 estimators
+  - [x] Harvest and DIO + StoneMask
+  - [x] LLSM refinement (`llsm_refine_f0`)
+  - [x] RMVPE ONNX (optional model; weights not bundled)
 - Global Transform Control
   - [x] Precise Pitch Shift and Time Stretch
   - [x] FFT Size, Samples Number, Estimation Floor and so on
@@ -60,11 +64,11 @@ The executable lands in `build/max-gcc/bin/lessampler`; it is the resampler, the
 
 ## Backends
 
-WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural backend are optional; the maximal preset enables both. The neural path supports NHVSing and OpenVPI PC-NSF-HiFiGAN contracts through `[neural] preset` and per-field overrides. It can render per note, resynthesize a whole assembled mix (`--polish`), or assemble per-note mel/F0 features and run the vocoder once (`--feature-plan`). Model weights are not bundled. See [docs/src/content/docs/guides/neural.md](docs/src/content/docs/guides/neural.md).
+WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural backend are optional; the maximal preset enables both. The neural path supports NHVSing and OpenVPI PC-NSF-HiFiGAN contracts through `[neural] preset` and per-field overrides. It can render per note, resynthesize a whole assembled mix (`--polish`), or assemble per-note mel/F0 features and run the vocoder once (`--feature-plan`). F0 is a separate axis: `[f0] estimator` selects Harvest, DIO, LLSM refinement, or RMVPE; `auto` follows the backend. Model weights are not bundled. See [docs/src/content/docs/guides/neural.md](docs/src/content/docs/guides/neural.md) and [docs/src/content/docs/processing/f0.md](docs/src/content/docs/processing/f0.md).
 
 ## Configuration
 
-`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
+`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. `[f0] estimator` is `"auto"`, `"harvest"`, `"dio"`, `"llsm"`, or `"neural"`; RMVPE also needs `[f0] neural_model_path`. Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
 
 ## Rendering a UST
 
@@ -89,7 +93,7 @@ The documentation is published at <https://yuzukitsuru.github.io/lessampler/>. T
 
 - Getting started: [Build](docs/src/content/docs/getting-started/build.md), [Configuration](docs/src/content/docs/getting-started/configuration.md)
 - Guides: [Rendering a UST](docs/src/content/docs/guides/rendering.md), [Neural backends](docs/src/content/docs/guides/neural.md), [Quality evaluation](docs/src/content/docs/guides/quality.md)
-- Internals: [Processing pipeline](docs/src/content/docs/processing/index.md), [Architecture details](docs/src/content/docs/architecture/index.md)
+- Internals: [Processing pipeline](docs/src/content/docs/processing/index.md), [F0 estimation](docs/src/content/docs/processing/f0.md), [Architecture details](docs/src/content/docs/architecture/index.md)
 
 ## Special Thanks
 

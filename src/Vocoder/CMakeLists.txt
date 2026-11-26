@@ -2,6 +2,8 @@ add_library(VocoderF0Api STATIC
         Common/F0EstimatorTypes.h
         Common/Resample.cpp
         Common/Resample.h
+        Common/RmvpeDecode.cpp
+        Common/RmvpeDecode.h
 )
 target_link_libraries(VocoderF0Api PUBLIC
         Core

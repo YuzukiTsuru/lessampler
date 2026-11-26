@@ -17,20 +17,9 @@
 #include <span>
 #include <vector>
 
+#include "Vocoder/Common/RmvpeDecode.h"
+
 namespace lessampler {
-
-    struct RmvpeOutput {
-        bool direct_f0 = false;
-        std::size_t frames = 0;
-        std::size_t bins = 0;
-        std::vector<float> salience;// time-major frames * bins when direct_f0 is false
-        std::vector<float> f0;      // frames when direct_f0 is true
-        std::vector<std::uint8_t> uv;// 1 = unvoiced when direct_f0 is true
-
-        [[nodiscard]] bool Empty() const noexcept {
-            return frames == 0 || (direct_f0 ? f0.empty() : salience.empty());
-        }
-    };
 
     /*
      * ONNX Runtime session for RMVPE. Two common exports are supported:

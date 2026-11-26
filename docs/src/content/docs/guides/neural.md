@@ -38,9 +38,30 @@ The preset uses hop 512, natural-log Slaney mel, `mel` + `f0` inputs and no uv i
 
 On the 245 s reference song, PC-NSF whole-song polish scores about the same as NHVSing (3.18 full, 3.60 on the 35–80 s high-note excerpt vs 3.69). The per-note neural path improves the high excerpt from 2.99 to 3.26 but scores lower overall (2.82). PC-NSF is an alternative, not the default; A/B it on the target voicebank.
 
+## RMVPE F0 estimator
+
+The optional neural F0 estimator runs RMVPE instead of WORLD DIO/Harvest. It is available in neural builds (ONNX Runtime is already linked) and needs its own model:
+
+```toml
+[f0]
+estimator = "neural"        # or "auto" with backend = "neural"
+neural_model_path = "/path/to/rmvpe.onnx"
+neural_threads = 4
+neural_threshold = 0.03
+neural_floor = 40
+neural_ceil = 1200
+```
+
+The adapter accepts two common ONNX contracts:
+
+- `audio` / `waveform` input and a 360-bin `salience` output (`[1,T,360]` or `[1,360,T]`). Salience is decoded with the RMVPE cents mapping, a local weighted average around the peak, and `neural_threshold` for voicing.
+- `waveform` + `threshold` inputs and `f0` + `uv` outputs, as used by OpenUtau's RMVPE package. `f0` is Hz and `uv` marks unvoiced frames.
+
+Input is resampled to 16 kHz; RMVPE frames are 10 ms and are resampled to `[audio_model] frame_period`. The default `neural_ceil = 1200` matches the current WORLD transform average window; RMVPE itself supports up to 2000 Hz. Weights are not bundled. `estimator = "auto"` falls back to Harvest when the model path is missing; an explicit `estimator = "neural"` throws. `--polish` and `--feature-plan` also follow `[audio_model] backend`, so set `estimator = "neural"` explicitly if you want RMVPE on a WORLD-configured song.
+
 ## Whole-song polish
 
-`lessampler --polish <mix.wav> <out.wav>` resynthesizes an assembled mix as one timeline: F0 from the shared WORLD front end, 128-bin mel from the mix, one NHVSing pass, RMS-matched output. On the 245 s reference song this is 42,198 frames, about 60 s and 5.5 GB peak memory. It removes per-note phase resets but regenerates the timbre.
+`lessampler --polish <mix.wav> <out.wav>` resynthesizes an assembled mix as one timeline: F0 from the selected estimator, 128-bin mel from the mix, one NHVSing pass, RMS-matched output. On the 245 s reference song this is 42,198 frames, about 60 s and 5.5 GB peak memory. It removes per-note phase resets but regenerates the timbre.
 
 ## Feature-level assembly
 
@@ -53,6 +74,14 @@ Feature-level assembly is meant for WORLD or LLSM note renders. Feeding it per-n
 ```toml
 [audio_model]
 backend = "neural"
+
+[f0]
+estimator = "auto"              # or "harvest", "dio", "llsm", "neural"
+neural_model_path = ""          # RMVPE; separate from [neural] model_path
+neural_threads = 0
+neural_threshold = 0.03
+neural_floor = 40
+neural_ceil = 1200
 
 [neural]
 preset = "nhv"                  # or "pc-nsf-hifigan"
@@ -80,4 +109,4 @@ uv_input = "uv"
 waveform_output = "waveform"
 ```
 
-Fields after `preset` override it, so a model whose `vocoder.yaml` differs can be described without code changes. `threads = 0` lets ONNX Runtime choose. Input rates other than the model rate are resampled for features and back to the source rate. The F0 track is sampled by time, so hop-512 vocoders do not reuse the WORLD frame index.
+Preset names are case-insensitive and stored canonical. Fields after `preset` override it, so a model whose `vocoder.yaml` differs can be described without code changes. `threads = 0` lets ONNX Runtime choose. Input rates other than the model rate are resampled for features and back to the source rate. The F0 track is sampled by time, so hop-512 vocoders do not reuse the WORLD frame index. `[f0] neural_model_path` is independent of `[neural] model_path`; RMVPE weights are not bundled.
