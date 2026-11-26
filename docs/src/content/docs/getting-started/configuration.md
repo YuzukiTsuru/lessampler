@@ -43,6 +43,8 @@ denoise_db = 12.0         # maximum spectral attenuation
 
 [neural]
 preset = "nhv"              # "nhv" or "pc-nsf-hifigan"
+frontend = "world"          # "world", "world-spectral", "source-mel", or "source-wave"
+source_hop = 128            # source-mel mel hop; fft_size >= source_hop
 model_path = ""             # NHVSing- or PC-NSF-compatible ONNX file
 threads = 0                 # 0 lets ONNX Runtime choose
 target_rms = 0.111
@@ -73,6 +75,8 @@ morph_ms = 0.0              # 0 = spread a start>end morph over the note
 ```
 
 `backend` selects the synthesis path. Selecting a backend that is not compiled in throws a `parameter_error`. `[neural] model_path` is required by the neural backend, `--polish`, and `--feature-plan`; model weights are not bundled. `[neural] preset = "pc-nsf-hifigan"` selects the OpenVPI 44.1 kHz / hop 512 / `mel`+`f0` contract; the remaining fields override the preset for other vocoders. Preset names are case-insensitive and stored canonical.
+
+`[neural] frontend` selects how mel/F0 are built for the per-note neural backend. `"world"` (default) renders the time/pitch-transformed WORLD model and extracts mel from that waveform. `"world-spectral"` reads the transformed WORLD spectrogram directly. `"source-mel"` extracts mel from the original voicebank sample and maps it through the UTAU time/pitch controls; `source_hop` sets its mel hop (default 128). `"source-wave"` maps the source waveform through the UTAU time controls before extracting mel. The source-mel, source-wave, and world-spectral frontends are experimental: the current benchmark favors `world`, and their F0/seam metrics are worse on the reference excerpt.
 
 `[f0] estimator` is `auto`, `harvest`, `dio`, `llsm`, or `neural`. `auto` follows `[audio_model] backend`: WORLD uses Harvest, LLSM uses Harvest followed by `llsm_refine_f0`, and neural uses RMVPE. If the optional estimator is not compiled, or the RMVPE model is missing, `auto` falls back to Harvest with a warning. An explicitly selected `llsm` or `neural` estimator that is unavailable throws instead of falling back. The old `[f0] f0_mode = "DIO" | "HARVEST"` key is still read as a deprecated alias for `estimator`; when both are present, `estimator` wins.
 

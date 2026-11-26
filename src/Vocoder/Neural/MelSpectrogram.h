@@ -38,6 +38,14 @@ namespace lessampler {
                                                  double target_rms) const;
 
         /*
+         * Log-mel from an existing power spectrogram: frames * bin_count
+         * row-major, with bin_count equal to spec.fft_size / 2 + 1. Used by
+         * the WORLD-spectral neural frontend.
+         */
+        [[nodiscard]] std::vector<float> ExtractPower(std::span<const double> power, std::size_t frames,
+                                                      std::size_t bin_count) const;
+
+        /*
          * Windowed-sinc resampler with a low-pass cutoff below the smaller
          * Nyquist frequency. Used to bridge the model's sample rate.
          */

@@ -61,6 +61,19 @@ The OpenUtau `rmvpe` dependency package (`230917`, `rmvpe.oudep`) is the tested 
 
 Input is resampled to 16 kHz; RMVPE frames are 10 ms and are resampled to `[audio_model] frame_period`. The default `neural_ceil = 1200` matches the current WORLD transform average window; RMVPE itself supports up to 2000 Hz. Weights are not bundled. `estimator = "auto"` falls back to Harvest when the model path is missing; an explicit `estimator = "neural"` throws. `--polish` and `--feature-plan` also follow `[audio_model] backend`, so set `estimator = "neural"` explicitly if you want RMVPE on a WORLD-configured song.
 
+## Per-note frontends
+
+`[neural] frontend` controls what the per-note vocoder sees:
+
+| Value | Feature source |
+| --- | --- |
+| `world` (default) | Time/pitch-transformed WORLD model, rendered to a preliminary waveform, then mel extraction |
+| `world-spectral` | Mel computed directly from the transformed WORLD power spectrogram; experimental |
+| `source-mel` | Mel extracted from the original voicebank sample at `source_hop` (default 128), then time-mapped and driven by the UTAU pitch track |
+| `source-wave` | Source waveform mapped through the UTAU time controls before mel extraction; preserves source phase/transients but not target pitch in the preliminary waveform |
+
+The source-mel frontend is the hifisampler-style source-constrained idea: the voicebank sample stays the articulation source and the vocoder receives the target F0 from UTAU. In the current benchmark it did not beat the default `world` frontend: on the 45 s reference excerpt, NHVSing scored 2.96 versus 3.40 and PC-NSF 3.13 versus 3.35, with higher F0 MAE and more seam dips. `source-wave` scored 2.88/3.05, and `world-spectral` was worse still. All three remain experimental and are not the default.
+
 ## Whole-song polish
 
 `lessampler --polish <mix.wav> <out.wav>` resynthesizes an assembled mix as one timeline: F0 from the selected estimator, 128-bin mel from the mix, one NHVSing pass, RMS-matched output. On the 245 s reference song this is 42,198 frames, about 60 s and 5.5 GB peak memory. It removes per-note phase resets but regenerates the timbre.

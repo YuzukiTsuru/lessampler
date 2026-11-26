@@ -244,6 +244,15 @@ namespace lessampler {
                 }
             }
             auto &spec = configure.neural_spec;
+            if (const auto value = (*section)["frontend"].value<std::string>()) {
+                const auto kind = ParseNeuralFrontendKind(*value);
+                if (!kind) {
+                    invalid_value("neural", "frontend", "expected \"world\", \"world-spectral\", \"source-mel\", or \"source-wave\"");
+                }
+                configure.neural_frontend = *kind;
+            }
+            configure.neural_source_hop = static_cast<int>(
+                    read_int(*section, "neural", "source_hop", configure.neural_source_hop));
             if (const auto value = (*section)["model_path"].value<std::string>()) {
                 configure.neural_model_path = *value;
             }
@@ -347,6 +356,12 @@ namespace lessampler {
         if (configure.neural_threads < 0) {
             invalid_value("neural", "threads", "must be zero or greater");
         }
+        if (configure.neural_source_hop <= 0) {
+            invalid_value("neural", "source_hop", "must be greater than zero");
+        }
+        if (configure.neural_source_hop > configure.neural_spec.fft_size) {
+            invalid_value("neural", "source_hop", "must not exceed fft_size");
+        }
         require_positive(configure.neural_target_rms, "neural", "target_rms");
         if (configure.style_amount < 0.0 || configure.style_amount > 1.0) {
             invalid_value("style", "amount", "must be between 0 and 1");
@@ -413,6 +428,8 @@ denoise_db = {}
 
 [neural]
 # NHVSing-compatible ONNX model used by backend = "neural".
+frontend = {}          # "world", "world-spectral", "source-mel", or "source-wave"
+source_hop = {}        # mel hop used by the source-mel frontend
 preset = {}            # "nhv" or "pc-nsf-hifigan"
 model_path = {}
 threads = {}           # 0 lets ONNX Runtime choose
@@ -469,6 +486,8 @@ morph_ms = {}
                            configure.preprocess.declick_threshold,
                            configure.preprocess.denoise,
                            configure.preprocess.denoise_db,
+                           toml_quote(NeuralFrontendKindName(configure.neural_frontend)),
+                           configure.neural_source_hop,
                            toml_quote(configure.neural_spec.preset),
                            toml_quote(configure.neural_model_path),
                            configure.neural_threads,
@@ -544,6 +563,8 @@ denoise = {}
 denoise_db = {}
 
 [neural]
+frontend = {}          # "world", "world-spectral", "source-mel", or "source-wave"
+source_hop = {}        # mel hop used by the source-mel frontend
 preset = {}
 model_path = {}
 threads = {}
@@ -601,6 +622,8 @@ morph_ms = {}
                            configure.preprocess.declick_threshold,
                            configure.preprocess.denoise,
                            configure.preprocess.denoise_db,
+                           toml_quote(NeuralFrontendKindName(configure.neural_frontend)),
+                           configure.neural_source_hop,
                            toml_quote(configure.neural_spec.preset),
                            toml_quote(configure.neural_model_path),
                            configure.neural_threads,

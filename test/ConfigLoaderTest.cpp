@@ -38,6 +38,8 @@ int main() {
     CHECK(config.neural_model_path.empty());
     CHECK_EQ(config.neural_threads, 0);
     CHECK_NEAR(config.neural_target_rms, 0.111, 1e-12);
+    CHECK_EQ(config.neural_frontend, NeuralFrontendKind::world);
+    CHECK_EQ(config.neural_source_hop, 128);
     CHECK_EQ(config.style_default, VoiceStyleKind::natural);
     CHECK_NEAR(config.style_amount, 1.0, 1e-12);
     CHECK_NEAR(config.style_morph_ms, 0.0, 1e-12);
@@ -56,6 +58,7 @@ int main() {
         CHECK(content.find("f0_mode") == std::string::npos);
         CHECK(content.find("[neural]") != std::string::npos);
         CHECK(content.find("[preprocess]") != std::string::npos);
+        CHECK(content.find("frontend = \"world\"") != std::string::npos);
         CHECK(content.find("[style]") != std::string::npos);
     }
 
@@ -83,6 +86,8 @@ f0_allow_range = 0.2
 ap_threshold = 0.2
 
 [neural]
+frontend = "source-mel"
+source_hop = 256
 model_path = "model.onnx"
 threads = 2
 target_rms = 0.1
@@ -113,6 +118,8 @@ morph_ms = 120.0
     CHECK_EQ(config.neural_model_path, (custom_dir / "model.onnx").string());
     CHECK_EQ(config.neural_threads, 2);
     CHECK_NEAR(config.neural_target_rms, 0.1, 1e-12);
+    CHECK_EQ(config.neural_frontend, NeuralFrontendKind::source_mel);
+    CHECK_EQ(config.neural_source_hop, 256);
     CHECK_EQ(config.style_default, VoiceStyleKind::clear);
     CHECK_NEAR(config.style_amount, 0.5, 1e-12);
     CHECK_NEAR(config.style_morph_ms, 120.0, 1e-12);
@@ -122,6 +129,12 @@ morph_ms = 120.0
     CHECK_NEAR(config.preprocess.declick_threshold, 9.0, 1e-12);
     CHECK(!config.preprocess.denoise);
     CHECK_NEAR(config.preprocess.denoise_db, 6.0, 1e-12);
+
+    const auto frontend_dir = root / "frontend-wave";
+    std::filesystem::create_directories(frontend_dir);
+    write_file(frontend_dir / "lessampler.less", "[neural]\nfrontend = \"source-wave\"\n");
+    ConfigLoader frontend_config(frontend_dir);
+    CHECK_EQ(frontend_config.GetConfig().neural_frontend, NeuralFrontendKind::source_wave);
 
     const auto legacy_dir = root / "legacy";
     std::filesystem::create_directories(legacy_dir);
@@ -198,6 +211,9 @@ frame_period = 5.7
     expect_invalid("bad-preprocess-highpass", "[preprocess]\nhighpass_hz = -1.0\n");
     expect_invalid("bad-preprocess-declick", "[preprocess]\ndeclick_threshold = 0.0\n");
     expect_invalid("bad-preprocess-denoise", "[preprocess]\ndenoise_db = 61.0\n");
+    expect_invalid("bad-neural-frontend", "[neural]\nfrontend = \"NOPE\"\n");
+    expect_invalid("bad-source-hop", "[neural]\nsource_hop = 0\n");
+    expect_invalid("bad-source-hop-large", "[neural]\nsource_hop = 4096\n");
 
     const auto voice_dir = root / "voice";
     std::filesystem::create_directories(voice_dir);
@@ -293,6 +309,8 @@ preset = "POWER"
     fingerprint_config.style_default = VoiceStyleKind::growl;
     fingerprint_config.style_amount = 0.5;
     fingerprint_config.style_morph_ms = 80.0;
+    fingerprint_config.neural_frontend = NeuralFrontendKind::source_mel;
+    fingerprint_config.neural_source_hop = 64;
     CHECK_EQ(fingerprint_config.fingerprint(), before);
     fingerprint_config.f0_estimator = F0EstimatorKind::dio;
     const auto dio_before = fingerprint_config.fingerprint();

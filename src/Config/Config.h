@@ -15,6 +15,7 @@
 #include <string_view>
 
 #include "Config/F0EstimatorKind.h"
+#include "Config/NeuralFrontendKind.h"
 #include "Config/NeuralVocoderSpec.h"
 #include "Config/VocoderKind.h"
 #include "Core/PreprocessOptions.h"
@@ -66,6 +67,8 @@ namespace lessampler {
         int neural_threads = 0;
         double neural_target_rms = 0.111;
         NeuralVocoderSpec neural_spec;
+        NeuralFrontendKind neural_frontend = NeuralFrontendKind::world;
+        int neural_source_hop = 128;
 
         /*
          * Final tone/loudness preset for --polish and --feature-plan. It is

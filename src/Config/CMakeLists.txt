@@ -8,6 +8,7 @@ add_library(Config
         ConfigResolver.cpp
         ConfigResolver.h
         F0EstimatorKind.h
+        NeuralFrontendKind.h
         NeuralVocoderPresetKind.h
         NeuralVocoderSpec.cpp
         NeuralVocoderSpec.h

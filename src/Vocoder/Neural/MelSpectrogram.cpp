@@ -232,4 +232,36 @@ namespace lessampler {
         return features;
     }
 
+    std::vector<float> MelSpectrogram::ExtractPower(std::span<const double> power, std::size_t frames,
+                                                    std::size_t bin_count) const {
+        const auto expected_bins = static_cast<std::size_t>(spec_.fft_size) / 2 + 1;
+        if (bin_count != expected_bins) {
+            throw parameter_error("Power spectrogram bin count does not match the neural vocoder FFT size");
+        }
+        if (frames == 0) {
+            return {};
+        }
+        if (power.size() < frames * bin_count) {
+            throw parameter_error("Power spectrogram is shorter than its frame count");
+        }
+
+        const auto bins = static_cast<std::size_t>(spec_.mel_bins);
+        std::vector<float> features(frames * bins, 0.0f);
+        for (std::size_t frame = 0; frame < frames; ++frame) {
+            for (int m = 0; m < spec_.mel_bins; ++m) {
+                double value = 0.0;
+                const auto row = static_cast<std::size_t>(m) * bin_count;
+                for (std::size_t bin = 0; bin < bin_count; ++bin) {
+                    value += filterbank_[row + bin] *
+                             std::sqrt(std::max(0.0, power[frame * bin_count + bin]));
+                }
+                const double floored = std::max(1e-5, value);
+                features[frame * bins + static_cast<std::size_t>(m)] =
+                        static_cast<float>(spec_.mel_base == MelBase::Log10 ? std::log10(floored)
+                                                                            : std::log(floored));
+            }
+        }
+        return features;
+    }
+
 }// namespace lessampler
