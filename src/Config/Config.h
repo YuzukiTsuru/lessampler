@@ -17,6 +17,7 @@
 #include "Config/F0EstimatorKind.h"
 #include "Config/NeuralVocoderSpec.h"
 #include "Config/VocoderKind.h"
+#include "Core/PreprocessOptions.h"
 #include "Core/VoiceStyle.h"
 
 namespace lessampler {
@@ -38,6 +39,12 @@ namespace lessampler {
         double f0_cheap_trick_floor = 71.0;
         double f0_allow_range = 0.1;
         double ap_threshold = 0.10;
+
+        /*
+         * Source cleanup applied after decode and before modeling. Disabled by
+         * default so existing analyses and caches remain unchanged.
+         */
+        PreprocessOptions preprocess;
 
         /*
          * Optional RMVPE F0 estimator. The model maps 16 kHz audio to a

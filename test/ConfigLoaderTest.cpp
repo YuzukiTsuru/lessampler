@@ -41,6 +41,12 @@ int main() {
     CHECK_EQ(config.style_default, VoiceStyleKind::natural);
     CHECK_NEAR(config.style_amount, 1.0, 1e-12);
     CHECK_NEAR(config.style_morph_ms, 0.0, 1e-12);
+    CHECK(!config.preprocess.enabled);
+    CHECK_NEAR(config.preprocess.highpass_hz, 70.0, 1e-12);
+    CHECK(config.preprocess.declick);
+    CHECK_NEAR(config.preprocess.declick_threshold, 12.0, 1e-12);
+    CHECK(config.preprocess.denoise);
+    CHECK_NEAR(config.preprocess.denoise_db, 12.0, 1e-12);
     {
         std::ifstream default_config(defaults_dir / "lessampler.less");
         const std::string content((std::istreambuf_iterator<char>(default_config)),
@@ -49,6 +55,7 @@ int main() {
         CHECK(content.find("estimator = \"auto\"") != std::string::npos);
         CHECK(content.find("f0_mode") == std::string::npos);
         CHECK(content.find("[neural]") != std::string::npos);
+        CHECK(content.find("[preprocess]") != std::string::npos);
         CHECK(content.find("[style]") != std::string::npos);
     }
 
@@ -80,6 +87,14 @@ model_path = "model.onnx"
 threads = 2
 target_rms = 0.1
 
+[preprocess]
+enabled = true
+highpass_hz = 55.0
+declick = false
+declick_threshold = 9.0
+denoise = false
+denoise_db = 6.0
+
 [style]
 default = "clear"
 amount = 0.5
@@ -101,6 +116,12 @@ morph_ms = 120.0
     CHECK_EQ(config.style_default, VoiceStyleKind::clear);
     CHECK_NEAR(config.style_amount, 0.5, 1e-12);
     CHECK_NEAR(config.style_morph_ms, 120.0, 1e-12);
+    CHECK(config.preprocess.enabled);
+    CHECK_NEAR(config.preprocess.highpass_hz, 55.0, 1e-12);
+    CHECK(!config.preprocess.declick);
+    CHECK_NEAR(config.preprocess.declick_threshold, 9.0, 1e-12);
+    CHECK(!config.preprocess.denoise);
+    CHECK_NEAR(config.preprocess.denoise_db, 6.0, 1e-12);
 
     const auto legacy_dir = root / "legacy";
     std::filesystem::create_directories(legacy_dir);
@@ -174,6 +195,9 @@ frame_period = 5.7
     expect_invalid("bad-style", "[style]\ndefault = \"NOPE\"\n");
     expect_invalid("bad-style-amount", "[style]\namount = 2.0\n");
     expect_invalid("bad-style-morph", "[style]\nmorph_ms = -1.0\n");
+    expect_invalid("bad-preprocess-highpass", "[preprocess]\nhighpass_hz = -1.0\n");
+    expect_invalid("bad-preprocess-declick", "[preprocess]\ndeclick_threshold = 0.0\n");
+    expect_invalid("bad-preprocess-denoise", "[preprocess]\ndenoise_db = 61.0\n");
 
     const auto voice_dir = root / "voice";
     std::filesystem::create_directories(voice_dir);
@@ -286,6 +310,16 @@ preset = "POWER"
     const auto neural_before = neural_fingerprint.fingerprint();
     neural_fingerprint.f0_neural_threshold = 0.5;
     CHECK(neural_fingerprint.fingerprint() != neural_before);
+
+    Config preprocess_fingerprint;
+    preprocess_fingerprint.preprocess.highpass_hz = 50.0;
+    const auto disabled_preprocess_fingerprint = preprocess_fingerprint.fingerprint();
+    CHECK_EQ(disabled_preprocess_fingerprint, Config{}.fingerprint());
+    preprocess_fingerprint.preprocess.enabled = true;
+    const auto enabled_preprocess_fingerprint = preprocess_fingerprint.fingerprint();
+    CHECK(enabled_preprocess_fingerprint != disabled_preprocess_fingerprint);
+    preprocess_fingerprint.preprocess.denoise_db = 6.0;
+    CHECK(preprocess_fingerprint.fingerprint() != enabled_preprocess_fingerprint);
 
     fingerprint_config.custom_fft_size = true;
     fingerprint_config.fft_size = 2048;

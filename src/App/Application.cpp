@@ -16,11 +16,13 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "Audio/Dsp/MasterChain.h"
+#include "Audio/Preprocess.h"
 #include "Audio/SampleSource.h"
 #include "Audio/WavIO.h"
 #include "Config/ConfigLoader.h"
@@ -320,8 +322,14 @@ namespace lessampler {
     void Application::f0_dump() {
         const WavData input = WavIO::ReadWav(argv_[2]);
         const auto resolved = ResolveF0EstimatorConfig(configure_, configure_.vocoder);
+        std::vector<double> processed;
+        std::span<const double> samples = input.samples;
+        if (resolved.preprocess.enabled) {
+            processed = PreprocessAudio(input.samples, input.sample_rate, resolved.preprocess);
+            samples = std::span<const double>(processed);
+        }
         auto estimator = CreateF0Estimator(resolved.f0_estimator, resolved);
-        const auto track = estimator->Estimate(input.samples, input.sample_rate, resolved);
+        const auto track = estimator->Estimate(samples, input.sample_rate, resolved);
         const std::filesystem::path output(argv_[3]);
         if (!output.parent_path().empty()) {
             std::filesystem::create_directories(output.parent_path());
