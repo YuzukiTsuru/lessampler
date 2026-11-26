@@ -89,5 +89,6 @@ The resolved F0 estimator is part of the fingerprint, together with the RMVPE th
 - Warm WORLD note rendering is in the same range (tens of milliseconds per note).
 - The neural backend is a quality mode, not a speed mode. A warm one-second note measured about 170 ms: roughly 35 ms preliminary WORLD synthesis, 11 ms mel extraction, 90 ms ONNX inference with four threads, and 20–40 ms model load. A UTAU host starts a fresh process per note, so the model load is paid per note.
 - `estimator = "dio"` is substantially faster than `"harvest"` for first-time analysis. The default `auto` + WORLD still resolves to Harvest for quality.
+- RMVPE adds a 16 kHz resample and one ONNX inference on a cold analysis; a warm `.lessaudio` load skips it. Set `[f0] neural_threads = 1` when `VoicebankModeler` processes many files concurrently to avoid ONNX thread oversubscription.
 - `LESSAMPLER_TIME_EVAL=ON` prints every analysis, cache, transform, and synthesis stage.
 - GPU offload was evaluated and is not used. UTAU starts a fresh resampler process per note; Vulkan context creation alone measured about 0.7 s, far above the tens-of-milliseconds warm render. GPU compute would need a persistent batch/server host or a different protocol.

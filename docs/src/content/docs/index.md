@@ -18,7 +18,7 @@ hero:
       variant: minimal
 ---
 
-lessampler renders singing from UTAU `.ust` projects. It implements the resampler protocol, ships its own concatenation host, and can synthesize through WORLD, LLSM, or an optional NHVSing-compatible neural vocoder. Analysis is cached next to each voicebank sample, so warm notes render in tens of milliseconds.
+lessampler renders singing from UTAU `.ust` projects. It implements the resampler protocol, ships its own concatenation host, and can synthesize through WORLD, LLSM, or an optional NHVSing-compatible neural vocoder. F0 is a separate selectable axis: Harvest, DIO, LLSM refinement, or RMVPE. Analysis is cached next to each voicebank sample, so warm notes render in tens of milliseconds.
 
 ## Start here
 
@@ -30,11 +30,13 @@ lessampler renders singing from UTAU `.ust` projects. It implements the resample
 | Understand the neural paths | [Neural backends](guides/neural/) |
 | Measure render quality | [Quality evaluation](guides/quality/) |
 | Follow one note through the engine | [Processing pipeline](processing/) |
+| Choose an F0 estimator | [F0 estimation](processing/f0/) |
 | Read the module map | [Architecture details](architecture/) |
 
 ## What is in the box
 
 - WORLD analysis and synthesis with `.lessaudio` sidecars.
+- Selectable F0: Harvest, DIO, LLSM refinement, and optional RMVPE.
 - Optional LLSM and NHVSing-compatible neural backends.
 - `lessampler`, a single binary with the resampler, the UTAU wavtool and the CLI.
 - Whole-song neural polish and feature-level neural assembly.

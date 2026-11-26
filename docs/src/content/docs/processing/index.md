@@ -9,8 +9,8 @@ This page follows one note through the engine in execution order: arguments firs
 flowchart TD
     A["argv, UST, oto and lessampler.less"] --> B["RenderParams"]
     B --> C["SampleSource and cache key"]
-    C --> D["F0 estimation"]
-    D --> E["WORLD or LLSM modeling"]
+    C --> D["selected F0 estimator"]
+    D --> E["WORLD, LLSM or neural modeling"]
     E --> F["analysis cache"]
     F --> G["pitch and time modification"]
     G --> H["single-frame synthesis"]
@@ -24,6 +24,7 @@ flowchart TD
 | 1 | [Arguments in](arguments.md) |
 | 2 | [Source and cache](source.md) |
 | 3 | [Modeling](modeling.md) |
+| F0 | [F0 estimation](f0.md) |
 | 4 | [Pitch and time](transform.md) |
 | 5 | [Single-frame synthesis](synthesis.md) |
 | 6 | [Output](output.md) |

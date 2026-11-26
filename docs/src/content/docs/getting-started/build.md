@@ -26,14 +26,14 @@ Do not clone with `--depth 1`; the pinned submodule commits are not necessarily 
 | --- | --- |
 | `release-gcc` / `debug-gcc` | WORLD only |
 | `asan-gcc` | AddressSanitizer + UndefinedBehaviorSanitizer |
-| `neural-gcc` | WORLD + NHVSing neural backend |
-| `max-gcc` | WORLD + LLSM + neural |
+| `neural-gcc` | WORLD + NHVSing/PC-NSF neural backend + RMVPE F0 |
+| `max-gcc` | WORLD + LLSM + neural + RMVPE F0 |
 | `ci-gcc`, `ci-clang`, `ci-msvc` | CI-style WORLD builds |
 | `ci-max`, `ci-msvc-max` | CI maximal builds used for packaging |
 
 `LESSAMPLER_ENABLE_LLSM=ON` links libllsm2 and ciglet (GPLv3). The resulting binary is GPLv3; the default WORLD-only build remains LGPL-3.0.
 
-`LESSAMPLER_ENABLE_NEURAL=ON` builds the NHVSing-compatible backend. `cmake/OnnxRuntime.cmake` downloads a pinned ONNX Runtime NuGet package into `lib/onnxruntime` and configures headers, the library, and the Windows DLL copy. `ONNXRUNTIME_ROOT` overrides it. No model weights are distributed.
+`LESSAMPLER_ENABLE_NEURAL=ON` builds the NHVSing-compatible backend and the optional RMVPE F0 estimator. `cmake/OnnxRuntime.cmake` downloads a pinned ONNX Runtime NuGet package into `lib/onnxruntime` and configures headers, the library, and the Windows DLL copy. `ONNXRUNTIME_ROOT` overrides it. No model weights are distributed; set `[neural] model_path` for the vocoder and `[f0] neural_model_path` for RMVPE.
 
 Other options: `LESSAMPLER_BUILD_TESTS`, `LESSAMPLER_BUILD_TOOLS`, `LESSAMPLER_ENABLE_SANITIZERS`, `LESSAMPLER_DUMP_DATA`, `LESSAMPLER_TIME_EVAL`, `LESSAMPLER_WERROR`, `LESSAMPLER_ENABLE_SINGMOS_TESTS`. `LESSAMPLER_SINGMOS_PYTHON` selects the interpreter used by the optional SingMOS test.
 

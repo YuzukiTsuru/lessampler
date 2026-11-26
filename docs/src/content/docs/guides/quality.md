@@ -12,7 +12,7 @@ description: "SingMOS-Pro and objective metrics with a versioned JSON report."
 - Objective metrics: F0 MAE, median error, gross pitch error and VUV error against the UST note/PBS/PBY target; note-boundary seam dips; longest silence; peak and RMS level.
 - The report schema is versioned (`schema_version: 1`). The model version, chunk length and silence gate are written into the report.
 
-The F0 target is the UST curve. Inside a preutterance or overlap two notes can sound at once; a single F0 estimate can match only one of them. Read GPE and VUV together with the seam metric instead of treating them as a per-note score.
+The F0 target is the UST curve. Inside a preutterance or overlap two notes can sound at once; a single F0 estimate can match only one of them. Read GPE and VUV together with the seam metric instead of treating them as a per-note score. The target CSV is produced by `lessampler --f0`, so it follows `[f0] estimator`; keep the same estimator when comparing renders, otherwise the target and the render may use different detectors.
 
 ## Setup
 
