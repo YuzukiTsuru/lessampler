@@ -92,7 +92,6 @@ namespace lessampler {
 
             std::size_t input_index = input_count;
             std::size_t threshold_index = input_count;
-            std::string waveform_name;
             for (std::size_t i = 0; i < input_count; ++i) {
                 auto name = session.GetInputNameAllocated(i, allocator);
                 const auto lowered = lower(name.get());
@@ -101,14 +100,11 @@ namespace lessampler {
                     input_name = name.get();
                 } else if (lowered == "waveform" && input_index == input_count) {
                     input_index = i;
-                    waveform_name = name.get();
+                    input_name = name.get();
                 } else if (lowered == "threshold") {
                     threshold_index = i;
                     threshold_name = name.get();
                 }
-            }
-            if (input_index == input_count && !waveform_name.empty()) {
-                input_name = waveform_name;
             }
             if (input_index == input_count) {
                 if (input_count != 1) {
@@ -119,7 +115,8 @@ namespace lessampler {
                 input_index = 0;
             }
 
-            const auto input_info = session.GetInputTypeInfo(input_index).GetTensorTypeAndShapeInfo();
+            const auto input_type = session.GetInputTypeInfo(input_index);
+            const auto input_info = input_type.GetTensorTypeAndShapeInfo();
             if (input_info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
                 throw parameter_error("RMVPE model input must be float32");
             }
@@ -135,9 +132,8 @@ namespace lessampler {
             }
 
             if (threshold_index != input_count) {
-                const auto threshold_shape = session.GetInputTypeInfo(threshold_index)
-                                                     .GetTensorTypeAndShapeInfo()
-                                                     .GetShape();
+                const auto threshold_type = session.GetInputTypeInfo(threshold_index);
+                const auto threshold_shape = threshold_type.GetTensorTypeAndShapeInfo().GetShape();
                 if (threshold_shape.size() == 0) {
                     threshold_rank = 0;
                 } else if (threshold_shape.size() == 1) {
@@ -157,7 +153,8 @@ namespace lessampler {
             for (std::size_t i = 0; i < output_count; ++i) {
                 auto name = session.GetOutputNameAllocated(i, allocator);
                 names[i] = name.get();
-                shapes[i] = session.GetOutputTypeInfo(i).GetTensorTypeAndShapeInfo().GetShape();
+                const auto output_type = session.GetOutputTypeInfo(i);
+                shapes[i] = output_type.GetTensorTypeAndShapeInfo().GetShape();
             }
 
             std::size_t salience_index = output_count;
@@ -177,7 +174,8 @@ namespace lessampler {
             if (salience_index != output_count) {
                 direct_f0 = false;
                 salience_name = names[salience_index];
-                const auto info = session.GetOutputTypeInfo(salience_index).GetTensorTypeAndShapeInfo();
+                const auto salience_type = session.GetOutputTypeInfo(salience_index);
+                const auto info = salience_type.GetTensorTypeAndShapeInfo();
                 if (info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
                     throw parameter_error("RMVPE salience output must be float32");
                 }
@@ -195,7 +193,8 @@ namespace lessampler {
                 } else if (output_count == 1 && has_bin_dimension(shapes[0])) {
                     direct_f0 = false;
                     salience_name = names[0];
-                    const auto info = session.GetOutputTypeInfo(0).GetTensorTypeAndShapeInfo();
+                    const auto salience_type = session.GetOutputTypeInfo(0);
+                    const auto info = salience_type.GetTensorTypeAndShapeInfo();
                     if (info.GetElementType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
                         throw parameter_error("RMVPE salience output must be float32");
                     }
@@ -208,11 +207,13 @@ namespace lessampler {
             direct_f0 = true;
             f0_name = names[f0_index];
             uv_name = names[uv_index];
-            const auto f0_type = session.GetOutputTypeInfo(f0_index).GetTensorTypeAndShapeInfo().GetElementType();
+            const auto f0_type_info = session.GetOutputTypeInfo(f0_index);
+            const auto f0_type = f0_type_info.GetTensorTypeAndShapeInfo().GetElementType();
             if (f0_type != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
                 throw parameter_error("RMVPE f0 output must be float32");
             }
-            const auto uv_type = session.GetOutputTypeInfo(uv_index).GetTensorTypeAndShapeInfo().GetElementType();
+            const auto uv_type_info = session.GetOutputTypeInfo(uv_index);
+            const auto uv_type = uv_type_info.GetTensorTypeAndShapeInfo().GetElementType();
             if (uv_type != ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL &&
                 uv_type != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT &&
                 uv_type != ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32 &&

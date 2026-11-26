@@ -98,7 +98,8 @@ namespace lessampler {
                         "Neural model {} does not expose the expected '{}' input", model_path.string(), spec.uv_input));
             }
 
-            const auto mel_shape = session.GetInputTypeInfo(mel_index).GetTensorTypeAndShapeInfo().GetShape();
+            const auto mel_type = session.GetInputTypeInfo(mel_index);
+            const auto mel_shape = mel_type.GetTensorTypeAndShapeInfo().GetShape();
             if (mel_shape.size() != 3) {
                 throw parameter_error(std::format("Neural model {} mel input must be rank 3", model_path.string()));
             }
@@ -119,11 +120,13 @@ namespace lessampler {
             }
 
             if (!f0_name.empty()) {
-                const auto f0_shape = session.GetInputTypeInfo(input_index(f0_name, allocator)).GetTensorTypeAndShapeInfo().GetShape();
+                const auto f0_type = session.GetInputTypeInfo(input_index(f0_name, allocator));
+                const auto f0_shape = f0_type.GetTensorTypeAndShapeInfo().GetShape();
                 f0_2d = f0_shape.size() == 2;
             }
             if (!uv_name.empty()) {
-                const auto uv_shape = session.GetInputTypeInfo(input_index(uv_name, allocator)).GetTensorTypeAndShapeInfo().GetShape();
+                const auto uv_type = session.GetInputTypeInfo(input_index(uv_name, allocator));
+                const auto uv_shape = uv_type.GetTensorTypeAndShapeInfo().GetShape();
                 uv_2d = uv_shape.size() == 2;
             }
 
