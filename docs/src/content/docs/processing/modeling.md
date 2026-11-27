@@ -3,7 +3,7 @@ title: "Modeling"
 description: "F0 estimation, WORLD analysis and LLSM layer-1 modeling."
 ---
 
-The selected F0 estimator and backend turn the source into the note-independent analysis. When `[preprocess] enabled` is set, the decoded PCM is high-passed, click-repaired and denoised first; see [Source preprocessing](preprocess.md).
+The selected F0 estimator and backend turn the source into the note-independent analysis.
 
 ## F0 estimation
 

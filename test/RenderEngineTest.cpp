@@ -214,19 +214,6 @@ int main() {
     CHECK(growl_result.samples != engine_first.samples);
     CHECK(std::ranges::all_of(growl_result.samples, [](double value) { return std::abs(value) <= 1.0; }));
 
-    // Source preprocessing is part of the analysis key: enabling it forces a
-    // fresh analysis and changes the rendered PCM.
-    Config preprocess_config = configure;
-    preprocess_config.preprocess.enabled = true;
-    preprocess_config.preprocess.highpass_hz = 80.0;
-    preprocess_config.preprocess.declick = false;
-    preprocess_config.preprocess.denoise = false;
-    RenderEngine preprocess_engine(preprocess_config);
-    const auto preprocessed = preprocess_engine.Render(source, params);
-    CHECK(all_finite(preprocessed.samples));
-    CHECK(preprocessed.samples != engine_first.samples);
-    CHECK_EQ(preprocess_engine.stats().analysis_misses, 1);
-
 #if defined(LESSAMPLER_ENABLE_LLSM)
     const auto llsm_config = ResolveF0EstimatorConfig(configure, VocoderKind::llsm);
     const backend::AnalysisRequest llsm_request{source, llsm_config};

@@ -7,8 +7,6 @@ add_library(Audio
         Dsp/Compressor.h
         Dsp/Declick.cpp
         Dsp/Declick.h
-        Dsp/Fft.cpp
-        Dsp/Fft.h
         Dsp/GrowlShaper.cpp
         Dsp/GrowlShaper.h
         Dsp/Limiter.cpp
@@ -19,8 +17,6 @@ add_library(Audio
         Dsp/Saturator.h
         Envelope.cpp
         Envelope.h
-        Preprocess.cpp
-        Preprocess.h
         SampleSource.cpp
         SampleSource.h
         WavIO.cpp

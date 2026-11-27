@@ -99,10 +99,6 @@ add_executable(GrowlShaperTest GrowlShaperTest.cpp)
 target_link_libraries(GrowlShaperTest PRIVATE Audio Core)
 lessampler_add_test(GrowlShaperTest unit)
 
-add_executable(PreprocessTest PreprocessTest.cpp)
-target_link_libraries(PreprocessTest PRIVATE Audio Core)
-lessampler_add_test(PreprocessTest unit)
-
 add_executable(WavtoolProtocolTest WavtoolProtocolTest.cpp)
 target_link_libraries(WavtoolProtocolTest PRIVATE Wavtool)
 lessampler_add_test(WavtoolProtocolTest unit)

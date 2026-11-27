@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "Audio/AutoAMP.h"
-#include "Audio/Preprocess.h"
 #include "Core/Log.h"
 #include "Vocoder/Common/F0Estimator.h"
 #include "Vocoder/World/WorldModelBuilder.h"
@@ -35,12 +34,6 @@ namespace lessampler {
         }
 
         std::span<const double> samples = source.samples();
-        std::vector<double> processed;
-        if (resolved.preprocess.enabled) {
-            processed = PreprocessAudio(samples, source.info().sample_rate, resolved.preprocess);
-            samples = std::span<const double>(processed);
-        }
-
         std::vector<double> amplified;
         if (resolved.model_amp != 0.0) {
             amplified.assign(samples.begin(), samples.end());

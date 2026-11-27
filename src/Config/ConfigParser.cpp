@@ -220,17 +220,6 @@ namespace lessampler {
             configure.ap_threshold = read_double(*section, "ap", "ap_threshold", configure.ap_threshold);
         }
 
-        if (const auto *section = table["preprocess"].as_table()) {
-            auto &preprocess = configure.preprocess;
-            preprocess.enabled = read_bool(*section, "preprocess", "enabled", preprocess.enabled);
-            preprocess.highpass_hz = read_double(*section, "preprocess", "highpass_hz", preprocess.highpass_hz);
-            preprocess.declick = read_bool(*section, "preprocess", "declick", preprocess.declick);
-            preprocess.declick_threshold = read_double(*section, "preprocess", "declick_threshold",
-                                                       preprocess.declick_threshold);
-            preprocess.denoise = read_bool(*section, "preprocess", "denoise", preprocess.denoise);
-            preprocess.denoise_db = read_double(*section, "preprocess", "denoise_db", preprocess.denoise_db);
-        }
-
         if (const auto *section = table["neural"].as_table()) {
             if (const auto preset = (*section)["preset"].value<std::string>()) {
                 if (preset->empty()) {
@@ -344,15 +333,6 @@ namespace lessampler {
         if (configure.ap_threshold < 0.0 || configure.ap_threshold > 1.0) {
             invalid_value("ap", "ap_threshold", "must be between 0 and 1");
         }
-        if (configure.preprocess.highpass_hz < 0.0) {
-            invalid_value("preprocess", "highpass_hz", "must be zero or greater");
-        }
-        if (!(configure.preprocess.declick_threshold > 0.0)) {
-            invalid_value("preprocess", "declick_threshold", "must be greater than zero");
-        }
-        if (configure.preprocess.denoise_db < 0.0 || configure.preprocess.denoise_db > 60.0) {
-            invalid_value("preprocess", "denoise_db", "must be between 0 and 60");
-        }
         if (configure.neural_threads < 0) {
             invalid_value("neural", "threads", "must be zero or greater");
         }
@@ -418,14 +398,6 @@ neural_ceil = {}
 [ap]
 ap_threshold = {}
 
-[preprocess]
-enabled = {}           # clean source samples before analysis
-highpass_hz = {}       # 0 disables the high-pass
-declick = {}
-declick_threshold = {}
-denoise = {}
-denoise_db = {}
-
 [neural]
 # NHVSing-compatible ONNX model used by backend = "neural".
 frontend = {}          # "world", "world-spectral", "source-mel", or "source-wave"
@@ -480,12 +452,6 @@ morph_ms = {}
                            configure.f0_neural_floor,
                            configure.f0_neural_ceil,
                            configure.ap_threshold,
-                           configure.preprocess.enabled,
-                           configure.preprocess.highpass_hz,
-                           configure.preprocess.declick,
-                           configure.preprocess.declick_threshold,
-                           configure.preprocess.denoise,
-                           configure.preprocess.denoise_db,
                            toml_quote(NeuralFrontendKindName(configure.neural_frontend)),
                            configure.neural_source_hop,
                            toml_quote(configure.neural_spec.preset),
@@ -554,14 +520,6 @@ neural_ceil = {}
 [ap]
 ap_threshold = {}
 
-[preprocess]
-enabled = {}           # clean source samples before analysis
-highpass_hz = {}       # 0 disables the high-pass
-declick = {}
-declick_threshold = {}
-denoise = {}
-denoise_db = {}
-
 [neural]
 frontend = {}          # "world", "world-spectral", "source-mel", or "source-wave"
 source_hop = {}        # mel hop used by the source-mel frontend
@@ -616,12 +574,6 @@ morph_ms = {}
                            configure.f0_neural_floor,
                            configure.f0_neural_ceil,
                            configure.ap_threshold,
-                           configure.preprocess.enabled,
-                           configure.preprocess.highpass_hz,
-                           configure.preprocess.declick,
-                           configure.preprocess.declick_threshold,
-                           configure.preprocess.denoise,
-                           configure.preprocess.denoise_db,
                            toml_quote(NeuralFrontendKindName(configure.neural_frontend)),
                            configure.neural_source_hop,
                            toml_quote(configure.neural_spec.preset),

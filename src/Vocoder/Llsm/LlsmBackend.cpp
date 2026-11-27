@@ -20,7 +20,6 @@
 #include <utility>
 #include <vector>
 
-#include "Audio/Preprocess.h"
 #include "Audio/WavIO.h"
 #include "Core/Exception.h"
 #include "Core/Log.h"
@@ -370,11 +369,6 @@ namespace lessampler {
                     }
 
                     std::span<const double> samples = request.source.samples();
-                    std::vector<double> processed;
-                    if (configure.preprocess.enabled) {
-                        processed = PreprocessAudio(samples, fs, configure.preprocess);
-                        samples = std::span<const double>(processed);
-                    }
                     if (samples.empty()) {
                         throw parameter_error("Empty audio input");
                     }

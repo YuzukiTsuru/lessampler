@@ -76,7 +76,7 @@ namespace lessampler {
             estimator_identity += F0EstimatorKindName(f0_estimator);
         }
 
-        std::string data = std::format(
+        const std::string data = std::format(
                 "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
                 audio_model_frame_period,
                 fft_size,
@@ -89,16 +89,6 @@ namespace lessampler {
                 f0_allow_range,
                 ap_threshold,
                 estimator_identity);
-        // Keep the default (disabled) fingerprint identical to the previous
-        // format. Only an active preprocessor changes the analysis input.
-        if (preprocess.enabled) {
-            data += std::format("|preprocess:{}|{}|{}|{}|{}",
-                                preprocess.highpass_hz,
-                                preprocess.declick,
-                                preprocess.declick_threshold,
-                                preprocess.denoise,
-                                preprocess.denoise_db);
-        }
         return std::format("{:016x}", fnv1a(data));
     }
 

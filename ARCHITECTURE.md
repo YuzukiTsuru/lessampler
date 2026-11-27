@@ -33,7 +33,7 @@ the engine or by analysis/synthesis code.
 src/
   App/                 CLI entry point and command dispatch
   Audio/               WAV I/O, lazy SampleSource, AutoAMP, UST envelope,
-                       source Preprocess, Dsp/
+                       Dsp/
   Config/              Config value type, loader, parser, voicebank resolver
   Core/                Matrix, logging, timing, exceptions, fingerprints, params,
                        VoiceStyle
@@ -58,7 +58,7 @@ ConfigResolver ──> effective Config (global + lessvoice.less)
    ▼
 VocoderBackend::Prepare
    │  disk cache hit  -> Analysis (no decode, no cleanup)
-   │  disk cache miss -> decode PCM, optional preprocess, analyze, save cache
+   │  disk cache miss -> decode PCM, analyze, save cache
    ▼
 in-memory LRU of AnalysisPtr  (note-independent; reused by later notes)
    ▼
@@ -82,12 +82,6 @@ RenderResult Synthesize(const SynthesisRequest &);  // per note
 
 `Analysis` is an opaque shared handle. The engine never inspects
 backend-specific data, so adding a backend does not change the engine.
-
-When `[preprocess] enabled` is set, both WORLD and LLSM decode the source and
-run the same `PreprocessAudio` stage before F0 or spectral analysis. The
-settings join the config fingerprint, so a cache is never shared between
-cleaned and uncleaned audio. With preprocessing disabled the fingerprint and
-rendered output are unchanged.
 
 ## Selection factories
 

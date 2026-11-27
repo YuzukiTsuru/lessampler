@@ -19,7 +19,6 @@
 #include <utility>
 #include <vector>
 
-#include "Audio/Preprocess.h"
 #include "Core/Exception.h"
 #include "Core/Log.h"
 #include "Core/Timer.h"
@@ -454,9 +453,6 @@ namespace lessampler {
                             throw parameter_error("Empty audio input");
                         }
                         source_samples.assign(raw.begin(), raw.end());
-                        if (configure.preprocess.enabled) {
-                            source_samples = PreprocessAudio(source_samples, model.fs, configure.preprocess);
-                        }
                     }
                     if (configure.neural_frontend == NeuralFrontendKind::source_mel) {
                         timer.SetTimer();
@@ -465,9 +461,6 @@ namespace lessampler {
                             throw parameter_error("Empty audio input");
                         }
                         std::vector<double> source_audio(raw.begin(), raw.end());
-                        if (configure.preprocess.enabled) {
-                            source_audio = PreprocessAudio(source_audio, model.fs, configure.preprocess);
-                        }
                         const auto peak = std::ranges::max_element(source_audio, {}, [](double value) {
                             return std::abs(value);
                         });

@@ -25,7 +25,6 @@ export const sidebar = [
 			{ label: 'Overview', slug: 'processing' },
 			{ label: '1. Arguments in', slug: 'processing/arguments' },
 			{ label: '2. Source and cache', slug: 'processing/source' },
-			{ label: 'Source preprocessing', slug: 'processing/preprocess' },
 			{ label: '3. Modeling', slug: 'processing/modeling' },
 			{ label: 'F0 estimation', slug: 'processing/f0' },
 			{ label: '4. Pitch and time', slug: 'processing/transform' },

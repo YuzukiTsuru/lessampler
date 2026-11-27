@@ -33,14 +33,6 @@ neural_ceil = 1200.0
 [ap]
 ap_threshold = 0.10
 
-[preprocess]
-enabled = false           # clean source samples before analysis
-highpass_hz = 70.0        # 0 disables the high-pass
-declick = true
-declick_threshold = 12.0
-denoise = true
-denoise_db = 12.0         # maximum spectral attenuation
-
 [neural]
 preset = "nhv"              # "nhv" or "pc-nsf-hifigan"
 frontend = "world"          # "world", "world-spectral", "source-mel", or "source-wave"
@@ -87,8 +79,6 @@ Old `lessampler.fex` files, both TOML and legacy INI, are migrated automatically
 A voicebank can override the global config with `<voicebank>/lessvoice.less`; `ConfigResolver` caches the result per directory.
 
 `[style]` sets the default voice color. A note can override it with UST `Flags` (`C`, `Y`, `G`, and `>` for a start-to-end morph). Voice style is synthesis-only and is excluded from the analysis fingerprint, so changing it does not rebuild a model cache. The flag grammar and the automatic breath/vibrato/portamento settings are in [Expression and voice color](../guides/expression.md).
-
-`[preprocess]` cleans source samples after decode and before analysis: high-pass, click/pop repair and spectral denoise. It is off by default. When enabled, its settings are part of the analysis fingerprint, so changing them rebuilds `.lessaudio` and `.lessllsm`. See [Source preprocessing](../processing/preprocess.md).
 
 ## Model caches
 

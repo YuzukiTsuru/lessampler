@@ -27,7 +27,6 @@ You can find the alpha version at [Release](https://github.com/YuzukiTsuru/lessa
   - [x] FFT Size, Samples Number, Estimation Floor and so on
   - [x] Automatic breath, vibrato, and portamento (sample or synthesized breath)
   - [x] Voice color presets (clear, cry, growl) with per-note start-to-end morph
-  - [x] Optional source cleanup: high-pass, click/pop repair, spectral denoise
   - [ ] Support timbre gender change
 - Multiple Interactive Interfaces
   - [x] [UTAU](http://utau2008.xrea.jp/) Interface
@@ -70,7 +69,7 @@ WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural backend are optio
 
 ## Configuration
 
-`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. `[f0] estimator` is `"auto"`, `"harvest"`, `"dio"`, `"llsm"`, or `"neural"`; RMVPE also needs `[f0] neural_model_path`. `[style] default` sets the voice color for a voicebank (`natural`, `clear`, `cry`, `growl`). `[preprocess]` enables high-pass, click/pop repair and spectral denoise before analysis. Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
+`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. `[f0] estimator` is `"auto"`, `"harvest"`, `"dio"`, `"llsm"`, or `"neural"`; RMVPE also needs `[f0] neural_model_path`. `[style] default` sets the voice color for a voicebank (`natural`, `clear`, `cry`, `growl`). Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
 
 ## Rendering a UST
 
