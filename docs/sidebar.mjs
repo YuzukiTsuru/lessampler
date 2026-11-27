@@ -6,6 +6,7 @@ export const sidebar = [
 			{ label: 'Overview', slug: 'index' },
 			{ label: 'Build', slug: 'getting-started/build' },
 			{ label: 'Configuration', slug: 'getting-started/configuration' },
+			{ label: 'Configuration configurator', slug: 'getting-started/configurator' },
 		],
 	},
 	{
@@ -15,6 +16,7 @@ export const sidebar = [
 			{ label: 'Rendering a UST', slug: 'guides/rendering' },
 			{ label: 'Expression and voice color', slug: 'guides/expression' },
 			{ label: 'Neural backends', slug: 'guides/neural' },
+			{ label: 'DNN deployment', slug: 'guides/neural-deployment' },
 			{ label: 'Quality evaluation', slug: 'guides/quality' },
 		],
 	},
@@ -23,6 +25,7 @@ export const sidebar = [
 		collapsed: false,
 		items: [
 			{ label: 'Overview', slug: 'processing' },
+			{ label: 'Choosing a synthesis path', slug: 'processing/paths' },
 			{ label: '1. Arguments in', slug: 'processing/arguments' },
 			{ label: '2. Source and cache', slug: 'processing/source' },
 			{ label: '3. Modeling', slug: 'processing/modeling' },

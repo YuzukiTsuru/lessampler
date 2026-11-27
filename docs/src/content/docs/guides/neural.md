@@ -3,7 +3,9 @@ title: "Neural backends"
 description: "NHVSing, whole-song polish and feature-level assembly."
 ---
 
-The optional neural path uses an ONNX vocoder. The default is NHVSing: 44.1 kHz, hop 256, 128-bin log-mel between 40 Hz and 16 kHz, plus continuous F0 and an unvoiced flag. NHVSing V3.3 is about 7.8 MB with 0.478 M parameters. The NHVSing code is MIT; its published weights are non-commercial and are not bundled.
+The optional neural path uses an ONNX vocoder. The default is NHVSing: 44.1 kHz, hop 256, 128-bin log-mel between 40 Hz and 16 kHz, plus continuous F0 and an unvoiced flag. NHVSing V3.3 is about 7.6 MB with 0.478 M parameters. The NHVSing code is MIT; its published weights are non-commercial and are not bundled.
+
+Step-by-step build setup, ONNX Runtime deployment, model URLs and hashes are in [DNN deployment](neural-deployment.md). This page describes how the neural paths behave once they are configured.
 
 A vocoder descriptor now carries the sample rate, hop/FFT size, mel range/base/scale, tensor names, F0/uv inputs and mel layout. `[neural] preset = "pc-nsf-hifigan"` selects the OpenVPI PC-NSF-HiFiGAN contract: 44.1 kHz, hop 512, 2048-point window, 128 bins, 40–16 kHz natural-log Slaney mel, `mel` + `f0` inputs and a `waveform` output. Its weights are CC BY-NC-SA 4.0 and are not bundled. Other fields can override the preset when a model's `vocoder.yaml` differs.
 
@@ -57,7 +59,7 @@ The adapter accepts two common ONNX contracts:
 - `audio` / `waveform` input and a 360-bin `salience` output (`[1,T,360]` or `[1,360,T]`). Salience is decoded with the RMVPE cents mapping, a local weighted average around the peak, and `neural_threshold` for voicing.
 - `waveform` + `threshold` inputs and `f0` + `uv` outputs, as used by OpenUtau's RMVPE package. `f0` is Hz and `uv` marks unvoiced frames.
 
-The OpenUtau `rmvpe` dependency package (`230917`, `rmvpe.oudep`) is the tested source for the second contract; extract its `rmvpe.onnx` and point `[f0] neural_model_path` at it. The weights are not bundled and remain subject to their own license.
+The OpenUtau `rmvpe` dependency package (`230917`, `rmvpe.oudep`) is the tested source for the second contract; extract its `rmvpe.onnx` and point `[f0] neural_model_path` at it. The download URL and hashes are in [DNN deployment](neural-deployment.md). The weights are not bundled and remain subject to their own license.
 
 Input is resampled to 16 kHz; RMVPE frames are 10 ms and are resampled to `[audio_model] frame_period`. The default `neural_ceil = 1200` matches the current WORLD transform average window; RMVPE itself supports up to 2000 Hz. Weights are not bundled. `estimator = "auto"` falls back to Harvest when the model path is missing; an explicit `estimator = "neural"` throws. `--polish` and `--feature-plan` also follow `[audio_model] backend`, so set `estimator = "neural"` explicitly if you want RMVPE on a WORLD-configured song.
 

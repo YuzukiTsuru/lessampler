@@ -3,7 +3,7 @@ title: "Configuration"
 description: "lessampler.less, model caches and performance."
 ---
 
-`lessampler.less` is created next to the executable on first run. It is TOML. Delete it to regenerate defaults.
+`lessampler.less` is created next to the executable on first run. It is TOML. Delete it to regenerate defaults. To generate a complete file for a known use case, use the [configuration configurator](configurator.md); neural model downloads and ONNX Runtime setup are in [DNN deployment](../guides/neural-deployment.md).
 
 ```toml
 [config]
@@ -12,7 +12,7 @@ debug = false
 
 [audio_model]
 backend = "world"           # "world", "llsm", or "neural"
-frame_period = 5.805442176870748
+frame_period = 5.804988662131519
 fft_size = "auto"
 model_amp = 0.85
 
@@ -60,13 +60,16 @@ f0_input = "f0"
 uv_input = "uv"
 waveform_output = "waveform"
 
+[master]
+preset = "warm"             # "none", "natural", "warm", or "power"; used by --polish
+
 [style]
 default = "natural"         # "natural", "clear", "cry", or "growl"
 amount = 1.0                # 0..1, scales the default weight
 morph_ms = 0.0              # 0 = spread a start>end morph over the note
 ```
 
-`backend` selects the synthesis path. Selecting a backend that is not compiled in throws a `parameter_error`. `[neural] model_path` is required by the neural backend, `--polish`, and `--feature-plan`; model weights are not bundled. `[neural] preset = "pc-nsf-hifigan"` selects the OpenVPI 44.1 kHz / hop 512 / `mel`+`f0` contract; the remaining fields override the preset for other vocoders. Preset names are case-insensitive and stored canonical.
+`backend` selects the synthesis path. Selecting a backend that is not compiled in throws a `parameter_error`. `[neural] model_path` is required by the neural backend, `--polish`, and `--feature-plan`; model weights are not bundled, and download locations are listed in [DNN deployment](../guides/neural-deployment.md). `[neural] preset = "pc-nsf-hifigan"` selects the OpenVPI 44.1 kHz / hop 512 / `mel`+`f0` contract; the remaining fields override the preset for other vocoders. Preset names are case-insensitive and stored canonical.
 
 `[neural] frontend` selects how mel/F0 are built for the per-note neural backend. `"world"` (default) renders the time/pitch-transformed WORLD model and extracts mel from that waveform. `"world-spectral"` reads the transformed WORLD spectrogram directly. `"source-mel"` extracts mel from the original voicebank sample and maps it through the UTAU time/pitch controls; `source_hop` sets its mel hop (default 128). `"source-wave"` maps the source waveform through the UTAU time controls before extracting mel. The source-mel, source-wave, and world-spectral frontends are experimental: the current benchmark favors `world`, and their F0/seam metrics are worse on the reference excerpt.
 

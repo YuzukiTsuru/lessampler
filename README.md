@@ -63,13 +63,22 @@ ctest --preset max-gcc --output-on-failure
 
 The executable lands in `build/max-gcc/bin/lessampler`; it is the resampler, the wavtool and the CLI. `lessampler.less` is created next to the binary on first run.
 
+For a scenario preset, generate the config instead of editing every field:
+
+```bash
+python3 scripts/lessampler_config.py --list
+python3 scripts/lessampler_config.py --scenario nhv-note \
+  --models-dir ./models \
+  --output build/max-gcc/bin/lessampler.less --force
+```
+
 ## Backends
 
 WORLD is always built. LLSM (`libllsm2`, GPLv3) and the neural backend are optional; the maximal preset enables both. The neural path supports NHVSing and OpenVPI PC-NSF-HiFiGAN contracts through `[neural] preset` and per-field overrides. It can render per note, resynthesize a whole assembled mix (`--polish`), or assemble per-note mel/F0 features and run the vocoder once (`--feature-plan`). F0 is a separate axis: `[f0] estimator` selects Harvest, DIO, LLSM refinement, or RMVPE; `auto` follows the backend. Model weights are not bundled. See [docs/src/content/docs/guides/neural.md](docs/src/content/docs/guides/neural.md) and [docs/src/content/docs/processing/f0.md](docs/src/content/docs/processing/f0.md).
 
 ## Configuration
 
-`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. `[f0] estimator` is `"auto"`, `"harvest"`, `"dio"`, `"llsm"`, or `"neural"`; RMVPE also needs `[f0] neural_model_path`. `[style] default` sets the voice color for a voicebank (`natural`, `clear`, `cry`, `growl`). Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
+`lessampler.less` is TOML. `[audio_model] backend` is `"world"`, `"llsm"`, or `"neural"`; the neural backend also needs `[neural] model_path`. `[f0] estimator` is `"auto"`, `"harvest"`, `"dio"`, `"llsm"`, or `"neural"`; RMVPE also needs `[f0] neural_model_path`. `[style] default` sets the voice color for a voicebank (`natural`, `clear`, `cry`, `growl`). The [configurator](docs/src/content/docs/getting-started/configurator.md) writes scenario presets; [DNN deployment](docs/src/content/docs/guides/neural-deployment.md) lists ONNX Runtime setup and model download URLs. Caches and performance notes are in [docs/src/content/docs/getting-started/configuration.md](docs/src/content/docs/getting-started/configuration.md).
 
 ## Rendering a UST
 
@@ -92,9 +101,9 @@ python3 scripts/render_ust.py \
 
 The documentation is published at <https://yuzukitsuru.github.io/lessampler/>. The site and source pages are in [`docs/`](docs/):
 
-- Getting started: [Build](docs/src/content/docs/getting-started/build.md), [Configuration](docs/src/content/docs/getting-started/configuration.md)
-- Guides: [Rendering a UST](docs/src/content/docs/guides/rendering.md), [Expression and voice color](docs/src/content/docs/guides/expression.md), [Neural backends](docs/src/content/docs/guides/neural.md), [Quality evaluation](docs/src/content/docs/guides/quality.md)
-- Internals: [Processing pipeline](docs/src/content/docs/processing/index.md), [F0 estimation](docs/src/content/docs/processing/f0.md), [Architecture details](docs/src/content/docs/architecture/index.md)
+- Getting started: [Build](docs/src/content/docs/getting-started/build.md), [Configuration](docs/src/content/docs/getting-started/configuration.md), [Configuration configurator](docs/src/content/docs/getting-started/configurator.md)
+- Guides: [Rendering a UST](docs/src/content/docs/guides/rendering.md), [Expression and voice color](docs/src/content/docs/guides/expression.md), [Neural backends](docs/src/content/docs/guides/neural.md), [DNN deployment](docs/src/content/docs/guides/neural-deployment.md), [Quality evaluation](docs/src/content/docs/guides/quality.md)
+- Internals: [Processing pipeline](docs/src/content/docs/processing/index.md), [Choosing a synthesis path](docs/src/content/docs/processing/paths.md), [F0 estimation](docs/src/content/docs/processing/f0.md), [Architecture details](docs/src/content/docs/architecture/index.md)
 
 ## Special Thanks
 

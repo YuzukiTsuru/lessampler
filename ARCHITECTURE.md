@@ -118,6 +118,11 @@ envelopes and overlap placement; the neural
 path can resynthesize the finished mix (`--polish`) or assemble per-note
 mel/F0 features and run the vocoder once (`--feature-plan`). See
 [docs/src/content/docs/guides/rendering.md](docs/src/content/docs/guides/rendering.md) and [docs/src/content/docs/guides/neural.md](docs/src/content/docs/guides/neural.md).
+Backend, assembly, F0 and voice-color choices are narrowed to recommended
+combinations in
+[docs/src/content/docs/processing/paths.md](docs/src/content/docs/processing/paths.md);
+model deployment is in
+[docs/src/content/docs/guides/neural-deployment.md](docs/src/content/docs/guides/neural-deployment.md).
 
 ## Details
 

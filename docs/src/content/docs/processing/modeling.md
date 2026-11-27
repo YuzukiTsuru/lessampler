@@ -33,7 +33,7 @@ The analysis frame count is
 $$
 N_f=\left\lfloor\frac{1000N_x}{f_sT_0}\right\rfloor+1,
 \qquad
-T_0=\frac{1000\cdot 256}{44100}\approx 5.8054\ \text{ms}
+T_0=\frac{1000\cdot 256}{44100}\approx 5.8050\ \text{ms}
 $$
 
 by default. Defaults: auto (Harvest for WORLD), 40 Hz floor, 0.1 allowed range for DIO, a 71 Hz CheapTrick floor, and a 1200 Hz RMVPE ceiling. A frame with $f_0=0$ is unvoiced.

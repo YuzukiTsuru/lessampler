@@ -181,6 +181,14 @@ if (Python3_Interpreter_FOUND)
             TIMEOUT 60
     )
 
+    add_test(NAME ConfiguratorTest
+            COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/test_lessampler_config.py")
+    set_tests_properties(ConfiguratorTest PROPERTIES
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+            LABELS "unit"
+            TIMEOUT 60
+    )
+
     set(LESSAMPLER_QUALITY_EVAL_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/quality/evaluate.py")
     set(LESSAMPLER_QUALITY_FIXTURE "${CMAKE_CURRENT_SOURCE_DIR}/quality/fixture.ust")
 

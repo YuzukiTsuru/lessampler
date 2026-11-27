@@ -5,6 +5,8 @@ description: "One note, stage by stage: argv and UST parsing, source and cache, 
 
 This page follows one note through the engine in execution order: arguments first, then the source and cache, then F0 and modeling, then pitch and time modification, then single-frame synthesis, then output. The backend boundary is `VocoderBackend::Prepare` for the cacheable analysis and `VocoderBackend::Synthesize` for the per-note render. The engine and hosts never inspect backend data.
 
+Backend, assembly, F0 estimator and voice color are independent choices. [Choosing a synthesis path](paths.md) reduces them to the combinations worth using; this page follows the per-note wavtool path that all of them share.
+
 ```mermaid
 flowchart TD
     A["argv, UST, oto and lessampler.less"] --> B["RenderParams"]
@@ -21,6 +23,7 @@ flowchart TD
 
 | Step | Page |
 | --- | --- |
+| — | [Choosing a synthesis path](paths.md) |
 | 1 | [Arguments in](arguments.md) |
 | 2 | [Source and cache](source.md) |
 | 3 | [Modeling](modeling.md) |

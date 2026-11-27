@@ -26,8 +26,11 @@ lessampler renders singing from UTAU `.ust` projects. It implements the resample
 | --- | --- |
 | Build the project | [Build](getting-started/build/) |
 | Configure a backend | [Configuration](getting-started/configuration/) |
+| Generate a config for a scenario | [Configuration configurator](getting-started/configurator/) |
 | Render a UST end to end | [Rendering a UST](guides/rendering/) |
 | Add breath, vibrato, and voice color | [Expression and voice color](guides/expression/) |
+| Choose between WORLD, LLSM and neural | [Choosing a synthesis path](processing/paths/) |
+| Deploy ONNX Runtime and model weights | [DNN deployment](guides/neural-deployment/) |
 | Understand the neural paths | [Neural backends](guides/neural/) |
 | Measure render quality | [Quality evaluation](guides/quality/) |
 | Follow one note through the engine | [Processing pipeline](processing/) |
